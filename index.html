@@ -442,7 +442,7 @@ function buildNotes(rootIdx,scaleKey,voice,useDown){
 
 /* ---------- Audio ---------- */
 let ctx=null, master=null, nodes=[], timers=[], drone=null;
-let wave=null, unlocked=false, silentEl=null;
+let wave=null, unlocked=false, silentEl=null, micMode=false;
 /* Stilles Audio-Element: schaltet iOS auf „Wiedergabe“, damit der Stummschalter Web Audio nicht stummt */
 function silentWavURI(){
   const n=4410, b=new ArrayBuffer(44+n*2), v=new DataView(b);
@@ -453,14 +453,14 @@ function silentWavURI(){
   return "data:audio/wav;base64,"+btoa(s);
 }
 function ac(){
-  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  try{ if(navigator.audioSession&&!micMode) navigator.audioSession.type="playback"; }catch(e){}
   if(!ctx){const C=window.AudioContext||window.webkitAudioContext; ctx=new C(); master=ctx.createGain(); master.gain.value=.9;
     const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=5000; master.connect(lp); lp.connect(ctx.destination);
     const n=10, re=new Float32Array(n+1), im=new Float32Array(n+1);
     for(let h=1;h<=n;h++) im[h]=1/Math.pow(h,1.15);
     wave=ctx.createPeriodicWave(re,im);
     ctx.onstatechange=updateAudioHint;}
-  if(!unlocked){
+  if(!unlocked&&!micMode){
     unlocked=true;
     try{ silentEl=new Audio(silentWavURI()); silentEl.loop=true; silentEl.setAttribute("playsinline",""); const p=silentEl.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
     try{ const buf=ctx.createBuffer(1,1,22050), src=ctx.createBufferSource(); src.buffer=buf; src.connect(ctx.destination); src.start(0); }catch(e){}
@@ -922,33 +922,54 @@ function liveTick(){
   else { finalizeNote(); if(live.on) live.cur={t0:t,t1:t,ms:[sm]}; }
   if(live.frames.length%12===0) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
 }
+function micErrorText(e){
+  const n=e&&e.name||"", m=e&&e.message||"";
+  let t;
+  if(n==="NotAllowedError"||n==="SecurityError") t="Das iPhone hat den Mikrofonzugriff abgelehnt. Prüfe: Einstellungen › Apps › Safari › Mikrofon auf „Fragen“ oder „Erlauben“. Öffne danach die App neu und tippe wieder auf „Live starten“.";
+  else if(n==="NotFoundError"||n==="OverconstrainedError") t="Es wurde kein Mikrofon gefunden. Hast du Kopfhörer ohne Mikrofon über Bluetooth verbunden? Dann nutzt das iPhone trotzdem sein eigenes Mikrofon – bitte einmal ohne Kopfhörer testen.";
+  else if(n==="NotReadableError"||n==="AbortError") t="Das Mikrofon ist gerade belegt, z. B. durch ein Telefonat, eine Sprachmemo oder eine andere App. Beende diese und versuche es erneut.";
+  else t="Das Mikrofon ließ sich nicht starten.";
+  return t+" (Technisch: "+(n||"unbekannt")+(m?" – "+m:"")+")";
+}
 async function startLive(){
-  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ $("liveStatus").textContent="Dieser Browser erlaubt keinen Mikrofonzugriff. Öffne die App in Safari über https."; return; }
-  const c=ac();
-  try{
-    live.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-  }catch(e){
-    $("liveStatus").textContent="Kein Mikrofonzugriff. Erlaube ihn unter Einstellungen › Safari › Mikrofon bzw. beim Hinweis auf der Seite.";
-    return;
-  }
+  const out=$("liveStatus");
+  if(!window.isSecureContext){ out.textContent="Das Mikrofon funktioniert nur, wenn die App über eine https-Adresse geöffnet ist. Aktuell: "+location.href; return; }
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ out.textContent="Dieser Browser bietet keinen Mikrofonzugriff an. Öffne die Adresse bitte direkt in Safari."; return; }
+  $("liveStart").disabled=true;
+  out.textContent="Frage das Mikrofon an …";
+  // iOS: Audio-Sitzung VOR der Anfrage auf Aufnahme stellen, sonst lehnt Safari ohne Abfrage ab
+  micMode=true;
   try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record"; }catch(e){}
-  if(c.state!=="running") await c.resume();
+  try{ if(silentEl) silentEl.pause(); }catch(e){}
+  let err=null; live.stream=null;
+  try{ live.stream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ err=e; }
+  if(!live.stream){
+    micMode=false;
+    try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+    $("liveStart").disabled=false; out.textContent=micErrorText(err); return;
+  }
+  try{ const tr=live.stream.getAudioTracks()[0]; if(tr&&tr.applyConstraints) await tr.applyConstraints({echoCancellation:false,noiseSuppression:false,autoGainControl:false}); }catch(e){}
+  const c=ac();
+  if(c.state!=="running"){ try{ await c.resume(); }catch(e){} }
   live.src=c.createMediaStreamSource(live.stream); live.an=c.createAnalyser(); live.an.fftSize=4096; live.src.connect(live.an);
   live.buf=new Float32Array(live.an.fftSize);
   live.seq=scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
   $("recOut").hidden=false; liveRedraw();
-  $("tuner").hidden=false; $("liveStart").disabled=true; $("liveStop").disabled=false;
-  $("liveStatus").textContent="Hör den Grundton, dann sing los.";
+  $("tuner").hidden=false; $("liveStop").disabled=false;
+  out.textContent="Hör den Grundton, dann sing los.";
   run([{t:0,midi:live.seq[0].midi,d:1.4}],()=>{},()=>{
     live.t0=ctx.currentTime; live.on=true; live.timer=setInterval(liveTick,40);
-    $("liveStatus").textContent="Ich höre zu. Halte jeden Ton etwa eine Sekunde.";
+    out.textContent="Ich höre zu. Halte jeden Ton etwa eine Sekunde.";
   });
 }
 function stopLive(done){
   live.on=false; clearInterval(live.timer);
   if(live.cur) finalizeNote();
+  try{ live.src&&live.src.disconnect(); }catch(e){}
   try{ live.stream&&live.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  micMode=false;
   try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  try{ if(silentEl){ const p=silentEl.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){}
   $("liveStart").disabled=false; $("liveStop").disabled=true;
   if(live.frames.length) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
   if(!done) $("liveStatus").textContent="Beendet. "+(live.match.some(Boolean)?$("recStatus").textContent:"");
