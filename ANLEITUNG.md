@@ -37,6 +37,8 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 
 **Einsingen:** Der Bereich „Einsingen“ führt in gut 5 Minuten durch sieben Übungen: Atem, Lippenflattern, Summen, Vokalausgleich, Staccato, Legato-Oktave, Ton halten. Stimmlage wählen, „Ganzes Einsingen“ tippen und gleichzeitig mitsingen. Die App spielt jedes Muster in deiner Lage vor und rückt halbtonweise höher und wieder tiefer. Mit „Nur diese“ übst du eine einzelne Übung.
 
+**Theorie:** Der Bereich „Theorie“ enthält die zehn Kapitel Musiktheorie zum Aufklappen und einen interaktiven Quintenzirkel. Tippe auf eine Tonart: Die App zeigt die Vorzeichen im Violin- und Bassschlüssel, die Moll-Parallele und die Regel, mit der du die Tonart aus den Vorzeichen bestimmst, und spielt auf Wunsch die Tonleiter.
+
 ## 4. Meine Noten
 
 - Abschnitt „Meine Noten“ → „Dateien auswählen“: die PDF eines Stücks und, wenn vorhanden, die passende **MusicXML-** (.musicxml, .xml, .mxl) oder **MIDI-Datei** (.mid). Beide können auf einmal ausgewählt werden.
@@ -64,7 +66,7 @@ Danach in einem Stück mit PDF auf **„PDF in Stimmen umwandeln“** tippen. Di
 
 Gut zu wissen:
 - Am besten klappt es mit sauber gesetzten Noten (Verlags- oder Notensatz-PDF). Bei Scans, Fotos, Handschrift oder sehr dichter Partitur entstehen mehr Fehler. Vergleiche das Ergebnis stichprobenartig.
-- Bei vier Systemen (S, A, T, B) setzt die App den Tenor automatisch eine Oktave tiefer und benennt die Stimmen. Liegt eine Stimme trotzdem falsch, im Mixer pro Stimme „8va tiefer / höher“ wählen.
+- Die App erkennt die Besetzung an der Schlüsselfolge (z. B. SATB, SSATB, SATBB, SSAATTBB, Doppelchor), benennt die Stimmen und setzt Tenöre im Violinschlüssel automatisch eine Oktave tiefer. Liegt eine Stimme trotzdem falsch, im Mixer pro Stimme „8va tiefer / höher“ wählen.
 - Haltebögen über den Taktstrich werden manchmal nicht erkannt. Der Ton wird dann neu angeschlagen statt gehalten.
 - Schlüssel ablaufen lassen oder löschen: github.com/settings/personal-access-tokens. In der App dann „Verbindung entfernen“.
 - Läuft etwas schief, steht der Grund im Repository unter „Actions“.

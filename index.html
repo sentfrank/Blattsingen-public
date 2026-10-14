@@ -151,6 +151,42 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
 .wu-how{grid-column:2/4;font-size:.93rem;color:var(--muted);max-width:68ch;margin:0}
 .wu-item button{grid-column:3;grid-row:1;padding:6px 10px;font-size:.85rem}
 @media (max-width:560px){.wu-item{grid-template-columns:1.8rem 1fr}.wu-item button{grid-column:2;grid-row:auto;justify-self:start}.wu-how{grid-column:2}}
+
+/* Theorie */
+.qz{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.qz-head{display:grid;gap:6px}
+.qz-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:700px){.qz-body{grid-template-columns:1fr}}
+.qz-wheel svg{width:100%;max-width:380px;height:auto;display:block;margin:0 auto}
+.qz-wheel .seg{cursor:pointer}
+.qz-wheel .seg:focus{outline:none}
+.qz-wheel .seg:focus-visible path{stroke:var(--accent);stroke-width:3}
+.qz-info{display:grid;gap:10px;min-width:0}
+.qz-title{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.qz-title span:first-child{font:600 1.7rem/1.1 var(--display)}
+.qz-min{font:500 1.05rem var(--display);color:var(--muted)}
+.qz-acc{font:500 .95rem var(--mono);color:var(--hl);margin:0}
+.qz-staffbox{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px}
+.qz-staffbox svg{width:100%;height:auto;display:block}
+.qz-rules{font-size:.95rem;max-width:60ch}
+.qz-mem{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;font-size:.93rem}
+.qz-mem>div{background:var(--bg);border-radius:8px;padding:10px 12px;line-height:1.5}
+.th-list{display:grid;gap:8px}
+.th{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.th summary{cursor:pointer;list-style:none;display:flex;gap:12px;align-items:center;padding:14px 16px;font:600 1.1rem var(--display)}
+.th summary::-webkit-details-marker{display:none}
+.th summary::after{content:"+";margin-left:auto;font:500 1.2rem var(--mono);color:var(--muted)}
+.th[open] summary::after{content:"–"}
+.th-n{font:600 1.2rem/1 var(--display);color:var(--accent);min-width:1.4em}
+.th-body{padding:0 16px 16px;display:grid;gap:10px;max-width:72ch}
+.th-body p,.th-body ul{margin:0}
+.th-body ul{padding-left:1.1em;display:grid;gap:4px}
+.th-body h4{margin:6px 0 0;font:600 1rem var(--display)}
+.th-tip{border-left:3px solid var(--hl);padding:6px 0 6px 12px}
+.tw{overflow-x:auto}
+.tw table{border-collapse:collapse;font-size:.9rem;min-width:100%}
+.tw th,.tw td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tw th{font:500 .72rem var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 .updbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:50;display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--fg);color:var(--bg);padding:12px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
@@ -242,8 +278,8 @@ body.uebe .pdfpages{gap:6px}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 10 · 14.10.2026</span>
-  <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#material">Übematerial</a></nav>
+  <span class="appver">App-Version 11 · 14.10.2026</span>
+  <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
 <section id="routine">
@@ -417,6 +453,276 @@ body.uebe .pdfpages{gap:6px}
       <div class="ivgrid" id="ivgrid"></div>
       <div class="feedback" id="ivFeedback" aria-live="polite"><span class="muted">Klicke „Neues Intervall“ und wähle dann deine Antwort.</span></div>
     </div>
+  </div>
+</section>
+
+<section id="theorie">
+  <div class="sechead">
+    <span class="label">Was du beim Chorsingen wissen musst</span>
+    <h2>Musiktheorie</h2>
+    <p>Zehn Bausteine in der Reihenfolge, in der du sie beim Lesen brauchst. Jedes Kapitel endet mit einem Handgriff für die nächste Probe. Kapitel 1–4 gehören zu Woche 1–4 des Plans, Kapitel 5–10 zu Woche 5–8.</p>
+  </div>
+
+  <div class="qz">
+    <div class="qz-head">
+      <h3>Quintenzirkel zum Merken</h3>
+      <p class="hint">Tippe auf eine Tonart. Im Uhrzeigersinn kommt mit jedem Schritt eine Quinte höher und ein Kreuz dazu, gegen den Uhrzeigersinn eine Quinte tiefer und ein b. Außen stehen die Dur-Tonarten, innen die Moll-Paralleltonarten mit denselben Vorzeichen.</p>
+    </div>
+    <div class="qz-body">
+      <div class="qz-wheel"><svg id="qzSvg" viewBox="0 0 360 360" role="img" aria-label="Quintenzirkel"></svg></div>
+      <div class="qz-info" aria-live="polite">
+        <div class="qz-title"><span id="qzMaj">C-Dur</span><span class="qz-min" id="qzMin">a-Moll</span></div>
+        <p class="qz-acc" id="qzAcc">keine Vorzeichen</p>
+        <div class="qz-staffbox"><svg id="qzStaff" viewBox="0 0 300 150" role="img" aria-label="Vorzeichen im Violin- und Bassschlüssel"></svg></div>
+        <div class="qz-rules" id="qzRule"></div>
+        <div class="btnrow"><button type="button" id="qzPlayMaj">▶ Dur-Tonleiter</button><button type="button" id="qzPlayMin">▶ Moll-Tonleiter</button></div>
+      </div>
+    </div>
+    <div class="qz-mem">
+      <div><b>Kreuze kommen in Quinten dazu:</b> F – C – G – D – A – E – H<br><span class="hint">Tonart finden: Das letzte Kreuz ist der Leitton, einen Halbton höher liegt der Dur-Grundton.</span></div>
+      <div><b>b-Vorzeichen in Quarten:</b> B – Es – As – Des – Ges – Ces – Fes<br><span class="hint">Tonart finden: Das vorletzte b ist der Dur-Grundton. Nur ein b = F-Dur.</span></div>
+      <div><b>Merksätze für die Dur-Tonarten:</b> Kreuze: <i>„Geh Du Alter Esel, Hole Fisch“</i> (G D A E H Fis) · b: <i>„Frische Brötchen Essen Alle Dicken Gänse“</i> (F B Es As Des Ges)<br><span class="hint">Moll: eine kleine Terz unter der Dur-Tonart, gleiche Vorzeichen.</span></div>
+    </div>
+  </div>
+
+  <div class="th-list">
+  <details class="th">
+    <summary><span class="th-n">1</span>Notation und Schlüssel</summary>
+    <div class="th-body">
+      <p>Der Schlüssel legt fest, welcher Ton auf welcher Linie steht; wer ihn nicht in einer halben Sekunde liest, verliert beim Blattsingen den Anschluss. Im Chor begegnen dir fünf Schlüssel.</p>
+      <div class="tw"><table><thead><tr><th>Schlüssel</th><th>Bezugslinie</th><th>Wer liest ihn</th><th>Merkhilfe</th></tr></thead><tbody>
+        <tr><td>Violinschlüssel (G)</td><td>2. Linie = g′</td><td>Sopran, Alt</td><td>Die Spirale umkreist das g′</td></tr>
+        <tr><td>Violinschlüssel mit kleiner 8</td><td>2. Linie = g</td><td>Tenor</td><td>Lesen wie Sopran, klingt eine Oktave tiefer</td></tr>
+        <tr><td>Bassschlüssel (F)</td><td>4. Linie = f</td><td>Bass, oft Tenor in älteren Ausgaben</td><td>Die zwei Punkte umschließen das f</td></tr>
+        <tr><td>Tenorschlüssel (C)</td><td>4. Linie = c′</td><td>Tenor in alten Ausgaben</td><td>Die Mitte des C-Schlüssels zeigt auf c′</td></tr>
+        <tr><td>Altschlüssel (C)</td><td>3. Linie = c′</td><td>Alt in alten Ausgaben</td><td>Wie Tenorschlüssel, eine Linie tiefer</td></tr>
+      </tbody></table></div>
+      <p>Das c′ ist der Ankerton: im Violinschlüssel auf der ersten Hilfslinie unten, im Bassschlüssel auf der ersten Hilfslinie oben.</p>
+      <h4>Deutsche Tonnamen</h4>
+      <p>Der Ton zwischen a und c heißt <b>h</b>, das erniedrigte h heißt <b>b</b>. Ein Kreuz hängt <b>-is</b> an (fis, cis), ein b hängt <b>-es</b> an (des, ges). Ausnahmen: es, as und b. Oktavlagen: Großes C, kleines c, eingestrichenes c′, zweigestrichenes c″.</p>
+      <h4>Vorzeichen</h4>
+      <ul>
+        <li><b>Generalvorzeichen</b> am Zeilenanfang gelten für das ganze Stück und in allen Oktaven.</li>
+        <li><b>Versetzungszeichen</b> im Takt gelten bis zum Taktstrich und nur für diese Tonhöhe.</li>
+        <li>Ein <b>Auflösungszeichen</b> (♮) hebt beides auf. Ein Vorzeichen in Klammern ist nur eine Erinnerung.</li>
+        <li>Ein Haltebogen über den Taktstrich trägt das Versetzungszeichen in den nächsten Takt mit.</li>
+      </ul>
+      <h4>Das Partiturbild</h4>
+      <p>Die Systeme einer Chorpartitur sind am Rand mit einer eckigen Klammer verbunden, meist in der Reihenfolge S, A, T, B. In Kurzpartituren stehen Sopran und Alt in einem System (Hälse nach oben = Sopran), Tenor und Bass im zweiten. <i>Divisi</i> teilt eine Stimmgruppe, <i>unis.</i> führt sie wieder zusammen.</p>
+      <p class="th-tip"><b>Im Chor:</b> Suche in den ersten drei Sekunden: Schlüssel, Generalvorzeichen, Taktart, deine Zeile.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">2</span>Rhythmus, Takt und Tempo</summary>
+    <div class="th-body">
+      <p>Ein falscher Ton ist verzeihlich, ein falscher Rhythmus nicht: Wer aus dem Takt fällt, findet nicht zurück. Rhythmus liest man deshalb zuerst und in Gruppen.</p>
+      <div class="tw"><table><thead><tr><th>Wert</th><th>Dauer im 4/4-Takt</th><th>Pause</th></tr></thead><tbody>
+        <tr><td>Ganze</td><td>4 Schläge</td><td>hängt unter der 4. Linie</td></tr>
+        <tr><td>Halbe</td><td>2 Schläge</td><td>liegt auf der 3. Linie</td></tr>
+        <tr><td>Viertel</td><td>1 Schlag</td><td>Zickzack</td></tr>
+        <tr><td>Achtel</td><td>½ Schlag</td><td>eine Fahne</td></tr>
+        <tr><td>Sechzehntel</td><td>¼ Schlag</td><td>zwei Fahnen</td></tr>
+      </tbody></table></div>
+      <p>Ein <b>Punkt</b> verlängert um die Hälfte. Ein <b>Haltebogen</b> verbindet zwei gleiche Töne, ein <b>Legatobogen</b> über verschiedene Töne heißt im Chor meist: eine Silbe auf mehrere Töne.</p>
+      <h4>Taktarten</h4>
+      <ul>
+        <li><b>Gerade Takte</b> (2/4, 4/4) betonen die 1, schwächer die 3. <b>Ungerade</b> (3/4, 3/2) nur die 1.</li>
+        <li><b>6/8 und 12/8</b> zählt man in punktierten Vierteln: 6/8 hat zwei Schläge.</li>
+        <li><b>Alla breve</b> (¢, 2/2) zählt in Halben, der Normalfall in Renaissance und Barock.</li>
+        <li>Bei <b>Taktwechseln</b> zählt, welcher Notenwert gleich bleibt (oft steht ♪ = ♪ darüber).</li>
+      </ul>
+      <h4>Figuren, die immer wieder kommen</h4>
+      <ul>
+        <li><b>Synkope:</b> Betonung auf unbetonter Zeit, Grundschlag innerlich weiterzählen.</li>
+        <li><b>Triole:</b> drei Noten in der Zeit von zwei.</li>
+        <li><b>Punktierung:</b> Die kurze Note gehört zur folgenden Zählzeit.</li>
+        <li><b>Auftakt:</b> beginnt vor der 1, der Schlusstakt ist entsprechend kürzer.</li>
+      </ul>
+      <div class="tw"><table><thead><tr><th>Tempo</th><th>Bedeutung</th><th>Schläge/Min.</th></tr></thead><tbody>
+        <tr><td>Largo, Grave</td><td>breit, schwer</td><td>40–60</td></tr>
+        <tr><td>Adagio</td><td>langsam</td><td>60–76</td></tr>
+        <tr><td>Andante</td><td>gehend</td><td>76–108</td></tr>
+        <tr><td>Moderato</td><td>mäßig</td><td>108–120</td></tr>
+        <tr><td>Allegro</td><td>schnell</td><td>120–156</td></tr>
+        <tr><td>Presto</td><td>sehr schnell</td><td>über 168</td></tr>
+      </tbody></table></div>
+      <p><i>ritardando</i> langsamer, <i>accelerando</i> schneller, <i>a tempo</i> zurück, <i>Fermate</i> halten bis zum Abwinken.</p>
+      <p class="th-tip"><b>Im Chor:</b> Den Rhythmus deiner Stimme vorab auf „da“ sprechen. Pausentakte an den Fingern mitzählen.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">3</span>Intervalle</summary>
+    <div class="th-body">
+      <p>Der Name kommt aus der Zahl der Notenstufen, die Qualität aus der Zahl der Halbtöne.</p>
+      <div class="tw"><table><thead><tr><th>Intervall</th><th>Halbtöne</th><th>ab c′</th><th>Merklied</th></tr></thead><tbody>
+        <tr><td>kleine Sekunde</td><td>1</td><td>c′–des′</td><td>↑ Der weiße Hai</td></tr>
+        <tr><td>große Sekunde</td><td>2</td><td>c′–d′</td><td>↑ Alle meine Entchen</td></tr>
+        <tr><td>kleine Terz</td><td>3</td><td>c′–es′</td><td>↓ Kuckuck, Kuckuck</td></tr>
+        <tr><td>große Terz</td><td>4</td><td>c′–e′</td><td>↑ Oh When the Saints</td></tr>
+        <tr><td>reine Quarte</td><td>5</td><td>c′–f′</td><td>↑ O Tannenbaum</td></tr>
+        <tr><td>Tritonus</td><td>6</td><td>c′–fis′</td><td>↑ Maria (West Side Story)</td></tr>
+        <tr><td>reine Quinte</td><td>7</td><td>c′–g′</td><td>↑ Morgen kommt der Weihnachtsmann</td></tr>
+        <tr><td>kleine Sexte</td><td>8</td><td>c′–as′</td><td></td></tr>
+        <tr><td>große Sexte</td><td>9</td><td>c′–a′</td><td>↑ My Bonnie</td></tr>
+        <tr><td>kleine Septime</td><td>10</td><td>c′–b′</td><td>↑ Star Trek</td></tr>
+        <tr><td>große Septime</td><td>11</td><td>c′–h′</td><td></td></tr>
+        <tr><td>Oktave</td><td>12</td><td>c′–c″</td><td>↑ Somewhere Over the Rainbow</td></tr>
+      </tbody></table></div>
+      <h4>Linie und Zwischenraum</h4>
+      <p>Terz, Quinte, Septime liegen Linie–Linie oder Zwischenraum–Zwischenraum. Sekunde, Quarte, Sexte, Oktave wechseln zwischen Linie und Zwischenraum. So erkennst du die Sprunggröße auf einen Blick.</p>
+      <h4>Klein oder groß?</h4>
+      <p>In Dur sind alle Intervalle vom Grundton aus groß oder rein. Zwischen e–f und h–c liegen nur Halbtöne: Eine Terz, die einen davon enthält, ist klein (d–f, a–c, e–g, h–d).</p>
+      <h4>Umkehrung und Klang</h4>
+      <p>Umkehrungen ergänzen sich zu 9 (Terz ↔ Sexte, Quarte ↔ Quinte); klein wird groß, rein bleibt rein. Vollkommene Konsonanzen: Prime, Oktave, Quinte. Unvollkommene: Terzen, Sexten. Dissonanzen: Sekunden, Septimen, Tritonus – sie lösen sich meist schrittweise abwärts auf.</p>
+      <p class="th-tip"><b>Im Chor:</b> Jeden Sprung ab der Quarte mit Bleistift markieren und vor dem Durchgang einmal isoliert singen.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">4</span>Tonleitern und Tonarten</summary>
+    <div class="th-body">
+      <p>Kennst du den Grundton, singst du jeden Ton als Stufe in Bezug auf ihn, statt Intervalle zu rechnen. Das ist der größte Hebel beim Blattsingen.</p>
+      <p><b>Dur:</b> Ganz – Ganz – Halb – Ganz – Ganz – Ganz – Halb. Halbtöne zwischen Stufe 3–4 und 7–8; die 7. Stufe heißt <b>Leitton</b>.</p>
+      <div class="tw"><table><thead><tr><th>Moll</th><th>Unterschied zu Dur</th><th>in a-Moll</th></tr></thead><tbody>
+        <tr><td>natürlich</td><td>3., 6., 7. Stufe tief</td><td>a h c d e f g a</td></tr>
+        <tr><td>harmonisch</td><td>7. Stufe hoch (Leitton)</td><td>a h c d e f <b>gis</b> a</td></tr>
+        <tr><td>melodisch</td><td>aufwärts 6. und 7. hoch</td><td>a h c d e <b>fis gis</b> a</td></tr>
+      </tbody></table></div>
+      <p>Das harmonische Moll enthält f–gis, eine <b>übermäßige Sekunde</b>: klingt wie eine kleine Terz, sieht aus wie eine Sekunde.</p>
+      <p><b>Dur oder Moll?</b> Jede Vorzeichnung gehört zu einer Dur-Tonart und ihrer Paralleltonart eine kleine Terz tiefer. Entscheidend sind der Schlusston im Bass und ob der Leitton der Molltonart erhöht auftaucht (in a-Moll das gis). Der Quintenzirkel oben zeigt alle Paare.</p>
+      <h4>Solmisation</h4>
+      <ul>
+        <li><b>Relativ:</b> Der Grundton heißt do. Moll wahlweise auf la (la ti do …) oder auf do (do re me …).</li>
+        <li><b>Absolut:</b> do ist immer c, re immer d – eine Alternative zu den Tonnamen.</li>
+      </ul>
+      <p class="th-tip"><b>Im Chor:</b> Vor jedem Einsatz kurz den Grundton summen und den Einsatzton als Stufe davon finden.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">5</span>Kirchentonarten und alte Musik</summary>
+    <div class="th-body">
+      <div class="tw"><table><thead><tr><th>Modus</th><th>weiße Tasten</th><th>Unterschied</th><th>Klang</th></tr></thead><tbody>
+        <tr><td>Ionisch</td><td>c–c</td><td>= Dur</td><td>hell</td></tr>
+        <tr><td>Dorisch</td><td>d–d</td><td>Moll mit großer Sexte</td><td>herb, offen</td></tr>
+        <tr><td>Phrygisch</td><td>e–e</td><td>Moll mit kleiner Sekunde</td><td>dunkel</td></tr>
+        <tr><td>Lydisch</td><td>f–f</td><td>Dur mit übermäßiger Quarte</td><td>schwebend</td></tr>
+        <tr><td>Mixolydisch</td><td>g–g</td><td>Dur mit kleiner Septime</td><td>erdig</td></tr>
+        <tr><td>Äolisch</td><td>a–a</td><td>= natürliches Moll</td><td>ernst</td></tr>
+      </tbody></table></div>
+      <p>Hat die Vorzeichnung „zu wenig“ Vorzeichen für die Tonart (g mit nur einem b), ist es meist ein Modus (g-Dorisch). Die <b>Finalis</b> ist der Schlusston; der tiefste Ton einer Stimme ist nicht automatisch der Grundton.</p>
+      <p><b>Musica ficta:</b> In modernen Ausgaben stehen ergänzte Vorzeichen klein über der Note und gelten nur für sie. <b>Mensurstriche</b> zwischen den Systemen zeigen den Puls, keine Betonung; die Halbe ist der Schlag. Betonung entsteht aus dem Text.</p>
+      <p class="th-tip"><b>Im Chor:</b> Bei Renaissance-Musik zuerst den Schlusston der Bassstimme prüfen – von ihm aus liest du die Stufen.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">6</span>Akkorde und Funktionen</summary>
+    <div class="th-body">
+      <div class="tw"><table><thead><tr><th>Dreiklang</th><th>Aufbau</th><th>Beispiel</th></tr></thead><tbody>
+        <tr><td>Dur</td><td>große + kleine Terz</td><td>c–e–g</td></tr>
+        <tr><td>Moll</td><td>kleine + große Terz</td><td>a–c–e</td></tr>
+        <tr><td>vermindert</td><td>kleine + kleine Terz</td><td>h–d–f</td></tr>
+        <tr><td>übermäßig</td><td>große + große Terz</td><td>c–e–gis</td></tr>
+      </tbody></table></div>
+      <p>Für die Umkehrung zählt nur der tiefste Ton: Grundstellung, Sextakkord (Terz im Bass), Quartsextakkord (Quinte im Bass).</p>
+      <div class="tw"><table><thead><tr><th>Funktion</th><th>Stufe</th><th>in C-Dur</th><th>Rolle</th></tr></thead><tbody>
+        <tr><td>Tonika (T)</td><td>I</td><td>c–e–g</td><td>Ruhe, Ziel</td></tr>
+        <tr><td>Subdominante (S)</td><td>IV</td><td>f–a–c</td><td>Bewegung weg</td></tr>
+        <tr><td>Dominante (D)</td><td>V</td><td>g–h–d</td><td>Spannung, will zur Tonika</td></tr>
+      </tbody></table></div>
+      <p>Der <b>Dominantseptakkord</b> g–h–d–f löst sich fest auf: h steigt zum c, f fällt zum e. Singst du die Septime, kommt fast immer ein Ton tiefer.</p>
+      <ul>
+        <li><b>Grundton:</b> stabil. <b>Terz:</b> bestimmt Dur/Moll, in Dur eher tief.</li>
+        <li><b>Quinte:</b> muss rein sein. <b>Septime/Leitton:</b> Spannungston, will weiter.</li>
+      </ul>
+      <p class="th-tip"><b>Im Chor:</b> In schwierigen Takten klein T, S, D und deinen Akkordton (1, 3, 5, 7) über die Note schreiben.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">7</span>Kadenzen, Vorhalte und Modulation</summary>
+    <div class="th-body">
+      <div class="tw"><table><thead><tr><th>Kadenz</th><th>Folge</th><th>Wirkung</th></tr></thead><tbody>
+        <tr><td>Ganzschluss</td><td>D → T</td><td>fest, endgültig</td></tr>
+        <tr><td>Halbschluss</td><td>… → D</td><td>offen, fragend</td></tr>
+        <tr><td>Trugschluss</td><td>D → VI</td><td>Überraschung, geht weiter</td></tr>
+        <tr><td>Plagalschluss</td><td>S → T</td><td>weich, „Amen“</td></tr>
+      </tbody></table></div>
+      <p>Typisch im Bass: Stufe 4 – 5 – 1, im Sopran 2 – 1 oder 7 – 8.</p>
+      <ul>
+        <li><b>Vorhalt:</b> Ein Ton bleibt liegen, reibt und löst sich abwärts auf (4–3-Vorhalt). Bewusst singen, leise auflösen.</li>
+        <li><b>Durchgang, Wechselnote, Antizipation:</b> Zwischentöne auf unbetonter Zeit.</li>
+        <li><b>Erhöhte Töne</b> (♯, ♮ statt ♭) ziehen aufwärts, <b>erniedrigte</b> abwärts: Singe sie als Annäherung an ihr Ziel.</li>
+      </ul>
+      <p><b>Modulation</b> von C-Dur: fis → G-Dur, b → F-Dur, gis → a-Moll, es/as/b → c-Moll. Erkennbar an einem neuen Leitton, der mehrfach kommt, und an einer Kadenz.</p>
+      <p class="th-tip"><b>Im Chor:</b> Kommt derselbe fremde Ton zum zweiten Mal, ist das Stück vermutlich moduliert – kurz den neuen Grundton summen.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">8</span>Mehrstimmigkeit und Satzarten</summary>
+    <div class="th-body">
+      <div class="tw"><table><thead><tr><th>Satzart</th><th>Merkmal</th><th>Was du tust</th></tr></thead><tbody>
+        <tr><td>Homophon</td><td>alle im gleichen Rhythmus</td><td>Akkord hören, Funktion denken</td></tr>
+        <tr><td>Melodie + Begleitung</td><td>eine Stimme führt</td><td>leiser, wenn du nicht führst</td></tr>
+        <tr><td>Polyphon</td><td>Stimmen gleichwertig, eigener Rhythmus</td><td>Linie gestalten, Einsätze zählen</td></tr>
+        <tr><td>Doppelchörig</td><td>zwei Chöre im Wechsel</td><td>Pausen zählen, sofort anschließen</td></tr>
+      </tbody></table></div>
+      <ul>
+        <li><b>Imitation:</b> Ein Motiv wandert durch die Stimmen – wer es schon gesehen hat, kann es fast auswendig.</li>
+        <li><b>Fuge:</b> Das Thema kommt nacheinander in allen Stimmen; wenn es bei dir kommt, präsent singen.</li>
+        <li><b>Stimmführung:</b> meist Schritte, nach großem Sprung Gegenrichtung, Gegenbewegung zum Bass, keine Quint- und Oktavparallelen, gemeinsame Töne bleiben liegen.</li>
+        <li><b>Madrigalismen:</b> Die Musik malt den Text (aufsteigend bei „ascendit“, Chromatik bei Schmerz).</li>
+      </ul>
+      <p class="th-tip"><b>Im Chor:</b> Vor deinem Einsatz in die Stimme schauen, die das Motiv vor dir bringt – oft singst du es eine Quinte versetzt nach.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">9</span>Intonation und Stimmung</summary>
+    <div class="th-body">
+      <p>Ein a-cappella-Chor stimmt rein, nicht wie ein Klavier: Jedes Intervall passt sich dem Akkord an. 100 Cent = ein Klavier-Halbton.</p>
+      <div class="tw"><table><thead><tr><th>Intervall</th><th>rein</th><th>gegen Klavier</th><th>Für dich</th></tr></thead><tbody>
+        <tr><td>Oktave</td><td>2 : 1</td><td>0 Cent</td><td>exakt</td></tr>
+        <tr><td>Quinte</td><td>3 : 2</td><td>ca. +2</td><td>einen Hauch weiter</td></tr>
+        <tr><td>Quarte</td><td>4 : 3</td><td>ca. −2</td><td>einen Hauch enger</td></tr>
+        <tr><td>große Terz</td><td>5 : 4</td><td>ca. −14</td><td>deutlich tiefer</td></tr>
+        <tr><td>kleine Terz</td><td>6 : 5</td><td>ca. +16</td><td>deutlich höher</td></tr>
+      </tbody></table></div>
+      <ul>
+        <li>Grundton und Quinte stabil, große Terz im Dur eher tief, kleine Terz im Moll eher hoch.</li>
+        <li>Leitton als Melodie eher hoch, Septimen eher tief, wiederholte Töne nicht absinken lassen.</li>
+        <li><b>Gegen das Sinken:</b> Halbtöne abwärts klein, Ganztöne aufwärts weit, Vokale hell.</li>
+        <li><b>Stimmton:</b> meist a′ = 440 Hz, Barock oft 415 Hz (fast einen Halbton tiefer).</li>
+      </ul>
+      <p class="th-tip"><b>Im Chor:</b> Bei langen Akkorden zuerst auf den Bass hören, dann dorthin bewegen, wo die Schwebung verschwindet.</p>
+    </div>
+  </details>
+
+  <details class="th">
+    <summary><span class="th-n">10</span>Vortrag, Zeichen und Formen</summary>
+    <div class="th-body">
+      <div class="tw"><table><thead><tr><th>Zeichen</th><th>Bedeutung</th></tr></thead><tbody>
+        <tr><td><i>pp · p</i></td><td>sehr leise, leise</td></tr>
+        <tr><td><i>mp · mf</i></td><td>halbleise, halblaut</td></tr>
+        <tr><td><i>f · ff</i></td><td>laut, sehr laut</td></tr>
+        <tr><td><i>cresc.</i> / <i>dim.</i></td><td>lauter / leiser werden</td></tr>
+        <tr><td><i>sf, fp, subito</i></td><td>plötzlich betont / laut-dann-leise / plötzlich</td></tr>
+      </tbody></table></div>
+      <ul>
+        <li><b>Staccato</b> kurz, <b>Tenuto</b> voller Wert, <b>Akzent</b> betont, <b>Legato</b> gebunden.</li>
+        <li><b>Atemzeichen</b> (Komma) hier atmen; <b>Zäsur</b> (//) kurze Stille für alle. <b>Chorisches Atmen:</b> versetzt, nie am Taktstrich.</li>
+        <li><b>Text:</b> Bindestrich = Wort geht weiter, Unterstrich = Silbe hält über mehrere Noten. Schlusskonsonanten gemeinsam.</li>
+        <li><b>Wiederholungen:</b> ‖: :‖, Volta 1./2., <i>D.C.</i> von vorn, <i>D.S.</i> ab Zeichen, <i>al Fine</i>, <i>Coda</i>.</li>
+        <li><b>Formen:</b> Motette, Madrigal, Choral, Messe (Kyrie, Gloria, Credo, Sanctus, Benedictus, Agnus Dei), Kantate, Oratorium, Chorlied.</li>
+        <li><b>Begriffe:</b> a cappella, colla parte, divisi, tutti, bocca chiusa (summen), sotto voce, morendo, attacca, tacet.</li>
+      </ul>
+      <p class="th-tip"><b>Im Chor:</b> Vor der ersten Probe alle Dynamik- und Atemzeichen deiner Stimme mit Bleistift einkreisen.</p>
+    </div>
+  </details>
   </div>
 </section>
 
@@ -1165,6 +1471,79 @@ $("wuVoice").value=store.get("wuVoice",st.voice||"S");
 wuRender();
 
 
+/* ---------- Quintenzirkel ---------- */
+const QZ=[
+ {maj:"C",min:"a",n:0,root:0},{maj:"G",min:"e",n:1,root:7},{maj:"D",min:"h",n:2,root:2},{maj:"A",min:"fis",n:3,root:9},
+ {maj:"E",min:"cis",n:4,root:4},{maj:"H",min:"gis",n:5,root:11},{maj:"Fis",min:"dis",n:6,root:6,alt:{maj:"Ges",min:"es",n:-6}},
+ {maj:"Des",min:"b",n:-5,root:1},{maj:"As",min:"f",n:-4,root:8},{maj:"Es",min:"c",n:-3,root:3},{maj:"B",min:"g",n:-2,root:10},{maj:"F",min:"d",n:-1,root:5}];
+const QZ_SH=["Fis","Cis","Gis","Dis","Ais","Eis","His"], QZ_FL=["B","Es","As","Des","Ges","Ces","Fes"];
+const QZ_LEAD={Fis:"G",Cis:"D",Gis:"A",Dis:"E",Ais:"H",Eis:"Fis",His:"Cis"};
+let qzSel=0, qzAlt=false;
+function qzKey(){ const k=QZ[qzSel]; return (k.alt&&qzAlt)?Object.assign({},k,k.alt):k; }
+function qzWheel(){
+  const svg=$("qzSvg"); svg.innerHTML=""; const C=180, R1=172, R2=116, R3=66;
+  const pt=(r,a)=>[C+r*Math.sin(a),C-r*Math.cos(a)];
+  const wedge=(r0,r1,a0,a1)=>{ const p=[pt(r1,a0),pt(r1,a1),pt(r0,a1),pt(r0,a0)];
+    return "M"+p[0]+"A"+r1+" "+r1+" 0 0 1 "+p[1]+"L"+p[2]+"A"+r0+" "+r0+" 0 0 0 "+p[3]+"Z"; };
+  QZ.forEach((k,i)=>{
+    const a0=(i-0.5)*Math.PI/6, a1=(i+0.5)*Math.PI/6, am=i*Math.PI/6, on=i===qzSel;
+    const g=el("g",{class:"seg",tabindex:"0",role:"button","aria-label":k.maj+"-Dur und "+k.min+"-Moll"});
+    g.appendChild(el("path",{d:wedge(R2,R1,a0,a1),fill:on?"var(--accent)":"var(--surface)",stroke:"var(--line)","stroke-width":1.2}));
+    g.appendChild(el("path",{d:wedge(R3,R2,a0,a1),fill:on?"var(--accent-soft)":"var(--bg)",stroke:"var(--line)","stroke-width":1.2}));
+    const majName=k.alt?k.maj+"/"+k.alt.maj:k.maj, minName=k.alt?k.min+"/"+k.alt.min:k.min;
+    const [mx,my]=pt((R1+R2)/2,am), [nx,ny]=pt((R2+R3)/2,am), cx=mx, cy=my+13;
+    g.appendChild(el("text",{x:mx,y:my-1,"text-anchor":"middle","font-family":"var(--display)","font-size":k.alt?14:19,"font-weight":600,fill:on?"var(--surface)":"var(--fg)"},majName));
+    const cnt=k.alt?"6♯/6♭":k.n===0?"–":Math.abs(k.n)+(k.n>0?"♯":"♭");
+    g.appendChild(el("text",{x:cx,y:cy+4,"text-anchor":"middle","font-family":"var(--mono)","font-size":10.5,fill:on?"var(--surface)":"var(--muted)"},cnt));
+    g.appendChild(el("text",{x:nx,y:ny+5,"text-anchor":"middle","font-family":"var(--display)","font-size":k.alt?11.5:14,fill:"var(--fg)"},minName));
+    const pick=()=>{ if(qzSel===i&&k.alt) qzAlt=!qzAlt; else { qzSel=i; qzAlt=false; } qzWheel(); qzInfo(); };
+    g.addEventListener("click",pick);
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); } });
+    svg.appendChild(g);
+  });
+  svg.appendChild(el("circle",{cx:C,cy:C,r:R3-6,fill:"var(--surface)",stroke:"var(--line)"}));
+  svg.appendChild(el("text",{x:C,y:C-6,"text-anchor":"middle","font-family":"var(--mono)","font-size":9.5,fill:"var(--muted)"},"♯ im Uhrzeigersinn"));
+  svg.appendChild(el("text",{x:C,y:C+12,"text-anchor":"middle","font-family":"var(--mono)","font-size":9.5,fill:"var(--muted)"},"♭ dagegen"));
+}
+function qzStaff(n){
+  const svg=$("qzStaff"); svg.innerHTML="";
+  const staff=(yb,clef)=>{ for(let i=0;i<5;i++) svg.appendChild(el("line",{x1:10,x2:290,y1:yb-i*10,y2:yb-i*10,stroke:"var(--muted)","stroke-width":1}));
+    svg.appendChild(el("text",{x:16,y:clef==="F"?yb-23:yb-4,"font-family":"var(--display)","font-size":30,"font-weight":600,fill:"var(--fg)"},clef)); };
+  staff(58,"G"); staff(132,"F");
+  const tr=n>0?[8,5,9,6,3,7,4]:[4,7,3,6,2,5,1], bs=n>0?[6,3,7,4,1,5,2]:[2,5,1,4,0,3,-1], sym=n>0?"♯":"♭", c=Math.abs(n);
+  for(let i=0;i<c;i++){
+    const x=60+i*22;
+    [[58,tr[i]],[132,bs[i]]].forEach(([yb,st])=>{ const y=yb-st*5;
+      svg.appendChild(el("text",{x:x,y:y+(n>0?6:4),"text-anchor":"middle","font-family":"var(--body)","font-size":22,"font-weight":600,fill:"var(--hl)"},sym)); });
+    svg.appendChild(el("text",{x:x,y:148,"text-anchor":"middle","font-family":"var(--mono)","font-size":9.5,fill:"var(--muted)"},(n>0?QZ_SH:QZ_FL)[i]));
+  }
+  if(!c) svg.appendChild(el("text",{x:150,y:96,"text-anchor":"middle","font-family":"var(--body)","font-size":13,fill:"var(--muted)"},"keine Vorzeichen"));
+}
+function qzInfo(){
+  const k=qzKey(), n=k.n, c=Math.abs(n);
+  $("qzMaj").textContent=k.maj+"-Dur"; $("qzMin").textContent="Parallele: "+k.min+"-Moll";
+  $("qzAcc").textContent=c?c+(n>0?" Kreuz"+(c>1?"e":"")+": ":" b: ")+(n>0?QZ_SH:QZ_FL).slice(0,c).join(", "):"keine Vorzeichen";
+  let r;
+  if(!c) r="Keine Vorzeichen: <b>C-Dur</b> oder <b>a-Moll</b>. Moll erkennst du am Schlusston a und am erhöhten Leitton gis.";
+  else if(n>0){ const last=QZ_SH[c-1]; r="Letztes Kreuz ist <b>"+last+"</b> = Leitton. Einen Halbton höher liegt der Grundton: <b>"+QZ_LEAD[last]+"-Dur</b>. Die Moll-Parallele liegt eine kleine Terz tiefer: <b>"+k.min+"-Moll</b>.";
+    if(c===6&&QZ[qzSel].alt) r+=" Tippe noch einmal auf das Feld für Ges-Dur mit 6 b – gleicher Klang, andere Schreibweise.";}
+  else if(c===1) r="Ein einziges b: <b>F-Dur</b> (Ausnahme der Regel) oder <b>d-Moll</b>.";
+  else { r="Das vorletzte b ist der Grundton: <b>"+QZ_FL[c-2]+"-Dur</b>. Die Moll-Parallele: <b>"+k.min+"-Moll</b>.";
+    if(c===6) r+=" Tippe noch einmal für Fis-Dur mit 6 Kreuzen."; }
+  $("qzRule").innerHTML=r;
+  qzStaff(n);
+}
+function qzPlay(minor){
+  const k=QZ[qzSel], up=buildNotes(k.root,"dur",st.voice), r=up[0].midi;
+  const mids=minor?[0,2,3,5,7,8,10,12].map(x=>r-3+x):up.map(n=>n.midi);
+  const seq=mids.concat(mids.slice(0,-1).reverse()), b=.38;
+  run(seq.map((m,i)=>({t:i*b,midi:m,d:i===seq.length-1?b*2:b*.9})),()=>{},()=>{});
+}
+$("qzPlayMaj").onclick=()=>qzPlay(false);
+$("qzPlayMin").onclick=()=>qzPlay(true);
+qzWheel(); qzInfo();
+
+
 /* ---------- Live-Modus mit Mikrofon ---------- */
 const live={mode:"scale",on:false,stream:null,src:null,an:null,buf:null,timer:null,seq:[],idx:0,match:[],oct:null,win:[],cur:null,frames:[],t0:0};
 function yinFrame(x,sr){
@@ -1668,7 +2047,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="10 · 14.10.2026";
+const APP_VERSION="11 · 14.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -1863,7 +2242,7 @@ function plEntry(){
 
 
 /* --- Automatische Umwandlung PDF → MusicXML über GitHub --- */
-const OMR_FILES={".github/workflows/umwandeln.yml": "name: Noten umwandeln\n\non:\n  push:\n    paths:\n      - \"umwandeln/**.pdf\"\n  workflow_dispatch:\n\npermissions:\n  contents: write\n\nconcurrency:\n  group: umwandeln\n  cancel-in-progress: false\n\njobs:\n  umwandeln:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 45\n    steps:\n      - uses: actions/checkout@v4\n\n      - uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n\n      - name: PDF-Werkzeug installieren\n        run: sudo apt-get update -q && sudo apt-get install -y -q poppler-utils\n\n      - name: Notenerkennung aus dem Zwischenspeicher holen\n        id: cache\n        uses: actions/cache@v4\n        with:\n          path: ~/omr-venv\n          key: homr-0.7.0-onnx-1.31.0-py312-v1\n\n      - name: Notenerkennung installieren\n        if: steps.cache.outputs.cache-hit != 'true'\n        run: |\n          python -m venv ~/omr-venv\n          ~/omr-venv/bin/pip install -q \"homr==0.7.0\" \"onnxruntime==1.31.0\"\n          # Modelle herunterladen, damit sie mit zwischengespeichert werden\n          ~/omr-venv/bin/homr --init\n\n      - name: Umwandeln\n        run: |\n          export PATH=\"$HOME/omr-venv/bin:$PATH\"\n          python tools/omr.py\n\n      - name: Ergebnis speichern\n        run: |\n          git config user.name \"Noten-Umwandlung\"\n          git config user.email \"41898282+github-actions[bot]@users.noreply.github.com\"\n          git add -A ergebnis umwandeln\n          git commit -m \"Noten umgewandelt\" || exit 0\n          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done\n", "tools/omr.py": "#!/usr/bin/env python3\n\"\"\"PDF-Chornoten -> MusicXML (für die Blattsingen-App).\n\nAblauf je PDF in umwandeln/:  Seiten als Bilder (300 dpi) -> Notenerkennung mit homr ->\nSeiten zu einer Partitur zusammenfügen -> Tenor-Oktave korrigieren -> Stimmen benennen ->\nergebnis/<id>.musicxml + ergebnis/<id>.json (Status für die App).\n\"\"\"\nimport json, os, subprocess, sys, tempfile, glob, time, shutil, copy\nimport xml.etree.ElementTree as ET\nsys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\nfrom layout import page_layout\n\nIN_DIR, OUT_DIR = \"umwandeln\", \"ergebnis\"\n\n\ndef status(job, **kw):\n    os.makedirs(OUT_DIR, exist_ok=True)\n    kw.setdefault(\"zeit\", int(time.time()))\n    with open(os.path.join(OUT_DIR, job + \".json\"), \"w\", encoding=\"utf-8\") as f:\n        json.dump(kw, f, ensure_ascii=False, indent=1)\n\n\ndef pages_to_png(pdf, tmp):\n    subprocess.run([\"pdftoppm\", \"-r\", \"300\", \"-png\", pdf, os.path.join(tmp, \"seite\")], check=True)\n    return sorted(glob.glob(os.path.join(tmp, \"seite*.png\")), key=lambda p: int(p.rsplit(\"-\", 1)[-1].split(\".\")[0]))\n\n\ndef recognize(png):\n    r = subprocess.run([\"homr\", \"--write-staff-positions\", png], capture_output=True, text=True, timeout=1500)\n    out = png[:-4] + \".musicxml\"\n    if r.returncode != 0 or not os.path.exists(out):\n        raise RuntimeError((r.stderr or r.stdout or \"unbekannter Fehler\").strip().splitlines()[-1][:300])\n    return out\n\n\ndef page_systems(xml_path):\n    \"\"\"Taktanzahl je System und Taktlängen (in Vierteln) aus einer Seiten-MusicXML.\"\"\"\n    part = ET.parse(xml_path).getroot().find(\"part\")\n    counts, durs, div = [], [], 1\n    for i, m in enumerate(part.findall(\"measure\")):\n        d = m.findtext(\"attributes/divisions\")\n        if d and d.strip().isdigit() and int(d) > 0:\n            div = int(d)\n        if i == 0 or m.find(\"print\") is not None and m.find(\"print\").get(\"new-system\") == \"yes\":\n            counts.append(0)\n        counts[-1] += 1\n        pos = mx = 0\n        for e in m:\n            if e.tag == \"backup\":\n                pos -= int(e.findtext(\"duration\") or 0)\n            elif e.tag == \"forward\":\n                pos += int(e.findtext(\"duration\") or 0); mx = max(mx, pos)\n            elif e.tag == \"note\" and e.find(\"chord\") is None and e.find(\"grace\") is None:\n                pos += int(e.findtext(\"duration\") or 0); mx = max(mx, pos)\n        durs.append(mx / div)\n    return counts, durs\n\n\ndef clef_of(part):\n    for m in part.findall(\"measure\"):\n        c = m.find(\"attributes/clef\")\n        if c is not None:\n            sign = (c.findtext(\"sign\") or \"\").strip()\n            oc = (c.findtext(\"clef-octave-change\") or \"0\").strip()\n            return sign, int(oc or 0)\n    return \"\", 0\n\n\ndef shift_octave(part, k):\n    for p in part.iter(\"pitch\"):\n        o = p.find(\"octave\")\n        if o is not None and (o.text or \"\").strip().lstrip(\"-\").isdigit():\n            o.text = str(int(o.text) + k)\n\n\ndef merge(files, warnings):\n    trees = [ET.parse(f) for f in files]\n    base = trees[0].getroot()\n    bparts = base.findall(\"part\")\n    for pi, t in enumerate(trees[1:], start=2):\n        parts = t.getroot().findall(\"part\")\n        if len(parts) != len(bparts):\n            warnings.append(f\"Seite {pi}: {len(parts)} statt {len(bparts)} Stimmen erkannt – bitte prüfen.\")\n        for i, p in enumerate(parts[:len(bparts)]):\n            for m in p.findall(\"measure\"):\n                bparts[i].append(copy.deepcopy(m))\n        # fehlende Stimmen mit Pausentakten auffüllen, damit alle gleich lang bleiben\n        if len(parts) < len(bparts) and parts:\n            ref = parts[0].findall(\"measure\")\n            for p in bparts[len(parts):]:\n                for m in ref:\n                    nm = ET.SubElement(p, \"measure\")\n                    dur = sum(int(n.findtext(\"duration\") or 0) for n in m.findall(\"note\") if n.find(\"chord\") is None)\n                    if dur:\n                        n = ET.SubElement(nm, \"note\"); ET.SubElement(n, \"rest\"); ET.SubElement(n, \"duration\").text = str(dur)\n    for p in bparts:\n        for k, m in enumerate(p.findall(\"measure\"), start=1):\n            m.set(\"number\", str(k))\n    return trees[0]\n\n\ndef name_parts(tree, warnings):\n    root = tree.getroot()\n    parts = root.findall(\"part\")\n    clefs = [clef_of(p) for p in parts]\n    signs = [c[0] for c in clefs]\n    names = None\n    if len(parts) == 4 and signs[3] == \"F\" and signs[0] == \"G\" and signs[1] == \"G\":\n        names = [\"Sopran\", \"Alt\", \"Tenor\", \"Bass\"]\n        if signs[2] == \"G\" and clefs[2][1] == 0:\n            shift_octave(parts[2], -1)\n            warnings.append(\"Tenor eine Oktave tiefer gesetzt (Violinschlüssel mit 8).\")\n    elif len(parts) == 2 and signs == [\"G\", \"F\"]:\n        names = [\"Frauenstimmen\", \"Männerstimmen\"]\n    elif len(parts) == 3 and signs == [\"G\", \"G\", \"F\"]:\n        names = [\"Sopran\", \"Alt\", \"Bass\"]\n    if names is None:\n        names = [f\"Stimme {i + 1}\" for i in range(len(parts))]\n    byid = {sp.get(\"id\"): sp for sp in root.findall(\"part-list/score-part\")}\n    for p, nm in zip(parts, names):\n        sp = byid.get(p.get(\"id\"))\n        if sp is not None:\n            pn = sp.find(\"part-name\")\n            if pn is None:\n                pn = ET.SubElement(sp, \"part-name\")\n            pn.text = nm\n    return names\n\n\ndef convert(pdf):\n    job = os.path.splitext(os.path.basename(pdf))[0]\n    status(job, status=\"läuft\")\n    warnings = []\n    tmp = tempfile.mkdtemp()\n    try:\n        pngs = pages_to_png(pdf, tmp)\n        if not pngs:\n            raise RuntimeError(\"Die PDF enthält keine Seiten.\")\n        if len(pngs) > 30:\n            raise RuntimeError(\"Die PDF hat mehr als 30 Seiten.\")\n        xmls, layout, exact, nsys = [], [], 0, 0\n        for i, png in enumerate(pngs, start=1):\n            try:\n                x = recognize(png)\n                xmls.append(x)\n            except Exception as e:\n                warnings.append(f\"Seite {i} wurde übersprungen: keine Noten erkannt.\")\n                continue\n            try:\n                counts, durs = page_systems(x)\n                nparts = len(ET.parse(x).getroot().findall(\"part\"))\n                boxes, ex, ns = page_layout(png, png[:-4] + \".txt\", counts, durs, nparts, i - 1)\n                layout += boxes; exact += ex; nsys += ns\n            except Exception as e:\n                layout += [None] * sum(page_systems(x)[0]) if os.path.exists(x) else []\n        if not xmls:\n            raise RuntimeError(\"Auf keiner Seite wurden Noten erkannt. Ist die PDF gut lesbar (nicht schief, nicht zu klein)?\")\n        tree = merge(xmls, warnings)\n        names = name_parts(tree, warnings)\n        measures = len(tree.getroot().find(\"part\").findall(\"measure\"))\n        os.makedirs(OUT_DIR, exist_ok=True)\n        tree.write(os.path.join(OUT_DIR, job + \".musicxml\"), encoding=\"UTF-8\", xml_declaration=True)\n        if len(layout) != measures:\n            layout = []\n        status(job, status=\"fertig\", seiten=len(pngs), stimmen=names, takte=measures, hinweise=warnings,\n               layout=layout, layout_genau=f\"{exact}/{nsys}\")\n    except Exception as e:\n        status(job, status=\"fehler\", meldung=str(e)[:400], hinweise=warnings)\n    finally:\n        shutil.rmtree(tmp, ignore_errors=True)\n        try:\n            os.remove(pdf)\n        except OSError:\n            pass\n\n\nif __name__ == \"__main__\":\n    pdfs = sys.argv[1:] or sorted(glob.glob(os.path.join(IN_DIR, \"*.pdf\")))\n    for p in pdfs:\n        print(\"Wandle um:\", p, flush=True)\n        convert(p)\n", "tools/layout.py": "\"\"\"Findet die Position jedes Takts auf einer Notenseite (für die Mitlese-Markierung in der App).\n\nEingaben: Seitenbild, die von homr geschriebenen Notenzeilen-Positionen (--write-staff-positions)\nund die Taktanzahl je System aus der MusicXML. Ergebnis: je Takt ein Rechteck relativ zur Seite (0..1).\n\"\"\"\nimport numpy as np\nfrom PIL import Image\n\n\ndef read_staffs(txt_path, W, H):\n    out = []\n    for line in open(txt_path, encoding=\"utf-8\"):\n        parts = line.split()\n        if len(parts) != 5:\n            continue\n        _, cx, cy, w, h = map(float, parts)\n        out.append(((cx - w / 2) * W, (cy - h / 2) * H, (cx + w / 2) * W, (cy + h / 2) * H))\n    return sorted(out, key=lambda b: (b[1] + b[3]) / 2)\n\n\ndef group_systems(staffs, n_parts, n_systems):\n    \"\"\"Teilt die Notenzeilen (von oben nach unten) in Systeme auf.\"\"\"\n    if n_parts and len(staffs) == n_parts * n_systems:\n        return [staffs[i * n_parts:(i + 1) * n_parts] for i in range(n_systems)]\n    if n_systems <= 1:\n        return [staffs]\n    # sonst an den größten Lücken trennen\n    gaps = sorted(range(1, len(staffs)), key=lambda i: staffs[i][1] - staffs[i - 1][3], reverse=True)[:n_systems - 1]\n    cuts = [0] + sorted(gaps) + [len(staffs)]\n    return [staffs[cuts[i]:cuts[i + 1]] for i in range(len(cuts) - 1)]\n\n\ndef barline_candidates(dark, system):\n    \"\"\"Spalten, die in JEDER Notenzeile des Systems von oben bis unten schwarz sind.\"\"\"\n    x0 = int(min(b[0] for b in system)); x1 = int(max(b[2] for b in system))\n    cover = None\n    for (_, y0, _, y1) in system:\n        h = y1 - y0\n        a, b = int(y0 + 0.08 * h), int(y1 - 0.08 * h)\n        if b <= a:\n            continue\n        frac = dark[a:b, x0:x1].mean(axis=0)\n        cover = frac if cover is None else np.minimum(cover, frac)\n    if cover is None:\n        return x0, x1, []\n    cols = np.where(cover > 0.9)[0]\n    groups = []\n    for c in cols:\n        if groups and c - groups[-1][-1] <= 3:\n            groups[-1].append(c)\n        else:\n            groups.append([c])\n    cands = [(x0 + float(np.mean(g)), float(cover[g].mean())) for g in groups]\n    width = x1 - x0\n    # Doppelstriche / Schlussstriche zu einem Strich zusammenfassen\n    merged = []\n    for x, s in cands:\n        if merged and x - merged[-1][0] < 0.012 * width:\n            merged[-1] = (x, max(s, merged[-1][1]))\n        else:\n            merged.append((x, s))\n    # Klammer/Anfangsstrich am linken Rand ignorieren\n    merged = [(x, s) for x, s in merged if x - x0 > 0.02 * width]\n    return x0, x1, merged\n\n\ndef page_layout(png_path, txt_path, systems_measures, durations, n_parts, page_index):\n    \"\"\"systems_measures: Taktanzahl je System auf dieser Seite; durations: Taktlängen (Viertel) in Reihenfolge.\"\"\"\n    img = Image.open(png_path).convert(\"L\")\n    W, H = img.size\n    dark = (np.asarray(img) < 128).astype(np.float32)\n    staffs = read_staffs(txt_path, W, H)\n    systems = group_systems(staffs, n_parts, len(systems_measures))\n    boxes, k0, exact = [], 0, 0\n    for si, count in enumerate(systems_measures):\n        durs = durations[k0:k0 + count]; k0 += count\n        if si >= len(systems) or not systems[si]:\n            boxes += [None] * count\n            continue\n        sysb = systems[si]\n        x0, x1, cands = barline_candidates(dark, sysb)\n        y0 = min(b[1] for b in sysb); y1 = max(b[3] for b in sysb)\n        pad = 0.25 * (sysb[0][3] - sysb[0][1])\n        if len(cands) > count:  # zu viele: die deutlichsten behalten, der letzte bleibt immer\n            last = cands[-1]\n            rest = sorted(cands[:-1], key=lambda c: -c[1])[:count - 1]\n            cands = sorted(rest, key=lambda c: c[0]) + [last]\n        if len(cands) == count:\n            exact += 1\n            edges = [x0] + [c[0] for c in cands]\n        else:  # Notlösung: nach Taktdauer aufteilen\n            tot = sum(durs) or count\n            head = 0.08 * (x1 - x0) if si == 0 else 0.05 * (x1 - x0)\n            edges, acc = [x0], x0 + head\n            for d in durs[:-1]:\n                acc += (x1 - x0 - head) * (d or 1) / tot\n                edges.append(acc)\n            edges.append(x1)\n        for i in range(count):\n            boxes.append({\"p\": page_index,\n                          \"x0\": round(edges[i] / W, 4), \"x1\": round(edges[i + 1] / W, 4),\n                          \"y0\": round(max(0, y0 - pad) / H, 4), \"y1\": round(min(H, y1 + pad) / H, 4)})\n    return boxes, exact, len(systems_measures)\n"};
+const OMR_FILES={".github/workflows/umwandeln.yml": "name: Noten umwandeln\n\non:\n  push:\n    paths:\n      - \"umwandeln/**.pdf\"\n  workflow_dispatch:\n\npermissions:\n  contents: write\n\nconcurrency:\n  group: umwandeln\n  cancel-in-progress: false\n\njobs:\n  umwandeln:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 45\n    steps:\n      - uses: actions/checkout@v4\n\n      - uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n\n      - name: PDF-Werkzeug installieren\n        run: sudo apt-get update -q && sudo apt-get install -y -q poppler-utils\n\n      - name: Notenerkennung aus dem Zwischenspeicher holen\n        id: cache\n        uses: actions/cache@v4\n        with:\n          path: ~/omr-venv\n          key: homr-0.7.0-onnx-1.31.0-py312-v1\n\n      - name: Notenerkennung installieren\n        if: steps.cache.outputs.cache-hit != 'true'\n        run: |\n          python -m venv ~/omr-venv\n          ~/omr-venv/bin/pip install -q \"homr==0.7.0\" \"onnxruntime==1.31.0\"\n          # Modelle herunterladen, damit sie mit zwischengespeichert werden\n          ~/omr-venv/bin/homr --init\n\n      - name: Umwandeln\n        run: |\n          export PATH=\"$HOME/omr-venv/bin:$PATH\"\n          python tools/omr.py\n\n      - name: Ergebnis speichern\n        run: |\n          git config user.name \"Noten-Umwandlung\"\n          git config user.email \"41898282+github-actions[bot]@users.noreply.github.com\"\n          git add -A ergebnis umwandeln\n          git commit -m \"Noten umgewandelt\" || exit 0\n          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done\n", "tools/omr.py": "#!/usr/bin/env python3\n\"\"\"PDF-Chornoten -> MusicXML (für die Blattsingen-App).\n\nAblauf je PDF in umwandeln/:  Seiten als Bilder (300 dpi) -> Notenerkennung mit homr ->\nSeiten zu einer Partitur zusammenfügen -> Tenor-Oktave korrigieren -> Stimmen benennen ->\nergebnis/<id>.musicxml + ergebnis/<id>.json (Status für die App).\n\"\"\"\nimport json, os, subprocess, sys, tempfile, glob, time, shutil, copy\nimport xml.etree.ElementTree as ET\nsys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\nfrom layout import page_layout\n\nIN_DIR, OUT_DIR = \"umwandeln\", \"ergebnis\"\n\n\ndef status(job, **kw):\n    os.makedirs(OUT_DIR, exist_ok=True)\n    kw.setdefault(\"zeit\", int(time.time()))\n    with open(os.path.join(OUT_DIR, job + \".json\"), \"w\", encoding=\"utf-8\") as f:\n        json.dump(kw, f, ensure_ascii=False, indent=1)\n\n\ndef pages_to_png(pdf, tmp):\n    subprocess.run([\"pdftoppm\", \"-r\", \"300\", \"-png\", pdf, os.path.join(tmp, \"seite\")], check=True)\n    return sorted(glob.glob(os.path.join(tmp, \"seite*.png\")), key=lambda p: int(p.rsplit(\"-\", 1)[-1].split(\".\")[0]))\n\n\ndef recognize(png):\n    r = subprocess.run([\"homr\", \"--write-staff-positions\", png], capture_output=True, text=True, timeout=1500)\n    out = png[:-4] + \".musicxml\"\n    if r.returncode != 0 or not os.path.exists(out):\n        raise RuntimeError((r.stderr or r.stdout or \"unbekannter Fehler\").strip().splitlines()[-1][:300])\n    return out\n\n\ndef page_systems(xml_path):\n    \"\"\"Taktanzahl je System und Taktlängen (in Vierteln) aus einer Seiten-MusicXML.\"\"\"\n    part = ET.parse(xml_path).getroot().find(\"part\")\n    counts, durs, div = [], [], 1\n    for i, m in enumerate(part.findall(\"measure\")):\n        d = m.findtext(\"attributes/divisions\")\n        if d and d.strip().isdigit() and int(d) > 0:\n            div = int(d)\n        if i == 0 or m.find(\"print\") is not None and m.find(\"print\").get(\"new-system\") == \"yes\":\n            counts.append(0)\n        counts[-1] += 1\n        pos = mx = 0\n        for e in m:\n            if e.tag == \"backup\":\n                pos -= int(e.findtext(\"duration\") or 0)\n            elif e.tag == \"forward\":\n                pos += int(e.findtext(\"duration\") or 0); mx = max(mx, pos)\n            elif e.tag == \"note\" and e.find(\"chord\") is None and e.find(\"grace\") is None:\n                pos += int(e.findtext(\"duration\") or 0); mx = max(mx, pos)\n        durs.append(mx / div)\n    return counts, durs\n\n\ndef clef_of(part):\n    for m in part.findall(\"measure\"):\n        c = m.find(\"attributes/clef\")\n        if c is not None:\n            sign = (c.findtext(\"sign\") or \"\").strip()\n            oc = (c.findtext(\"clef-octave-change\") or \"0\").strip()\n            return sign, int(oc or 0)\n    return \"\", 0\n\n\ndef shift_octave(part, k):\n    for p in part.iter(\"pitch\"):\n        o = p.find(\"octave\")\n        if o is not None and (o.text or \"\").strip().lstrip(\"-\").isdigit():\n            o.text = str(int(o.text) + k)\n\n\ndef merge(files, warnings):\n    trees = [ET.parse(f) for f in files]\n    base = trees[0].getroot()\n    bparts = base.findall(\"part\")\n    for pi, t in enumerate(trees[1:], start=2):\n        parts = t.getroot().findall(\"part\")\n        if len(parts) != len(bparts):\n            warnings.append(f\"Seite {pi}: {len(parts)} statt {len(bparts)} Stimmen erkannt – bitte prüfen.\")\n        for i, p in enumerate(parts[:len(bparts)]):\n            for m in p.findall(\"measure\"):\n                bparts[i].append(copy.deepcopy(m))\n        # fehlende Stimmen mit Pausentakten auffüllen, damit alle gleich lang bleiben\n        if len(parts) < len(bparts) and parts:\n            ref = parts[0].findall(\"measure\")\n            for p in bparts[len(parts):]:\n                for m in ref:\n                    nm = ET.SubElement(p, \"measure\")\n                    dur = sum(int(n.findtext(\"duration\") or 0) for n in m.findall(\"note\") if n.find(\"chord\") is None)\n                    if dur:\n                        n = ET.SubElement(nm, \"note\"); ET.SubElement(n, \"rest\"); ET.SubElement(n, \"duration\").text = str(dur)\n    for p in bparts:\n        for k, m in enumerate(p.findall(\"measure\"), start=1):\n            m.set(\"number\", str(k))\n    return trees[0]\n\n\ndef name_parts(tree, warnings):\n    \"\"\"Erkennt die Besetzung aus der Schlüsselfolge (G = Violin-, F = Bassschlüssel),\n    setzt Tenorstimmen im Violinschlüssel eine Oktave tiefer und vergibt Stimmnamen.\n    Beispiele: G G G F = SATB · G G G G F = SSATB · G G G F F = SATBB · 6×G 2×F = SSAATTBB.\"\"\"\n    root = tree.getroot()\n    parts = root.findall(\"part\")\n    clefs = [clef_of(p) for p in parts]\n    signs = [c[0] or \"G\" for c in clefs]\n    names = [f\"Stimme {i + 1}\" for i in range(len(parts))]\n    # in Gruppen teilen: Violinschlüssel-Systeme gefolgt von Bassschlüssel-Systemen (Doppelchor = 2 Gruppen)\n    groups, cur = [], []\n    for i, sg in enumerate(signs):\n        if cur and sg != \"F\" and signs[cur[-1]] == \"F\":\n            groups.append(cur); cur = []\n        cur.append(i)\n    if cur:\n        groups.append(cur)\n    def numbered(base, n):\n        return [base] if n == 1 else [f\"{base} {k + 1}\" for k in range(n)]\n    shifted = []\n    for gi, g in enumerate(groups):\n        gs = [i for i in g if signs[i] == \"G\"]\n        fs = [i for i in g if signs[i] == \"F\"]\n        if not fs or not gs:\n            continue\n        n_ten = min(len(fs), len(gs) - 2) if len(gs) >= 3 else 0\n        tenors = gs[len(gs) - n_ten:] if n_ten > 0 else []\n        upper = gs[:len(gs) - n_ten]\n        if len(upper) == 1:\n            up_names = [\"Sopran\"] if len(g) > 2 else [\"Frauenstimmen\"]\n        else:\n            n_s = (len(upper) + 1) // 2\n            up_names = numbered(\"Sopran\", n_s) + numbered(\"Alt\", len(upper) - n_s)\n        if len(gs) == 1 and len(fs) == 1 and len(g) == 2:\n            up_names, low_names = [\"Frauenstimmen\"], [\"Männerstimmen\"]\n        else:\n            low_names = numbered(\"Bass\", len(fs))\n        suffix = f\" (Chor {gi + 1})\" if len(groups) > 1 else \"\"\n        for i, nm in zip(upper, up_names):\n            names[i] = nm + suffix\n        for i, nm in zip(tenors, numbered(\"Tenor\", len(tenors))):\n            names[i] = nm + suffix\n            if clefs[i][1] == 0:\n                shift_octave(parts[i], -1)\n                shifted.append(nm + suffix)\n        for i, nm in zip(fs, low_names):\n            names[i] = nm + suffix\n    if shifted:\n        warnings.append(\", \".join(shifted) + \" eine Oktave tiefer gesetzt (Violinschlüssel mit 8).\")\n    if len(parts) >= 5 or len(groups) > 1:\n        warnings.append(\"Stimmnamen aus der Schlüsselfolge geschätzt – im Mixer antippen, um sie zu ändern.\")\n    byid = {sp.get(\"id\"): sp for sp in root.findall(\"part-list/score-part\")}\n    for p, nm in zip(parts, names):\n        sp = byid.get(p.get(\"id\"))\n        if sp is not None:\n            pn = sp.find(\"part-name\")\n            if pn is None:\n                pn = ET.SubElement(sp, \"part-name\")\n            pn.text = nm\n    return names\n\n\ndef convert(pdf):\n    job = os.path.splitext(os.path.basename(pdf))[0]\n    status(job, status=\"läuft\")\n    warnings = []\n    tmp = tempfile.mkdtemp()\n    try:\n        pngs = pages_to_png(pdf, tmp)\n        if not pngs:\n            raise RuntimeError(\"Die PDF enthält keine Seiten.\")\n        if len(pngs) > 30:\n            raise RuntimeError(\"Die PDF hat mehr als 30 Seiten.\")\n        xmls, layout, exact, nsys = [], [], 0, 0\n        for i, png in enumerate(pngs, start=1):\n            try:\n                x = recognize(png)\n                xmls.append(x)\n            except Exception as e:\n                warnings.append(f\"Seite {i} wurde übersprungen: keine Noten erkannt.\")\n                continue\n            try:\n                counts, durs = page_systems(x)\n                nparts = len(ET.parse(x).getroot().findall(\"part\"))\n                boxes, ex, ns = page_layout(png, png[:-4] + \".txt\", counts, durs, nparts, i - 1)\n                layout += boxes; exact += ex; nsys += ns\n            except Exception as e:\n                layout += [None] * sum(page_systems(x)[0]) if os.path.exists(x) else []\n        if not xmls:\n            raise RuntimeError(\"Auf keiner Seite wurden Noten erkannt. Ist die PDF gut lesbar (nicht schief, nicht zu klein)?\")\n        tree = merge(xmls, warnings)\n        names = name_parts(tree, warnings)\n        measures = len(tree.getroot().find(\"part\").findall(\"measure\"))\n        os.makedirs(OUT_DIR, exist_ok=True)\n        tree.write(os.path.join(OUT_DIR, job + \".musicxml\"), encoding=\"UTF-8\", xml_declaration=True)\n        if len(layout) != measures:\n            layout = []\n        status(job, status=\"fertig\", seiten=len(pngs), stimmen=names, takte=measures, hinweise=warnings,\n               layout=layout, layout_genau=f\"{exact}/{nsys}\")\n    except Exception as e:\n        status(job, status=\"fehler\", meldung=str(e)[:400], hinweise=warnings)\n    finally:\n        shutil.rmtree(tmp, ignore_errors=True)\n        try:\n            os.remove(pdf)\n        except OSError:\n            pass\n\n\nif __name__ == \"__main__\":\n    pdfs = sys.argv[1:] or sorted(glob.glob(os.path.join(IN_DIR, \"*.pdf\")))\n    for p in pdfs:\n        print(\"Wandle um:\", p, flush=True)\n        convert(p)\n", "tools/layout.py": "\"\"\"Findet die Position jedes Takts auf einer Notenseite (für die Mitlese-Markierung in der App).\n\nEingaben: Seitenbild, die von homr geschriebenen Notenzeilen-Positionen (--write-staff-positions)\nund die Taktanzahl je System aus der MusicXML. Ergebnis: je Takt ein Rechteck relativ zur Seite (0..1).\n\"\"\"\nimport numpy as np\nfrom PIL import Image\n\n\ndef read_staffs(txt_path, W, H):\n    out = []\n    for line in open(txt_path, encoding=\"utf-8\"):\n        parts = line.split()\n        if len(parts) != 5:\n            continue\n        _, cx, cy, w, h = map(float, parts)\n        out.append(((cx - w / 2) * W, (cy - h / 2) * H, (cx + w / 2) * W, (cy + h / 2) * H))\n    return sorted(out, key=lambda b: (b[1] + b[3]) / 2)\n\n\ndef group_systems(staffs, n_parts, n_systems):\n    \"\"\"Teilt die Notenzeilen (von oben nach unten) in Systeme auf.\"\"\"\n    if n_parts and len(staffs) == n_parts * n_systems:\n        return [staffs[i * n_parts:(i + 1) * n_parts] for i in range(n_systems)]\n    if n_systems <= 1:\n        return [staffs]\n    # sonst an den größten Lücken trennen\n    gaps = sorted(range(1, len(staffs)), key=lambda i: staffs[i][1] - staffs[i - 1][3], reverse=True)[:n_systems - 1]\n    cuts = [0] + sorted(gaps) + [len(staffs)]\n    return [staffs[cuts[i]:cuts[i + 1]] for i in range(len(cuts) - 1)]\n\n\ndef barline_candidates(dark, system):\n    \"\"\"Spalten, die in JEDER Notenzeile des Systems von oben bis unten schwarz sind.\"\"\"\n    x0 = int(min(b[0] for b in system)); x1 = int(max(b[2] for b in system))\n    cover = None\n    for (_, y0, _, y1) in system:\n        h = y1 - y0\n        a, b = int(y0 + 0.08 * h), int(y1 - 0.08 * h)\n        if b <= a:\n            continue\n        frac = dark[a:b, x0:x1].mean(axis=0)\n        cover = frac if cover is None else np.minimum(cover, frac)\n    if cover is None:\n        return x0, x1, []\n    cols = np.where(cover > 0.9)[0]\n    groups = []\n    for c in cols:\n        if groups and c - groups[-1][-1] <= 3:\n            groups[-1].append(c)\n        else:\n            groups.append([c])\n    cands = [(x0 + float(np.mean(g)), float(cover[g].mean())) for g in groups]\n    width = x1 - x0\n    # Doppelstriche / Schlussstriche zu einem Strich zusammenfassen\n    merged = []\n    for x, s in cands:\n        if merged and x - merged[-1][0] < 0.012 * width:\n            merged[-1] = (x, max(s, merged[-1][1]))\n        else:\n            merged.append((x, s))\n    # Klammer/Anfangsstrich am linken Rand ignorieren\n    merged = [(x, s) for x, s in merged if x - x0 > 0.02 * width]\n    return x0, x1, merged\n\n\ndef page_layout(png_path, txt_path, systems_measures, durations, n_parts, page_index):\n    \"\"\"systems_measures: Taktanzahl je System auf dieser Seite; durations: Taktlängen (Viertel) in Reihenfolge.\"\"\"\n    img = Image.open(png_path).convert(\"L\")\n    W, H = img.size\n    dark = (np.asarray(img) < 128).astype(np.float32)\n    staffs = read_staffs(txt_path, W, H)\n    systems = group_systems(staffs, n_parts, len(systems_measures))\n    boxes, k0, exact = [], 0, 0\n    for si, count in enumerate(systems_measures):\n        durs = durations[k0:k0 + count]; k0 += count\n        if si >= len(systems) or not systems[si]:\n            boxes += [None] * count\n            continue\n        sysb = systems[si]\n        x0, x1, cands = barline_candidates(dark, sysb)\n        y0 = min(b[1] for b in sysb); y1 = max(b[3] for b in sysb)\n        pad = 0.25 * (sysb[0][3] - sysb[0][1])\n        if len(cands) > count:  # zu viele: die deutlichsten behalten, der letzte bleibt immer\n            last = cands[-1]\n            rest = sorted(cands[:-1], key=lambda c: -c[1])[:count - 1]\n            cands = sorted(rest, key=lambda c: c[0]) + [last]\n        if len(cands) == count:\n            exact += 1\n            edges = [x0] + [c[0] for c in cands]\n        else:  # Notlösung: nach Taktdauer aufteilen\n            tot = sum(durs) or count\n            head = 0.08 * (x1 - x0) if si == 0 else 0.05 * (x1 - x0)\n            edges, acc = [x0], x0 + head\n            for d in durs[:-1]:\n                acc += (x1 - x0 - head) * (d or 1) / tot\n                edges.append(acc)\n            edges.append(x1)\n        for i in range(count):\n            boxes.append({\"p\": page_index,\n                          \"x0\": round(edges[i] / W, 4), \"x1\": round(edges[i + 1] / W, 4),\n                          \"y0\": round(max(0, y0 - pad) / H, 4), \"y1\": round(min(H, y1 + pad) / H, 4)})\n    return boxes, exact, len(systems_measures)\n"};
 const GH={polls:{}};
 function ghCfg(){ try{ const c=JSON.parse(localStorage.getItem("nl_gh")||"null"); return c&&c.owner&&c.token?c:null; }catch(e){ return null; } }
 function ghSetCfg(c){ try{ if(c) localStorage.setItem("nl_gh",JSON.stringify(c)); else localStorage.removeItem("nl_gh"); }catch(e){} }
@@ -2007,7 +2386,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=10;
+const APP_BUILD=11;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
