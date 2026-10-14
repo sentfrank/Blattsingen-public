@@ -35,6 +35,8 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 
 **Treffübung live:** Im Tab „Treffübung“ unter dem Notenbild „🎤 Live mitsingen“ tippen. Nach dem Grundton singst du die Melodie vom Blatt. Jeder Ton erscheint sofort in den Noten: grün getroffen (bis ±20 Cent), gelb knapp daneben (bis ±45 Cent), rot daneben. Ein ganz anderer Ton steht als rote Note neben der Zielnote, darunter sein Name. „Neue Melodie und los“ startet gleich die nächste Runde.
 
+**Einsingen:** Der Bereich „Einsingen“ führt in gut 5 Minuten durch sieben Übungen: Atem, Lippenflattern, Summen, Vokalausgleich, Staccato, Legato-Oktave, Ton halten. Stimmlage wählen, „Ganzes Einsingen“ tippen und gleichzeitig mitsingen. Die App spielt jedes Muster in deiner Lage vor und rückt halbtonweise höher und wieder tiefer. Mit „Nur diese“ übst du eine einzelne Übung.
+
 ## 4. Meine Noten
 
 - Abschnitt „Meine Noten“ → „Dateien auswählen“: die PDF eines Stücks und, wenn vorhanden, die passende **MusicXML-** (.musicxml, .xml, .mxl) oder **MIDI-Datei** (.mid). Beide können auf einmal ausgewählt werden.

@@ -128,10 +128,37 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:8px;
 .sources{display:grid;gap:8px;max-width:70ch}
 .sources li{margin-bottom:4px}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
+
+/* Einsingen */
+.wu{display:grid;gap:14px}
+.wu-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;display:grid;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.wu-bar .field{max-width:220px}
+.wu-now{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;min-height:1.6rem}
+.wu-step{font:600 1.15rem var(--display)}
+.wu-key{font:500 .95rem var(--mono);color:var(--hl)}
+.wu-time{font:500 .95rem var(--mono);color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+.wu-prog{height:6px;border-radius:3px;background:var(--accent-soft);overflow:hidden}
+.wu-prog div{height:100%;width:0;background:var(--accent);transition:width .3s linear}
+.wu-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:wu}
+.wu-item{counter-increment:wu;display:grid;grid-template-columns:2.2rem 1fr auto;gap:4px 12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.wu-item::before{content:counter(wu);font:600 1.5rem/1 var(--display);color:var(--accent);grid-row:1/3}
+.wu-item.on{border-color:var(--hl);box-shadow:inset 4px 0 0 var(--hl)}
+.wu-item.done::before{color:var(--good)}
+.wu-head{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;min-width:0}
+.wu-head b{font:600 1.05rem var(--display)}
+.wu-meta{font:500 .78rem var(--mono);color:var(--muted)}
+.wu-syl{font:600 .85rem var(--mono);color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:2px 7px}
+.wu-how{grid-column:2/4;font-size:.93rem;color:var(--muted);max-width:68ch;margin:0}
+.wu-item button{grid-column:3;grid-row:1;padding:6px 10px;font-size:.85rem}
+@media (max-width:560px){.wu-item{grid-template-columns:1.8rem 1fr}.wu-item button{grid-column:2;grid-row:auto;justify-self:start}.wu-how{grid-column:2}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
+.updbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:50;display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--fg);color:var(--bg);padding:12px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.updbar button{background:var(--bg);color:var(--fg);border:0;font-weight:600}
+.appver{font:500 .72rem var(--mono);color:var(--muted)}
 .c-good{color:var(--good)}.c-hl{color:var(--hl)}.c-bad{color:var(--bad)}
-.readlive{display:grid;gap:10px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface)}
+.readlive{display:grid;gap:10px}
+.readbtns{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--accent-soft)}
 .tuner{display:grid;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
 .tuner-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
 .tnote{font:600 1.7rem/1 var(--display);min-width:2.6em}
@@ -212,7 +239,8 @@ body.uebe .pdfpages{gap:6px}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#material">Übematerial</a></nav>
+  <span class="appver">App-Version 9 · 14.10.2026</span>
+  <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#material">Übematerial</a></nav>
 </header>
 
 <section id="routine">
@@ -222,7 +250,7 @@ body.uebe .pdfpages{gap:6px}
     <p>Regelmäßigkeit schlägt Dauer. Lieber sechs Tage à 30 Minuten als einmal drei Stunden. Die Inhalte der Wochen setzt du in diese Struktur ein.</p>
   </div>
   <div class="routine">
-    <div><span class="min">5′</span><b>Einhören</b><p>Tonleiter der Woche im Trainer, Modus „Ich singe zuerst“. Immer auf Silben oder Stufenzahlen singen.</p></div>
+    <div><span class="min">5′</span><b>Einsingen</b><p>Die Folge unter „Einsingen“ in deiner Stimmlage. Danach die Tonleiter der Woche im Trainer, Modus „Ich singe zuerst“.</p></div>
     <div><span class="min">5′</span><b>Intervalle</b><p>20 Runden Intervall-Quiz. Falsche Intervalle sofort nachsingen.</p></div>
     <div><span class="min">5′</span><b>Rhythmus</b><p>Rhythmus des heutigen Stücks auf „da“ sprechen, Metronom an, Puls im Körper.</p></div>
     <div><span class="min">12′</span><b>Neues vom Blatt</b><p>Unbekanntes Stück: 30 Sek. Tonart, Takt, Grundton prüfen. Einmal ohne Anhalten durchsingen, dann kontrollieren.</p></div>
@@ -237,6 +265,24 @@ body.uebe .pdfpages{gap:6px}
     <p>Jede Woche hat einen Schwerpunkt und einen Checkpoint. Wenn du den Checkpoint nicht schaffst, hänge ein paar Tage an, bevor du weitergehst. „Im Trainer üben“ lädt die passenden Einstellungen.</p>
   </div>
   <div class="weeks" id="weeks"></div>
+</section>
+
+<section id="einsingen">
+  <div class="sechead">
+    <span class="label">Vor jeder Übe-Einheit und vor der Probe</span>
+    <h2>Einsingen in 5 Minuten</h2>
+    <p>Sieben kurze Übungen vom Körper bis zum klaren Ton. Die App spielt jedes Muster in deiner Stimmlage vor; du singst gleichzeitig mit. Nach jeder Runde geht es einen Halbton höher, zum Schluss wieder abwärts. Leise beginnen, nichts drücken.</p>
+  </div>
+  <div class="wu">
+    <div class="wu-bar">
+      <div class="field"><label class="label" for="wuVoice">Stimmlage</label>
+        <select id="wuVoice"><option value="S">Sopran</option><option value="A">Alt</option><option value="T">Tenor</option><option value="B">Bass</option></select></div>
+      <div class="btnrow"><button class="primary" type="button" id="wuAll">▶ Ganzes Einsingen (5 Min.)</button><button type="button" id="wuStop" disabled>Stopp</button></div>
+      <div class="wu-now" aria-live="polite"><span class="wu-step" id="wuStep">Bereit</span><span class="wu-key" id="wuKey"></span><span class="wu-time" id="wuTime"></span></div>
+      <div class="wu-prog" aria-hidden="true"><div id="wuProg"></div></div>
+    </div>
+    <ol class="wu-list" id="wuList"></ol>
+  </div>
 </section>
 
 <section id="trainer">
@@ -291,6 +337,12 @@ body.uebe .pdfpages{gap:6px}
         <h3>Live mitsingen</h3>
         <p class="hint">Mit Kopfhörern üben, damit das Mikrofon nur deine Stimme hört. „Live starten“ spielt den Grundton, danach singst du die Tonleiter in der eingestellten Richtung. Jeder gehaltene Ton wird sofort neben seiner Zielnote eingetragen.</p>
         <div class="btnrow"><button class="primary" type="button" id="liveStart">Live starten</button><button type="button" id="liveStop" disabled>Beenden</button></div>
+        <div id="recOut" hidden>
+          <div class="stats" id="recStats"></div>
+          <div class="legend"><span><span class="dot" style="background:var(--good)"></span>bis ±20 Cent</span><span><span class="dot" style="background:var(--hl)"></span>21–45 Cent</span><span><span class="dot" style="background:var(--bad)"></span>über 45 Cent oder falscher Ton</span><span>Schwarze Note = Ziel, Punkt daneben = dein Ton (eine Notenstufe Abstand = 100 Cent)</span></div>
+          <div class="staffbox"><svg id="staffRec" role="img" aria-label="Gesungene Töne im Vergleich zur Tonleiter"></svg></div>
+          <div class="staffbox"><svg id="curveRec" role="img" aria-label="Tonhöhenverlauf der Aufnahme"></svg></div>
+        </div>
         <div id="scaleTunerSlot"><div class="tuner" id="tuner" hidden>
           <div class="tuner-top"><span class="label">Ziel</span><span class="tnote" id="tTarget">–</span><span class="label">Du singst</span><span class="tnote" id="tSung">–</span><span class="tcents" id="tCents"></span></div>
           <div class="gauge" aria-hidden="true"><div class="gzone"></div><div class="gmid"></div><div class="gneedle" id="tNeedle"></div></div>
@@ -309,12 +361,7 @@ body.uebe .pdfpages{gap:6px}
           <button type="button" id="recDemo">Beispiel ansehen</button>
         </div>
         <p class="hint" id="recStatus" aria-live="polite">Noch keine Aufnahme ausgewertet.</p>
-        <div id="recOut" hidden>
-          <div class="stats" id="recStats"></div>
-          <div class="legend"><span><span class="dot" style="background:var(--good)"></span>bis ±20 Cent</span><span><span class="dot" style="background:var(--hl)"></span>21–45 Cent</span><span><span class="dot" style="background:var(--bad)"></span>über 45 Cent oder falscher Ton</span><span>Schwarze Note = Ziel, Punkt daneben = dein Ton (eine Notenstufe Abstand = 100 Cent)</span></div>
-          <div class="staffbox"><svg id="staffRec" role="img" aria-label="Gesungene Töne im Vergleich zur Tonleiter"></svg></div>
-          <div class="staffbox"><svg id="curveRec" role="img" aria-label="Tonhöhenverlauf der Aufnahme"></svg></div>
-        </div>
+        
       </div>
     </div>
 
@@ -337,9 +384,9 @@ body.uebe .pdfpages{gap:6px}
         <button id="newMel" type="button">Neue Melodie</button>
         <button id="stopRead" type="button">Stopp</button>
       </div>
+      <div class="btnrow readbtns"><button class="primary" type="button" id="readLiveStart">🎤 Live mitsingen</button><button type="button" id="readLiveStop" disabled>Beenden</button><button type="button" id="readLiveNext">Neue Melodie und los</button></div>
       <div class="staffbox"><svg id="staffRead" role="img" aria-label="Lesemelodie auf Notenlinien"></svg></div>
       <div class="readlive" id="readLive">
-        <div class="btnrow"><button class="primary" type="button" id="readLiveStart">🎤 Live mitsingen</button><button type="button" id="readLiveStop" disabled>Beenden</button><button type="button" id="readLiveNext">Neue Melodie und los</button></div>
         <div class="stats" id="readStats" hidden></div>
         <div id="readTunerSlot"></div>
         <p class="hint">Mit Kopfhörern: Grundton hören, dann die Melodie vom Notenbild singen, jeden Ton etwa eine Sekunde. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp daneben, <b class="c-bad">rot</b> daneben; ein ganz anderer Ton erscheint als rote Note neben der Zielnote.</p>
@@ -1029,6 +1076,91 @@ document.querySelectorAll(".donebox input[data-w]").forEach(cb=>cb.onchange=()=>
 });
 
 
+/* ---------- Einsingen ---------- */
+const WU_RANGE={S:{lo:60,hi:79},A:{lo:55,hi:74},T:{lo:48,hi:67},B:{lo:41,hi:60}};
+const WU=[
+ {id:"atem",name:"Körper und Atem",syl:"sss",dur:60,
+  how:"Schultern kreisen, Kiefer locker. Dann zu den Klicks: auf 1–4 durch die Nase einatmen (Bauch und Flanken weiten sich), auf 5–12 gleichmäßig auf „sss“ ausatmen. Brustkorb bleibt oben.",pat:null},
+ {id:"brr",name:"Lippenflattern",syl:"brr",dur:50,beat:.3,pat:[0,2,4,5,7,5,4,2,0],deg:"1-2-3-4-5-4-3-2-1",
+  how:"Lippen locker flattern lassen, Finger leicht an die Wangen. Der Luftstrom trägt den Ton, die Stimme bleibt mühelos."},
+ {id:"summen",name:"Summen und Resonanz",syl:"mmm – ng",dur:40,beat:.55,pat:[0,4,7,4,0],deg:"1-3-5-3-1",
+  how:"Mit lockeren Lippen summen, Zähne nicht aufeinander. Es soll vorne an den Lippen kribbeln. Bei „ng“ liegt der Zungenrücken am Gaumen."},
+ {id:"vokale",name:"Vokalausgleich",syl:"mi – me – ma – mo – mu",dur:45,beat:.5,pat:[7,5,4,2,0],deg:"5-4-3-2-1",
+  how:"Ein Vokal pro Ton, abwärts. Alle Vokale im gleichen Raum bilden, „i“ nicht eng, „a“ nicht breit. Die Lippen formen, der Kiefer bleibt ruhig."},
+ {id:"stacc",name:"Staccato-Dreiklang",syl:"ha",dur:40,beat:.32,pat:[0,4,7,12,7,4,0],deg:"1-3-5-8-5-3-1",
+  how:"Kurze, federnde Töne aus der Bauchmitte, nicht aus dem Hals. Zwischen den Tönen lässt der Bauch los, die Luft strömt von selbst nach."},
+ {id:"legato",name:"Legato-Oktave",syl:"nu",dur:45,beat:.42,pat:[0,12,11,9,7,5,4,2,0],deg:"1-8-7-6-5-4-3-2-1",
+  how:"Den Oktavsprung von oben denken, nicht hochschieben. Dann gebunden abwärts, jeder Ton gleich hell. Gut für den Übergang zwischen den Registern."},
+ {id:"klang",name:"Ton halten und Intonation",syl:"o",dur:30,beat:1,pat:"hold",deg:"1 · 3 · 5",
+  how:"Zum Akkord den Grundton auf „o“ halten, leise anschwellen und wieder abschwellen. Dann innerlich die Terz und Quinte hören. Ruhiger, gerader Ton, kein Druck am Ende."}
+];
+function wuRoots(ex,voice){
+  const R=WU_RANGE[voice], span=Math.max(...ex.pat), rep=(ex.pat.length+3)*ex.beat;
+  let start=R.lo+(ex.id==="legato"?-2:ex.id==="vokale"?0:0);
+  if(ex.id==="summen") start=R.lo-2;
+  const top=R.hi-span, n=Math.max(2,Math.floor(ex.dur/rep)), up=Math.max(1,Math.min(top-start,Math.ceil(n*0.6)));
+  const roots=[]; for(let i=0;i<=up;i++) roots.push(start+i);
+  for(let i=up-1;roots.length<n&&i>=0;i--) roots.push(start+i);
+  return roots;
+}
+function wuEvents(ex,voice,t0,stepIdx){
+  const ev=[]; let t=t0;
+  if(!ex.pat){
+    const b=1;
+    for(let k=0;k<ex.dur;k++){ const ph=k%12; ev.push({t,midi:ph===0?84:(ph<4?79:72),d:.05,vol:ph===0?.16:.09,lbl:{s:stepIdx,key:ph<4?"Einatmen "+(ph+1):"Ausatmen auf „sss“ "+(ph-3)}}); t+=b; }
+    return {ev,end:t};
+  }
+  const R=WU_RANGE[voice];
+  if(ex.pat==="hold"){
+    const root=Math.round((R.lo+R.hi)/2)-3;
+    [root,root+2,root-1].forEach(r=>{
+      const chord=[r-12,r-5,r+4,r+7].filter(m=>m>=36);
+      ev.push({t,midi:chord,d:7,vol:.07,lbl:{s:stepIdx,key:PC[((r%12)+12)%12]+"-Dur · Grundton "+PC[((r%12)+12)%12]+" halten"}});
+      ev.push({t,midi:r,d:1.2,vol:.16}); t+=8.5;
+    });
+    return {ev,end:t};
+  }
+  const b=ex.beat;
+  wuRoots(ex,voice).forEach(r=>{
+    const low=r>=55?r-12:r;
+    ev.push({t,midi:[low,low+7,low+16].filter(m=>m>=36),d:b*2,vol:.07,lbl:{s:stepIdx,key:PC[((r%12)+12)%12]+"-Dur"}});
+    t+=b*2.2;
+    ex.pat.forEach((iv,i)=>{ ev.push({t,midi:r+iv,d:b*(i===ex.pat.length-1?1.8:.92),vol:.17}); t+=b; });
+    t+=b*1.6;
+  });
+  return {ev,end:t};
+}
+let wuTimer=null, wuOn=false;
+function wuRender(){
+  $("wuList").innerHTML=WU.map((ex,i)=>'<li class="wu-item" id="wu'+i+'"><div class="wu-head"><b>'+ex.name+'</b><span class="wu-syl">'+ex.syl+'</span><span class="wu-meta">ca. '+ex.dur+' s'+(ex.deg?' · '+ex.deg:'')+'</span></div><p class="wu-how">'+ex.how+'</p><button type="button" data-i="'+i+'">Nur diese</button></li>').join("");
+  $("wuList").querySelectorAll("button[data-i]").forEach(bn=>bn.onclick=()=>wuPlay([+bn.dataset.i]));
+}
+function wuFmt(sec){ sec=Math.max(0,Math.round(sec)); return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0"); }
+function wuPlay(list){
+  wuStop(true);
+  const voice=$("wuVoice").value; let t=0, all=[]; const bounds=[];
+  list.forEach(i=>{ const r=wuEvents(WU[i],voice,t,i); all=all.concat(r.ev); bounds.push({i,t0:t,t1:r.end}); t=r.end+1.2; });
+  const total=t, startAt=performance.now();
+  wuOn=true; $("wuStop").disabled=false; $("wuAll").disabled=true;
+  document.querySelectorAll(".wu-item").forEach(e=>e.classList.remove("on","done"));
+  const mark=i=>{ document.querySelectorAll(".wu-item").forEach((e,k)=>{ e.classList.toggle("on",k===i); }); bounds.forEach(bd=>{ if(bd.i!==i&&bd.t1<=(performance.now()-startAt)/1000+.5) $("wu"+bd.i).classList.add("done"); }); };
+  let cur=-1;
+  run(all,e=>{ if(!e.lbl) return; if(e.lbl.s!==cur){ cur=e.lbl.s; mark(cur); $("wuStep").textContent=WU[cur].name; const el0=$("wu"+cur); if(el0&&list.length>1){ const r=el0.getBoundingClientRect(), top=$("einsingen").querySelector(".wu-bar").getBoundingClientRect().bottom+8; if(r.top<top||r.bottom>innerHeight) window.scrollBy({top:r.top-top,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}); } } $("wuKey").textContent=e.lbl.key||""; },
+      ()=>{ wuStop(true); bounds.forEach(bd=>$("wu"+bd.i).classList.add("done")); $("wuStep").textContent=list.length>1?"Fertig eingesungen":"Übung beendet"; $("wuKey").textContent=""; $("wuTime").textContent=""; $("wuProg").style.width="100%"; });
+  wuTimer=setInterval(()=>{ const el=(performance.now()-startAt)/1000; $("wuTime").textContent="noch "+wuFmt(total-el); $("wuProg").style.width=Math.min(100,el/total*100)+"%"; },250);
+}
+function wuStop(quiet){
+  if(wuOn) stopAll();
+  wuOn=false; clearInterval(wuTimer); $("wuStop").disabled=true; $("wuAll").disabled=false;
+  if(!quiet){ $("wuStep").textContent="Angehalten"; $("wuKey").textContent=""; document.querySelectorAll(".wu-item").forEach(e=>e.classList.remove("on")); }
+}
+$("wuAll").onclick=()=>wuPlay(WU.map((_,i)=>i));
+$("wuStop").onclick=()=>wuStop(false);
+$("wuVoice").onchange=()=>{ store.set("wuVoice",$("wuVoice").value); if(wuOn) wuStop(false); };
+$("wuVoice").value=store.get("wuVoice",st.voice||"S");
+wuRender();
+
+
 /* ---------- Live-Modus mit Mikrofon ---------- */
 const live={mode:"scale",on:false,stream:null,src:null,an:null,buf:null,timer:null,seq:[],idx:0,match:[],oct:null,win:[],cur:null,frames:[],t0:0};
 function yinFrame(x,sr){
@@ -1514,7 +1646,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="7 · 14.10.2026";
+const APP_VERSION="9 · 14.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -1853,7 +1985,17 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+const APP_BUILD=9;
+if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
+window.addEventListener("load",()=>{
+  fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
+    if(!j||!(j.v>APP_BUILD)) return;
+    const d=document.createElement("div"); d.className="updbar";
+    d.innerHTML='<span>Eine neue Version ('+j.v+') ist da.</span><button type="button">Jetzt laden</button>';
+    d.querySelector("button").onclick=async()=>{ try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(x=>x.update())); }catch(e){} location.reload(); };
+    document.body.appendChild(d);
+  }).catch(()=>{});
+});
 </script>
 </body>
 </html>
