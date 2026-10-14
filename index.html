@@ -130,6 +130,8 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:8px;
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
+.c-good{color:var(--good)}.c-hl{color:var(--hl)}.c-bad{color:var(--bad)}
+.readlive{display:grid;gap:10px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface)}
 .tuner{display:grid;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
 .tuner-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
 .tnote{font:600 1.7rem/1 var(--display);min-width:2.6em}
@@ -289,12 +291,12 @@ body.uebe .pdfpages{gap:6px}
         <h3>Live mitsingen</h3>
         <p class="hint">Mit Kopfhörern üben, damit das Mikrofon nur deine Stimme hört. „Live starten“ spielt den Grundton, danach singst du die Tonleiter in der eingestellten Richtung. Jeder gehaltene Ton wird sofort neben seiner Zielnote eingetragen.</p>
         <div class="btnrow"><button class="primary" type="button" id="liveStart">Live starten</button><button type="button" id="liveStop" disabled>Beenden</button></div>
-        <div class="tuner" id="tuner" hidden>
+        <div id="scaleTunerSlot"><div class="tuner" id="tuner" hidden>
           <div class="tuner-top"><span class="label">Ziel</span><span class="tnote" id="tTarget">–</span><span class="label">Du singst</span><span class="tnote" id="tSung">–</span><span class="tcents" id="tCents"></span></div>
           <div class="gauge" aria-hidden="true"><div class="gzone"></div><div class="gmid"></div><div class="gneedle" id="tNeedle"></div></div>
           <div class="gscale"><span>−50 Cent</span><span>0</span><span>+50 Cent</span></div>
         </div>
-        <p class="hint" id="liveStatus" aria-live="polite"></p>
+        <p class="hint" id="liveStatus" aria-live="polite"></p></div>
         <h3>Aus einer Aufnahme prüfen</h3>
         <ol>
           <li>Oben „Abspielen“ oder den Bordun-Ton nutzen, um den Grundton zu hören.</li>
@@ -336,6 +338,12 @@ body.uebe .pdfpages{gap:6px}
         <button id="stopRead" type="button">Stopp</button>
       </div>
       <div class="staffbox"><svg id="staffRead" role="img" aria-label="Lesemelodie auf Notenlinien"></svg></div>
+      <div class="readlive" id="readLive">
+        <div class="btnrow"><button class="primary" type="button" id="readLiveStart">🎤 Live mitsingen</button><button type="button" id="readLiveStop" disabled>Beenden</button><button type="button" id="readLiveNext">Neue Melodie und los</button></div>
+        <div class="stats" id="readStats" hidden></div>
+        <div id="readTunerSlot"></div>
+        <p class="hint">Mit Kopfhörern: Grundton hören, dann die Melodie vom Notenbild singen, jeden Ton etwa eine Sekunde. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp daneben, <b class="c-bad">rot</b> daneben; ein ganz anderer Ton erscheint als rote Note neben der Zielnote.</p>
+      </div>
       <div class="now" aria-live="polite"><span class="big" id="nowRead">–</span><span class="small" id="nowReadSub"></span></div>
       <p class="hint">So läuft es: Tonart hören, Grundton summen, Melodie still ansehen (Stufen erkennen, Sprünge markieren). Dann laut im eingestellten Tempo singen, ohne anzuhalten. Erst danach „Kontrolle abspielen“. Die Melodien sind zufällig erzeugt, du kannst unbegrenzt neue holen.</p>
     </div>
@@ -921,7 +929,7 @@ function newMelody(){
   melody=seq.map(k=>notes[k]);
   renderRead(-1); setNow("nowRead","–","");
 }
-function renderRead(active){drawStaff($("staffRead"),melody,active,$("showNames").checked)}
+function renderRead(active){ if(live.mode==="read"&&live.seq===melody&&live.match.some(Boolean)){ drawReadLive(active); return; } drawStaff($("staffRead"),melody,active,$("showNames").checked); $("readStats").hidden=true; }
 $("newMel").onclick=newMelody;
 $("showNames").onchange=()=>{store.set("names",$("showNames").checked); renderRead(-1)};
 $("cadence").onclick=()=>{
@@ -1022,7 +1030,7 @@ document.querySelectorAll(".donebox input[data-w]").forEach(cb=>cb.onchange=()=>
 
 
 /* ---------- Live-Modus mit Mikrofon ---------- */
-const live={on:false,stream:null,src:null,an:null,buf:null,timer:null,seq:[],idx:0,match:[],oct:null,win:[],cur:null,frames:[],t0:0};
+const live={mode:"scale",on:false,stream:null,src:null,an:null,buf:null,timer:null,seq:[],idx:0,match:[],oct:null,win:[],cur:null,frames:[],t0:0};
 function yinFrame(x,sr){
   let r=0; for(let j=0;j<x.length;j++) r+=x[j]*x[j]; r=Math.sqrt(r/x.length);
   if(r<0.012) return null;
@@ -1046,7 +1054,48 @@ function setTuner(target,m){
   $("tCents").textContent=(c>0?"+":"")+c+" ct"; $("tCents").style.color=devColor(c);
   $("tNeedle").style.left=(50+cl)+"%"; $("tNeedle").style.background=devColor(c);
 }
-function liveRedraw(){ showResult(live.seq,{match:live.match,octave:live.oct||0},live.frames); }
+const LIVE_UI={scale:{start:"liveStart",stop:"liveStop",slot:"scaleTunerSlot"},read:{start:"readLiveStart",stop:"readLiveStop",slot:"readTunerSlot"}};
+const STEPS12=[0,1,1,2,2,3,3,4,5,5,6,6];
+function liveRedraw(){ if(live.mode==="read") drawReadLive(); else showResult(live.seq,{match:live.match,octave:live.oct||0},live.frames); }
+function readCounts(){
+  let g=0,y=0,r=0,sum=0,n=0,nt=0;
+  live.seq.forEach((t,i)=>{ const mt=live.match[i]; if(!mt) return; const c=Math.round((mt.m-t.midi)*100), a=Math.abs(c);
+    if(a<=20) g++; else if(a<=45) y++; else r++; if(a<50){ sum+=c; nt++; } n++; });
+  return {g,y,r,n,nt,tend:nt?Math.round(sum/nt):0};
+}
+function readSummary(){
+  const k=readCounts(), tot=live.seq.length;
+  let t="Getroffen "+k.g+" von "+tot+" · knapp daneben "+k.y+" · daneben "+k.r+(k.n<tot?" · nicht gesungen "+(tot-k.n):"")+".";
+  if(k.nt>=3&&Math.abs(k.tend)>=15) t+=k.tend<0?" Tendenz zu tief ("+k.tend+" Cent im Schnitt).":" Tendenz zu hoch (+"+k.tend+" Cent im Schnitt).";
+  return t;
+}
+function drawReadLive(active){
+  const seq=live.seq, svg=$("staffRead");
+  drawStaff(svg,seq,active==null?-1:active,$("showNames").checked);
+  const vb=svg.getAttribute("viewBox").split(" ").map(Number), lab=vb[3]+10, H=vb[3]+28;
+  svg.setAttribute("viewBox",vb[0]+" "+vb[1]+" "+vb[2]+" "+H); svg.setAttribute("height",H);
+  const V=VOICES[st.voice], gap=46, x0=96, yb=100;
+  svg.appendChild(el("text",{x:20,y:lab,"font-family":"var(--mono)","font-size":10,fill:"var(--muted)"},"Cent"));
+  if(live.on&&live.idx<seq.length){ const x=x0+live.idx*gap; svg.appendChild(el("path",{d:"M"+(x-7)+" "+(lab+2)+"l7 -10l7 10z",fill:"var(--accent)"})); }
+  seq.forEach((n,i)=>{
+    const mt=live.match[i]; if(!mt) return;
+    const x=x0+i*gap, y=yb-(n.d-V.ref)*5, c=Math.round((mt.m-n.midi)*100), col=devColor(c);
+    svg.appendChild(el("ellipse",{cx:x,cy:y,rx:10.5,ry:8,fill:col,"fill-opacity":.28,stroke:col,"stroke-width":2.2,transform:"rotate(-20 "+x+" "+y+")"}));
+    if(Math.abs(c)>=50){
+      const semi=Math.round(mt.m-n.midi), oc=Math.floor(semi/12), r12=((semi%12)+12)%12, ds=n.d+oc*7+STEPS12[r12], p=ds-V.ref, ys=yb-p*5, xs=x+18;
+      for(let q=-2;q>=p;q-=2) svg.appendChild(el("line",{x1:xs-9,x2:xs+9,y1:yb-q*5,y2:yb-q*5,stroke:col,"stroke-width":1.2}));
+      for(let q=10;q<=p;q+=2) svg.appendChild(el("line",{x1:xs-9,x2:xs+9,y1:yb-q*5,y2:yb-q*5,stroke:col,"stroke-width":1.2}));
+      svg.appendChild(el("ellipse",{cx:xs,cy:ys,rx:6.4,ry:4.6,fill:col,transform:"rotate(-20 "+xs+" "+ys+")"}));
+    }else if(Math.abs(c)>20){
+      svg.appendChild(el("path",{d:c>0?("M"+(x+14)+" "+(y-2)+"l5 -7l5 7z"):("M"+(x+14)+" "+(y+2)+"l5 7l5 -7z"),fill:col}));
+    }
+    const rr=Math.round(mt.m), label=Math.abs(c)>=50?PC[((rr%12)+12)%12]:(c>0?"+":"")+c;
+    svg.appendChild(el("text",{x:x,y:lab,"text-anchor":"middle","font-family":"var(--mono)","font-size":11,"font-weight":600,fill:col},label));
+  });
+  if(live.on){ const box=svg.parentElement, sc=(svg.clientWidth||vb[2])/vb[2], cx=(x0+Math.min(live.idx,seq.length-1)*gap)*sc; if(box.scrollWidth>box.clientWidth+4) box.scrollLeft=Math.max(0,cx-box.clientWidth/2); }
+  const k=readCounts(), s=$("readStats");
+  if(k.n){ s.hidden=false; s.innerHTML='<span class="c-good">Getroffen <b>'+k.g+'</b></span><span class="c-hl">knapp <b>'+k.y+'</b></span><span class="c-bad">daneben <b>'+k.r+'</b></span><span>von <b>'+seq.length+'</b></span>'+(k.nt>=3?'<span>Tendenz <b>'+(k.tend>0?"+":"")+k.tend+' ct</b></span>':''); }
+}
 function finalizeNote(){
   const cur=live.cur; live.cur=null; if(!cur||cur.ms.length<6) return;
   const k=cur.ms.length, m=median(cur.ms.slice(Math.floor(k*0.2),Math.ceil(k*0.8)));
@@ -1054,11 +1103,11 @@ function finalizeNote(){
   const adj=m+12*live.oct;
   // Ton übersprungen? Dann liegt der gesungene Ton näher am übernächsten Ziel
   const t=live.seq[live.idx], nx=live.seq[live.idx+1];
-  if(nx && Math.abs(adj-nx.midi)+0.25<Math.abs(adj-t.midi) && Math.abs(adj-nx.midi)<0.7){ live.idx++; }
+  if(live.mode!=="read" && nx && Math.abs(adj-nx.midi)+0.25<Math.abs(adj-t.midi) && Math.abs(adj-nx.midi)<0.7){ live.idx++; }
   live.match[live.idx]={seg:{t0:cur.t0,t1:cur.t1},m:adj};
   live.idx++;
   liveRedraw();
-  if(live.idx>=live.seq.length){ $("liveStatus").textContent="Fertig. "+$("recStatus").textContent; stopLive(true); }
+  if(live.idx>=live.seq.length){ $("liveStatus").textContent="Fertig. "+(live.mode==="read"?readSummary()+" Mit „Kontrolle abspielen“ hörst du die Melodie.":$("recStatus").textContent); stopLive(true); }
 }
 function liveTick(){
   if(!live.on) return;
@@ -1072,7 +1121,7 @@ function liveTick(){
   if(sm==null){ if(live.cur&&t-live.cur.t1>0.12) finalizeNote(); return; }
   if(live.cur && Math.abs(sm-median(live.cur.ms.slice(-8)))<0.6){ live.cur.ms.push(sm); live.cur.t1=t; }
   else { finalizeNote(); if(live.on) live.cur={t0:t,t1:t,ms:[sm]}; }
-  if(live.frames.length%12===0) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
+  if(live.mode!=="read"&&live.frames.length%12===0) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
 }
 function micErrorText(e){
   const n=e&&e.name||"", m=e&&e.message||"";
@@ -1083,11 +1132,15 @@ function micErrorText(e){
   else t="Das Mikrofon ließ sich nicht starten.";
   return t+" (Technisch: "+(n||"unbekannt")+(m?" – "+m:"")+")";
 }
-async function startLive(){
+async function startLive(mode){
+  mode=mode==="read"?"read":"scale";
+  if(live.stream) stopLive(false);
+  live.mode=mode; const UI=LIVE_UI[mode];
+  $(UI.slot).appendChild($("tuner")); $(UI.slot).appendChild($("liveStatus"));
   const out=$("liveStatus");
   if(!window.isSecureContext){ out.textContent="Das Mikrofon funktioniert nur, wenn die App über eine https-Adresse geöffnet ist. Aktuell: "+location.href; return; }
   if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ out.textContent="Dieser Browser bietet keinen Mikrofonzugriff an. Öffne die Adresse bitte direkt in Safari."; return; }
-  $("liveStart").disabled=true;
+  Object.values(LIVE_UI).forEach(u=>{ $(u.start).disabled=true; });
   out.textContent="Frage das Mikrofon an …";
   // iOS: Audio-Sitzung VOR der Anfrage auf Aufnahme stellen, sonst lehnt Safari ohne Abfrage ab
   micMode=true;
@@ -1098,16 +1151,17 @@ async function startLive(){
   if(!live.stream){
     micMode=false;
     try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
-    $("liveStart").disabled=false; out.textContent=micErrorText(err); return;
+    Object.values(LIVE_UI).forEach(u=>{ $(u.start).disabled=false; }); out.textContent=micErrorText(err); return;
   }
   try{ const tr=live.stream.getAudioTracks()[0]; if(tr&&tr.applyConstraints) await tr.applyConstraints({echoCancellation:false,noiseSuppression:false,autoGainControl:false}); }catch(e){}
   const c=ac();
   if(c.state!=="running"){ try{ await c.resume(); }catch(e){} }
   live.src=c.createMediaStreamSource(live.stream); live.an=c.createAnalyser(); live.an.fftSize=4096; live.src.connect(live.an);
   live.buf=new Float32Array(live.an.fftSize);
-  live.seq=scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
-  $("recOut").hidden=false; liveRedraw();
-  $("tuner").hidden=false; $("liveStop").disabled=false;
+  live.seq=mode==="read"?melody:scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
+  if(mode==="scale") $("recOut").hidden=false; else $("readStats").hidden=true;
+  liveRedraw();
+  $("tuner").hidden=false; $(UI.stop).disabled=false;
   out.textContent="Hör den Grundton, dann sing los.";
   run([{t:0,midi:live.seq[0].midi,d:1.4}],()=>{},()=>{
     live.t0=ctx.currentTime; live.on=true; live.timer=setInterval(liveTick,40);
@@ -1122,12 +1176,18 @@ function stopLive(done){
   micMode=false;
   try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
   try{ if(silentEl){ const p=silentEl.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){}
-  $("liveStart").disabled=false; $("liveStop").disabled=true;
-  if(live.frames.length) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
-  if(!done) $("liveStatus").textContent="Beendet. "+(live.match.some(Boolean)?$("recStatus").textContent:"");
+  Object.values(LIVE_UI).forEach(u=>{ $(u.start).disabled=false; $(u.stop).disabled=true; });
+  live.stream=null;
+  if(live.mode==="read") drawReadLive();
+  else if(live.frames.length) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
+  if(!done) $("liveStatus").textContent="Beendet. "+(live.match.some(Boolean)?(live.mode==="read"?readSummary():$("recStatus").textContent):"");
 }
-$("liveStart").onclick=startLive;
+$("liveStart").onclick=()=>startLive("scale");
 $("liveStop").onclick=()=>stopLive(false);
+$("readLiveStart").onclick=()=>startLive("read");
+$("readLiveStop").onclick=()=>stopLive(false);
+$("readLiveNext").onclick=()=>{ if(live.stream) stopLive(false); $("newMel").click(); startLive("read"); };
+["tab-scale","tab-read","tab-iv"].forEach(id=>$(id).addEventListener("click",()=>{ if(live.stream) stopLive(false); }));
 
 /* ---------- Notenbibliothek: PDF anzeigen, Stimmen abspielen ---------- */
 const NL={db:null,pieces:[],cur:null,pdfDoc:null,zoom:1,renderToken:0,score:null};
@@ -1454,7 +1514,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="6 · 14.10.2026";
+const APP_VERSION="7 · 14.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";

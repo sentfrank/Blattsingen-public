@@ -33,6 +33,8 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 - Das Stimmgerät zeigt laufend, wie weit du vom Zielton weg bist. Jeder gehaltene Ton landet sofort als farbiger Punkt neben seiner Note.
 - Zwischen gleich hohen Tönen kurz absetzen.
 
+**Treffübung live:** Im Tab „Treffübung“ unter dem Notenbild „🎤 Live mitsingen“ tippen. Nach dem Grundton singst du die Melodie vom Blatt. Jeder Ton erscheint sofort in den Noten: grün getroffen (bis ±20 Cent), gelb knapp daneben (bis ±45 Cent), rot daneben. Ein ganz anderer Ton steht als rote Note neben der Zielnote, darunter sein Name. „Neue Melodie und los“ startet gleich die nächste Runde.
+
 ## 4. Meine Noten
 
 - Abschnitt „Meine Noten“ → „Dateien auswählen“: die PDF eines Stücks und, wenn vorhanden, die passende **MusicXML-** (.musicxml, .xml, .mxl) oder **MIDI-Datei** (.mid). Beide können auf einmal ausgewählt werden.
