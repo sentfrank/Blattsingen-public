@@ -167,6 +167,9 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
 .gzone{position:absolute;left:30%;width:40%;top:0;bottom:0;background:var(--good);opacity:.16}
 .gmid{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--muted)}
 .gneedle{position:absolute;left:50%;top:3px;bottom:3px;width:6px;margin-left:-3px;border-radius:3px;background:var(--fg);transition:left .08s linear}
+.level{display:flex;align-items:center;gap:8px;font:500 .72rem var(--mono);color:var(--muted)}
+.lbar{flex:1;height:6px;border-radius:3px;background:var(--surface);border:1px solid var(--line);overflow:hidden}
+.lbar div{height:100%;width:0;background:var(--good);transition:width .08s linear}
 .gscale{display:flex;justify-content:space-between;font:500 .75rem var(--mono);color:var(--muted)}
 
 .lib-home{display:grid;gap:14px}
@@ -239,7 +242,7 @@ body.uebe .pdfpages{gap:6px}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 9 · 14.10.2026</span>
+  <span class="appver">App-Version 10 · 14.10.2026</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -347,6 +350,7 @@ body.uebe .pdfpages{gap:6px}
           <div class="tuner-top"><span class="label">Ziel</span><span class="tnote" id="tTarget">–</span><span class="label">Du singst</span><span class="tnote" id="tSung">–</span><span class="tcents" id="tCents"></span></div>
           <div class="gauge" aria-hidden="true"><div class="gzone"></div><div class="gmid"></div><div class="gneedle" id="tNeedle"></div></div>
           <div class="gscale"><span>−50 Cent</span><span>0</span><span>+50 Cent</span></div>
+          <div class="level" aria-hidden="true"><span>Mikrofon</span><div class="lbar"><div id="tLevel"></div></div></div>
         </div>
         <p class="hint" id="liveStatus" aria-live="polite"></p></div>
         <h3>Aus einer Aufnahme prüfen</h3>
@@ -1244,8 +1248,12 @@ function finalizeNote(){
 function liveTick(){
   if(!live.on) return;
   live.an.getFloatTimeDomainData(live.buf);
-  const f=Math.max(1,Math.round(ctx.sampleRate/11025)), x=decimate(live.buf,f), sr=ctx.sampleRate/f;
-  const m=yinFrame(x,sr), t=ctx.currentTime-live.t0;
+  const SR=live.actx.sampleRate, f=Math.max(1,Math.round(SR/11025)), x=decimate(live.buf,f), sr=SR/f;
+  const m=yinFrame(x,sr), t=performance.now()/1000-live.t0;
+  let rms=0; for(let j=0;j<live.buf.length;j+=4) rms+=live.buf[j]*live.buf[j]; rms=Math.sqrt(rms/(live.buf.length/4));
+  live.peak=Math.max(live.peak||0,rms);
+  const lv=$("tLevel"); if(lv) lv.style.width=Math.min(100,Math.round(Math.sqrt(rms)*260))+"%";
+  if(!live.warned&&t>4&&live.peak<0.002){ live.warned=true; $("liveStatus").textContent="Ich höre nichts vom Mikrofon (Audio: "+live.actx.state+"). Sing lauter oder näher am Gerät. Bleibt der Pegelbalken leer: App ganz schließen, neu öffnen und als Erstes „Live starten“ tippen."; }
   live.frames.push({t,m});
   live.win.push(m); if(live.win.length>5) live.win.shift();
   const vals=live.win.filter(v=>v!=null), sm=vals.length>=3?median(vals):null;
@@ -1286,8 +1294,15 @@ async function startLive(mode){
     Object.values(LIVE_UI).forEach(u=>{ $(u.start).disabled=false; }); out.textContent=micErrorText(err); return;
   }
   try{ const tr=live.stream.getAudioTracks()[0]; if(tr&&tr.applyConstraints) await tr.applyConstraints({echoCancellation:false,noiseSuppression:false,autoGainControl:false}); }catch(e){}
+  // iOS: Ein vorher (fürs Abspielen) gestarteter Audio-Kanal wird beim Einschalten des Mikrofons oft pausiert.
+  // Darum nach der Freigabe einen frischen Kanal anlegen, der Aufnahme und Wiedergabe gemeinsam bedient.
+  try{ if(drone) toggleDrone(false); }catch(e){}
+  try{ stopAll(); }catch(e){}
+  try{ if(ctx&&ctx.close) ctx.close(); }catch(e){}
+  ctx=null;
   const c=ac();
-  if(c.state!=="running"){ try{ await c.resume(); }catch(e){} }
+  if(c.state!=="running"){ try{ await Promise.race([c.resume(),new Promise(r=>setTimeout(r,1500))]); }catch(e){} }
+  live.actx=c; live.peak=0; live.warned=false;
   live.src=c.createMediaStreamSource(live.stream); live.an=c.createAnalyser(); live.an.fftSize=4096; live.src.connect(live.an);
   live.buf=new Float32Array(live.an.fftSize);
   live.seq=mode==="read"?melody:scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
@@ -1295,18 +1310,25 @@ async function startLive(mode){
   liveRedraw();
   $("tuner").hidden=false; $(UI.stop).disabled=false;
   out.textContent="Hör den Grundton, dann sing los.";
-  run([{t:0,midi:live.seq[0].midi,d:1.4}],()=>{},()=>{
-    live.t0=ctx.currentTime; live.on=true; live.timer=setInterval(liveTick,40);
-    out.textContent="Ich höre zu. Halte jeden Ton etwa eine Sekunde.";
-  });
+  run([{t:0,midi:live.seq[0].midi,d:1.4}],()=>{},()=>{});
+  // Zuhören startet nach dem Grundton fest per Uhr – auch wenn iOS den Grundton nicht abspielt
+  live.startT=setTimeout(()=>{
+    if(!live.stream) return;
+    live.t0=performance.now()/1000; live.on=true; live.timer=setInterval(liveTick,40);
+    out.textContent="Ich höre zu. Halte jeden Ton etwa eine Sekunde."+(c.state!=="running"?" (Hinweis: Audio-Zustand „"+c.state+"“, der Grundton war evtl. nicht zu hören.)":"");
+  },1700);
 }
 function stopLive(done){
-  live.on=false; clearInterval(live.timer);
+  live.on=false; clearInterval(live.timer); clearTimeout(live.startT);
   if(live.cur) finalizeNote();
   try{ live.src&&live.src.disconnect(); }catch(e){}
   try{ live.stream&&live.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
   micMode=false;
   try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  // Kanal schließen; der nächste Ton legt automatisch einen frischen Wiedergabe-Kanal an
+  try{ stopAll(); }catch(e){}
+  try{ if(ctx&&ctx.close) ctx.close(); }catch(e){}
+  ctx=null;
   try{ if(silentEl){ const p=silentEl.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){}
   Object.values(LIVE_UI).forEach(u=>{ $(u.start).disabled=false; $(u.stop).disabled=true; });
   live.stream=null;
@@ -1646,7 +1668,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="9 · 14.10.2026";
+const APP_VERSION="10 · 14.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -1985,7 +2007,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=9;
+const APP_BUILD=10;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
