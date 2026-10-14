@@ -139,6 +139,55 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
 .gmid{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--muted)}
 .gneedle{position:absolute;left:50%;top:3px;bottom:3px;width:6px;margin-left:-3px;border-radius:3px;background:var(--fg);transition:left .08s linear}
 .gscale{display:flex;justify-content:space-between;font:500 .75rem var(--mono);color:var(--muted)}
+
+.lib-home{display:grid;gap:14px}
+.lib-add{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.lib-add input[type=text],.field input[type=text]{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+.lib-add input[type=text]{width:100%;max-width:520px}
+.lib-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lib-item{display:flex;gap:8px;align-items:stretch}
+.lib-open{flex:1;min-width:0;display:grid;gap:2px;text-align:left;padding:12px 14px}
+.lib-title{font:600 1.05rem var(--display);overflow-wrap:anywhere}
+.lib-meta{font:500 .8rem var(--mono);color:var(--muted)}
+.lib-del{color:var(--bad)}
+.lib-del[data-arm="1"]{border-color:var(--bad);font-weight:600}
+.lib-empty{color:var(--muted);font-size:.95rem;padding:8px 0}
+.howto{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.howto summary{cursor:pointer;font-weight:600}
+.howto ul{margin:10px 0 0;padding-left:1.1em;display:grid;gap:6px;max-width:70ch}
+.viewer{display:grid;gap:12px}
+.vhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.vtitle{order:3;flex-basis:100%;min-width:0;display:grid;gap:2px}
+.vtitle h3{overflow-wrap:anywhere}
+.filebtn.ghost{background:var(--surface);color:var(--fg);border-color:var(--line)}
+.player{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px -12px rgba(0,0,0,.35)}
+.pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px}
+.ppos{flex:1;min-width:7em;font:600 1.15rem var(--mono);font-variant-numeric:tabular-nums;color:var(--hl);text-align:center}
+.pmix{border-top:1px solid var(--line);padding:12px;display:grid;gap:12px;max-height:48vh;overflow:auto;overscroll-behavior:contain}
+.field.narrow input{width:5.5em}
+.pparts{display:grid;gap:8px}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto minmax(80px,140px);gap:8px;align-items:center}
+.prow input[type=text]{font:inherit;color:var(--fg);background:transparent;border:1px solid transparent;border-radius:6px;padding:6px;min-width:0}
+.prow input[type=text]:hover,.prow input[type=text]:focus{border-color:var(--line)}
+.prange{font:500 .78rem var(--mono);color:var(--muted);white-space:nowrap}
+.prow button{padding:6px 10px}
+.prow button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.prow{grid-template-columns:minmax(0,1fr) auto auto auto minmax(80px,140px) auto}
+@media (max-width:560px){.prow{grid-template-columns:minmax(0,1fr) auto auto;}.prow .prange{display:none}.prow input[type=range]{grid-column:1/3}.prow .poct{grid-column:3}}
+.pdfbar{display:flex;gap:8px;align-items:center}
+.ghsetup{display:grid;gap:12px;margin-top:10px}
+.ghsetup ol{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:70ch;font-size:.95rem;overflow-wrap:anywhere}
+.ghsetup .field input{width:100%;min-width:0}
+.ghsetup .field{flex:1 1 180px}
+.ghsetup .field.wide{flex:2 1 260px}
+.omr{display:grid;gap:6px;background:var(--accent-soft);border-radius:10px;padding:12px}
+.omr button{justify-self:start}
+.poct{font:inherit;font-size:.85rem;padding:4px 6px}
+.pdfbar button{width:42px;padding:8px 0;font-size:1.1rem}
+.pdfpages{display:grid;gap:14px;overflow-x:auto;justify-items:start}
+.pdfpage{position:relative;display:grid;gap:4px}
+.pdfpage canvas{background:#fff;border:1px solid var(--line);border-radius:4px;display:block}
+.pdfnum{font:500 .75rem var(--mono);color:var(--muted)}
 </style>
 </head>
 <body>
@@ -150,7 +199,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#trainer">Trainer</a><a href="#material">Übematerial</a></nav>
+  <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#material">Übematerial</a></nav>
 </header>
 
 <section id="routine">
@@ -298,6 +347,93 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
       <div class="ivgrid" id="ivgrid"></div>
       <div class="feedback" id="ivFeedback" aria-live="polite"><span class="muted">Klicke „Neues Intervall“ und wähle dann deine Antwort.</span></div>
     </div>
+  </div>
+</section>
+
+<section id="noten">
+  <div class="sechead">
+    <span class="label">Eigene Stücke</span>
+    <h2>Meine Noten</h2>
+    <p>Lade die PDF eines Stücks zum Lesen und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei zum Abspielen einzelner Stimmen. Alles bleibt auf diesem Gerät gespeichert.</p>
+  </div>
+  <div id="libHome" class="lib-home">
+    <div class="lib-add">
+      <div class="field"><label class="label" for="pTitle">Titel (optional)</label><input id="pTitle" type="text" placeholder="z. B. Lasso · Timor et tremor"></div>
+      <div class="btnrow">
+        <input type="file" id="pFiles" class="sr-only" multiple>
+        <label class="filebtn" for="pFiles">Dateien auswählen</label>
+      </div>
+      <p class="hint">PDF zum Lesen · MusicXML (.musicxml, .xml, .mxl) oder MIDI (.mid) zum Abspielen. Du kannst beides auf einmal auswählen.</p>
+    </div>
+    <p class="hint" id="libStatus" aria-live="polite"></p>
+    <ul class="lib-list" id="libList"></ul>
+    <details class="howto" id="ghBox">
+      <summary>Automatische Umwandlung einrichten (PDF → Stimmen)</summary>
+      <div class="ghsetup">
+        <p class="hint" id="ghState"></p>
+        <ol>
+          <li>Bei <b>github.com</b> oben rechts „+“ › „New repository“: Name <b>blattsingen-konverter</b>, <b>Private</b> wählen, Haken bei „Add a README file“, dann „Create repository“.</li>
+          <li>Zugangsschlüssel anlegen unter <b>github.com/settings/personal-access-tokens/new</b>: Name z. B. „Blattsingen“, Ablauf nach Wunsch, bei „Repository access“ „Only select repositories“ › <b>blattsingen-konverter</b>, bei „Permissions“ <b>Contents</b> und <b>Workflows</b> jeweils auf „Read and write“. Dann „Generate token“ und den Schlüssel kopieren.</li>
+          <li>Hier eintragen und „Verbinden und einrichten“ tippen. Die App legt die Umwandlung im Repository selbst an.</li>
+        </ol>
+        <div class="controls">
+          <div class="field"><label class="label" for="ghOwner">GitHub-Benutzername</label><input type="text" id="ghOwner" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+          <div class="field"><label class="label" for="ghRepo">Repository</label><input type="text" id="ghRepo" autocapitalize="off" spellcheck="false" placeholder="blattsingen-konverter"></div>
+          <div class="field wide"><label class="label" for="ghToken">Zugangsschlüssel</label><input type="password" id="ghToken" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+        </div>
+        <div class="btnrow"><button type="button" class="primary" id="ghSave">Verbinden und einrichten</button><button type="button" id="ghRemove" hidden>Verbindung entfernen</button></div>
+        <p class="hint" id="ghMsg" aria-live="polite"></p>
+        <p class="hint">Der Schlüssel bleibt nur auf diesem Gerät gespeichert. Die Erkennung läuft kostenlos bei GitHub: Für private Repositories sind rund 2000 Minuten im Monat frei, eine Umwandlung braucht meist 1–3 Minuten.</p>
+      </div>
+    </details>
+    <details class="howto">
+      <summary>Wie komme ich an eine MusicXML- oder MIDI-Datei?</summary>
+      <ul>
+        <li><b>CPDL</b> (cpdl.org) bietet bei vielen Stücken neben der PDF auch MIDI, MusicXML oder MuseScore-Dateien an.</li>
+        <li><b>MuseScore</b>: Eine .mscz-Datei öffnen und über „Exportieren“ als MusicXML sichern.</li>
+        <li><b>Automatisch aus der PDF</b>: Mit der eingerichteten Umwandlung (oben) erkennt die App die Noten selbst. Am besten klappt das mit sauber gesetzten Noten; bei Scans oder Fotos entstehen mehr Fehler.</li>
+        <li>Frag deinen Chorleiter: Häufig gibt es die Stücke schon als Notensatz-Datei.</li>
+      </ul>
+    </details>
+  </div>
+  <div id="viewer" class="viewer" hidden>
+    <div class="vhead">
+      <button type="button" id="vBack">← Alle Stücke</button>
+      <div class="vtitle"><h3 id="vTitle"></h3><span class="hint" id="vFiles"></span></div>
+      <input type="file" id="vAddFile" class="sr-only" multiple>
+      <label class="filebtn ghost" for="vAddFile">Datei ergänzen</label>
+    </div>
+    <div class="omr" id="omrBox" hidden>
+      <button type="button" class="primary" id="omrBtn">PDF in Stimmen umwandeln</button>
+      <p class="hint" id="omrStatus" aria-live="polite"></p>
+    </div>
+    <div class="player" id="player" hidden>
+      <div class="pbar">
+        <button class="primary" type="button" id="pPlay">▶ Abspielen</button>
+        <button type="button" id="pRewind" aria-label="Zum Anfang">⏮</button>
+        <span class="ppos" id="pPos" aria-live="off">Takt 1</span>
+        <button type="button" id="pTon">Einsatzton</button>
+        <button type="button" id="pMixT" aria-expanded="false" aria-controls="pMix">Stimmen ▾</button>
+      </div>
+      <div class="pmix" id="pMix" hidden>
+        <div class="controls">
+          <div class="field"><label class="label" for="pMine">Meine Stimme</label><select id="pMine"></select></div>
+          <div class="field"><label class="label" for="pMode">Wiedergabe</label>
+            <select id="pMode"><option value="all">alle Stimmen gleich</option><option value="lead">meine Stimme hervorheben</option><option value="only">nur meine Stimme</option><option value="without">ohne meine Stimme (mitsingen)</option></select></div>
+          <div class="field"><label class="label" for="pTempo">Tempo <span id="pTempoVal" class="score"></span></label><input type="range" id="pTempo" min="40" max="150" step="5" value="100"></div>
+          <div class="field narrow"><label class="label" for="pFrom">ab Takt</label><input type="text" inputmode="numeric" id="pFrom"></div>
+          <div class="field narrow"><label class="label" for="pTo">bis Takt</label><input type="text" inputmode="numeric" id="pTo"></div>
+          <label class="donebox"><input type="checkbox" id="pCount"> Einzähler</label>
+          <label class="donebox"><input type="checkbox" id="pLoop"> Wiederholen</label>
+        </div>
+        <div class="pparts" id="pParts"></div>
+        <p class="hint">Wiederholungszeichen und Sprünge (D.C., Coda) werden nicht ausgeführt, das Stück läuft einmal von vorn nach hinten. Stimmnamen kannst du antippen und ändern.</p>
+      </div>
+    </div>
+    <p class="hint" id="noScore" hidden>Für dieses Stück gibt es noch keine Stimmen-Datei. Ergänze eine MusicXML- oder MIDI-Datei, dann kannst du die Stimmen einzeln abspielen.</p>
+    <p class="hint" id="noPdf" hidden>Für dieses Stück gibt es keine PDF. Über „Datei ergänzen“ kannst du sie hinzufügen.</p>
+    <div class="pdfbar" id="pdfBar"><button type="button" id="zOut" aria-label="Verkleinern">−</button><button type="button" id="zIn" aria-label="Vergrößern">+</button><span class="hint" id="pdfInfo"></span></div>
+    <div class="pdfpages" id="pdfPages"></div>
   </div>
 </section>
 
@@ -976,6 +1112,571 @@ function stopLive(done){
 }
 $("liveStart").onclick=startLive;
 $("liveStop").onclick=()=>stopLive(false);
+
+/* ---------- Notenbibliothek: PDF anzeigen, Stimmen abspielen ---------- */
+const NL={db:null,pieces:[],cur:null,pdfDoc:null,zoom:1,renderToken:0,score:null};
+const STEP={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+
+/* --- Speicher (IndexedDB, bleibt auf dem Gerät) --- */
+function nlDb(){return new Promise((res,rej)=>{
+  if(NL.db) return res(NL.db);
+  let r; try{ r=indexedDB.open("blattsingen-noten",1); }catch(e){ return rej(e); }
+  r.onupgradeneeded=()=>{ r.result.createObjectStore("pieces",{keyPath:"id"}); };
+  r.onsuccess=()=>{ NL.db=r.result; res(NL.db); };
+  r.onerror=()=>rej(r.error);
+});}
+function nlTx(mode,fn){return nlDb().then(db=>new Promise((res,rej)=>{
+  const tx=db.transaction("pieces",mode), os=tx.objectStore("pieces"); let out;
+  const q=fn(os); if(q) q.onsuccess=()=>{ out=q.result; };
+  tx.oncomplete=()=>res(out); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error);
+}));}
+const nlAll=()=>nlTx("readonly",os=>os.getAll()).then(a=>a||[]);
+const nlPut=p=>nlTx("readwrite",os=>os.put(p));
+const nlDel=id=>nlTx("readwrite",os=>os.delete(id));
+
+function loadScript(src){return new Promise((res,rej)=>{
+  if(document.querySelector('script[data-src="'+src+'"]')) return res();
+  const s=document.createElement("script"); s.src=src; s.dataset.src=src; s.onload=()=>res(); s.onerror=()=>rej(new Error("load "+src));
+  document.head.appendChild(s);
+});}
+
+/* --- XML-Helfer (nur direkte Kinder) --- */
+const kid=(e,n)=>{ if(!e) return null; for(let c=e.firstChild;c;c=c.nextSibling) if(c.nodeType===1&&c.nodeName===n) return c; return null; };
+const kids=(e,n)=>{ const a=[]; if(!e) return a; for(let c=e.firstChild;c;c=c.nextSibling) if(c.nodeType===1&&(!n||c.nodeName===n)) a.push(c); return a; };
+const txt=(e,n)=>{ const k=kid(e,n); return k?(k.textContent||"").trim():""; };
+function firstDeep(e,n){ const l=e.getElementsByTagName(n); return l&&l.length?l[0]:null; }
+
+/* --- MusicXML (partwise) einlesen --- */
+function parseMusicXML(text,DOMP){
+  const x=new (DOMP||DOMParser)().parseFromString(text,"application/xml");
+  const root=x.documentElement;
+  if(!root||root.nodeName==="parsererror"||x.getElementsByTagName("parsererror").length) throw new Error("Die MusicXML-Datei ist beschädigt.");
+  if(root.nodeName==="score-timewise") throw new Error("Diese MusicXML-Variante (timewise) wird nicht unterstützt. Exportiere bitte als normales MusicXML.");
+  if(root.nodeName!=="score-partwise") throw new Error("Das ist keine MusicXML-Partitur.");
+  const names={};
+  kids(kid(root,"part-list"),"score-part").forEach(sp=>{ names[sp.getAttribute("id")]=txt(sp,"part-name")||txt(sp,"part-abbreviation")||sp.getAttribute("id"); });
+  const work=kid(root,"work"), title=(work&&txt(work,"work-title"))||txt(root,"movement-title")||"";
+  const parts=[], measures=[], tempos=[], times=[];
+  let first=true;
+  kids(root,"part").forEach(P=>{
+    const pid=P.getAttribute("id"); let div=1, mStart=0; const byVoice={}, ties={};
+    kids(P,"measure").forEach(M=>{
+      let pos=mStart, maxPos=mStart, lastStart=mStart;
+      if(first) measures.push({q:mStart,n:M.getAttribute("number")||String(measures.length+1)});
+      kids(M).forEach(E=>{
+        const nm=E.nodeName;
+        if(nm==="attributes"){
+          const d=+txt(E,"divisions"); if(d>0) div=d;
+          const ts=kid(E,"time"); if(ts&&first){ const b=+txt(ts,"beats"), bt=+txt(ts,"beat-type"); if(b>0&&bt>0) times.push({q:mStart,num:b,den:bt}); }
+        }else if(nm==="backup"){ pos-=(+txt(E,"duration")||0)/div; }
+        else if(nm==="forward"){ pos+=(+txt(E,"duration")||0)/div; maxPos=Math.max(maxPos,pos); }
+        else if((nm==="direction"||nm==="sound")&&first){
+          const snd=nm==="sound"?E:kid(E,"sound");
+          if(snd&&snd.getAttribute("tempo")){ const bpm=+snd.getAttribute("tempo"); if(bpm>0) tempos.push({q:pos,bpm}); }
+          else if(nm==="direction"){
+            const met=firstDeep(E,"metronome");
+            if(met){ const pm=+txt(met,"per-minute"); const bu=txt(met,"beat-unit"); const U={whole:4,half:2,quarter:1,eighth:.5,"16th":.25}[bu]||1; const dots=kids(met,"beat-unit-dot").length;
+              if(pm>0) tempos.push({q:pos,bpm:pm*U*(dots?1.5:1)}); }
+          }
+        }else if(nm==="note"){
+          if(kid(E,"grace")) return;
+          const isChord=!!kid(E,"chord"), d=(+txt(E,"duration")||0)/div;
+          const start=isChord?lastStart:pos;
+          if(!isChord){ lastStart=pos; pos+=d; maxPos=Math.max(maxPos,pos); }
+          const pt=kid(E,"pitch"); if(!pt||kid(E,"rest")) return;
+          const midi=12*((+txt(pt,"octave"))+1)+(STEP[txt(pt,"step")]||0)+Math.round(+txt(pt,"alter")||0);
+          const v=txt(E,"voice")||"1", key=v+":"+midi;
+          const tl=kids(E,"tie").map(t=>t.getAttribute("type"));
+          const arr=byVoice[v]||(byVoice[v]=[]);
+          if(tl.includes("stop")&&ties[key]){ const n=ties[key]; n.d=start+d-n.q; if(!tl.includes("start")) delete ties[key]; return; }
+          const n={q:start,d:Math.max(d,0.05),m:midi}; arr.push(n);
+          if(tl.includes("start")) ties[key]=n;
+        }
+      });
+      mStart=Math.max(maxPos,pos);
+    });
+    if(first) measures.push({q:mStart,n:"Ende",end:true});
+    first=false;
+    const vs=Object.keys(byVoice).filter(v=>byVoice[v].length).sort((a,b)=>(+a)-(+b));
+    const base=names[pid]||pid;
+    if(vs.length<=1) parts.push({name:base,notes:(byVoice[vs[0]]||[])});
+    else vs.forEach((v,i)=>parts.push({name:base+" · Stimme "+(i+1),notes:byVoice[v]}));
+  });
+  return finishScore({title,parts,measures,tempos,times,defBpm:90});
+}
+
+/* --- MIDI (SMF 0/1) einlesen --- */
+function parseMidi(buf){
+  const d=new DataView(buf); let p=0;
+  const s4=()=>String.fromCharCode(d.getUint8(p),d.getUint8(p+1),d.getUint8(p+2),d.getUint8(p+3));
+  const vlq=()=>{ let v=0,b; do{ b=d.getUint8(p++); v=(v<<7)|(b&127); }while(b&128); return v; };
+  if(s4()!=="MThd") throw new Error("Das ist keine MIDI-Datei.");
+  const hl=d.getUint32(p+4); const fmt=d.getUint16(p+8), ntr=d.getUint16(p+10), div=d.getUint16(p+12);
+  if(div&0x8000) throw new Error("Dieses MIDI-Zeitformat (SMPTE) wird nicht unterstützt.");
+  p=8+hl;
+  const tempos=[], times=[], tracks=[];
+  for(let t=0;t<ntr&&p+8<=d.byteLength;t++){
+    if(s4()!=="MTrk"){ break; }
+    const len=d.getUint32(p+4); p+=8; const end=Math.min(d.byteLength,p+len);
+    let tick=0, status=0, name="", inst=""; const on={}, notes=[];
+    while(p<end){
+      tick+=vlq();
+      let b=d.getUint8(p);
+      if(b>=0x80){ status=b; p++; }
+      if(status===0xFF){
+        const type=d.getUint8(p++), l=vlq();
+        if(type===0x51&&l===3){ const us=(d.getUint8(p)<<16)|(d.getUint8(p+1)<<8)|d.getUint8(p+2); if(us>0) tempos.push({q:tick/div,bpm:60e6/us}); }
+        else if(type===0x58&&l>=2){ times.push({q:tick/div,num:d.getUint8(p),den:Math.pow(2,d.getUint8(p+1))}); }
+        else if(type===0x03||type===0x04){ let s=""; for(let i=0;i<l;i++) s+=String.fromCharCode(d.getUint8(p+i)); s=s.trim(); try{ s=decodeURIComponent(escape(s)); }catch(e){} if(type===0x03&&!name) name=s; if(type===0x04&&!inst) inst=s; }
+        else if(type===0x2F){ p+=l; break; }
+        p+=l; status=0;
+      }else if(status===0xF0||status===0xF7){ const l=vlq(); p+=l; status=0; }
+      else if(status>=0x80){
+        const hi=status&0xF0, ch=status&15, a=d.getUint8(p++);
+        const b2=(hi===0xC0||hi===0xD0)?0:d.getUint8(p++);
+        const k=ch*128+a;
+        if(hi===0x90&&b2>0){ (on[k]||(on[k]=[])).push(tick); }
+        else if(hi===0x80||(hi===0x90&&b2===0)){ const st0=on[k]&&on[k].shift(); if(st0!=null) notes.push({q:st0/div,d:Math.max(0.05,(tick-st0)/div),m:a,ch}); }
+      }else{ p++; }
+    }
+    p=end;
+    tracks.push({name:name||inst,notes});
+  }
+  const parts=[];
+  tracks.forEach((tr,ti)=>{
+    const chs=[...new Set(tr.notes.map(n=>n.ch))].filter(c=>c!==9);
+    if(!chs.length) return;
+    if(chs.length===1) parts.push({name:tr.name||("Spur "+(ti+1)),notes:tr.notes.filter(n=>n.ch===chs[0])});
+    else chs.forEach(c=>parts.push({name:(tr.name?tr.name+" · ":"")+"Kanal "+(c+1),notes:tr.notes.filter(n=>n.ch===c)}));
+  });
+  let endQ=0; parts.forEach(pt=>pt.notes.forEach(n=>{ endQ=Math.max(endQ,n.q+n.d); }));
+  times.sort((a,b)=>a.q-b.q); if(!times.length||times[0].q>0) times.unshift({q:0,num:4,den:4});
+  const measures=[]; let q=0, ti=0, num=1;
+  while(q<endQ-1e-6&&measures.length<5000){
+    while(ti+1<times.length&&times[ti+1].q<=q+1e-6) ti++;
+    measures.push({q,n:String(num++)}); q+=times[ti].num*4/times[ti].den;
+  }
+  measures.push({q,n:"Ende",end:true});
+  return finishScore({title:"",parts,measures,tempos,times,defBpm:120});
+}
+
+function finishScore(sc){
+  sc.parts=sc.parts.filter(p=>p.notes.length).map(p=>({name:p.name,notes:p.notes.slice().sort((a,b)=>a.q-b.q||a.m-b.m)}));
+  if(!sc.parts.length) throw new Error("In der Datei wurden keine Noten gefunden.");
+  sc.tempos=sc.tempos.slice().sort((a,b)=>a.q-b.q);
+  const tm=[]; sc.tempos.forEach(t=>{ if(tm.length&&Math.abs(tm[tm.length-1].q-t.q)<1e-6) tm[tm.length-1]=t; else tm.push(t); });
+  if(!tm.length||tm[0].q>0) tm.unshift({q:0,bpm:tm.length?tm[0].bpm:sc.defBpm});
+  sc.tempos=tm;
+  if(!sc.times.length) sc.times=[{q:0,num:4,den:4}];
+  delete sc.defBpm;
+  return sc;
+}
+
+/* --- Tempo-Karte: Viertel ↔ Sekunden --- */
+function tempoMap(sc){
+  const seg=[]; let sec=0;
+  sc.tempos.forEach((t,i)=>{ if(i>0){ const pr=sc.tempos[i-1]; sec+=(t.q-pr.q)*60/pr.bpm; } seg.push({q:t.q,s:sec,bpm:t.bpm}); });
+  const find=q=>{ let lo=0,hi=seg.length-1; while(lo<hi){ const m=(lo+hi+1)>>1; if(seg[m].q<=q) lo=m; else hi=m-1; } return seg[lo]; };
+  const findS=s=>{ let lo=0,hi=seg.length-1; while(lo<hi){ const m=(lo+hi+1)>>1; if(seg[m].s<=s) lo=m; else hi=m-1; } return seg[lo]; };
+  return { sec:q=>{ const g=find(q); return g.s+(q-g.q)*60/g.bpm; }, q:s=>{ const g=findS(s); return g.q+(s-g.s)*g.bpm/60; }, bpmAt:q=>find(q).bpm };
+}
+function measureAt(sc,q){ const ms=sc.measures; let lo=0,hi=ms.length-1; while(lo<hi){ const m=(lo+hi+1)>>1; if(ms[m].q<=q+1e-6) lo=m; else hi=m-1; } return lo; }
+function timeAt(sc,q){ let t=sc.times[0]; sc.times.forEach(x=>{ if(x.q<=q+1e-6) t=x; }); return t; }
+
+/* --- Datei erkennen und einlesen --- */
+async function readScoreFile(file){
+  const buf=await file.arrayBuffer(), u=new Uint8Array(buf.slice(0,8));
+  const isPK=u[0]===0x50&&u[1]===0x4B, isMidi=u[0]===0x4D&&u[1]===0x54&&u[2]===0x68&&u[3]===0x64;
+  if(isMidi) return parseMidi(buf);
+  if(isPK){
+    await loadScript("lib/jszip.min.js");
+    const zip=await JSZip.loadAsync(buf);
+    let path=null; const cont=zip.file("META-INF/container.xml");
+    if(cont){ const m=/full-path="([^"]+)"/.exec(await cont.async("string")); if(m) path=m[1]; }
+    if(!path){ const cand=Object.keys(zip.files).filter(n=>!n.startsWith("META-INF")&&/\.(xml|musicxml)$/i.test(n)); path=cand[0]; }
+    if(!path||!zip.file(path)) throw new Error("In der .mxl-Datei wurde keine Partitur gefunden.");
+    return parseMusicXML(await zip.file(path).async("string"));
+  }
+  const text=new TextDecoder("utf-8").decode(buf);
+  if(/<score-(partwise|timewise)/.test(text.slice(0,4000))) return parseMusicXML(text);
+  throw new Error("„"+file.name+"“ ist weder PDF noch MusicXML noch MIDI.");
+}
+async function fileKind(file){
+  const u=new Uint8Array(await file.slice(0,5).arrayBuffer());
+  if(u[0]===0x25&&u[1]===0x50&&u[2]===0x44&&u[3]===0x46) return "pdf";
+  return "score";
+}
+
+/* --- Bibliothek --- */
+function nlStatus(t){ $("libStatus").textContent=t||""; }
+async function nlRefresh(){
+  try{ NL.pieces=(await nlAll()).sort((a,b)=>(b.updated||0)-(a.updated||0)); }
+  catch(e){ NL.pieces=[]; nlStatus("Der Speicher auf diesem Gerät ist nicht verfügbar (privates Surfen?). Stücke können nicht gesichert werden."); }
+  NL.pieces.filter(p=>p.job).forEach(p=>omrPoll(p.id));
+  const ul=$("libList"); ul.innerHTML="";
+  if(!NL.pieces.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent="Noch keine Stücke. Wähle oben eine PDF und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei."; ul.appendChild(li); return; }
+  NL.pieces.forEach(p=>{
+    const li=document.createElement("li"); li.className="lib-item";
+    const b=document.createElement("button"); b.type="button"; b.className="lib-open";
+    const t=document.createElement("span"); t.className="lib-title"; t.textContent=p.title||"Ohne Titel";
+    const m=document.createElement("span"); m.className="lib-meta";
+    const bits=[]; if(p.pdf) bits.push("PDF"); if(p.score) bits.push(p.score.parts.length+" Stimmen abspielbar"); if(p.job) bits.push("wird umgewandelt …"); m.textContent=bits.join(" · ")||"leer";
+    b.append(t,m); b.onclick=()=>nlOpen(p.id);
+    const del=document.createElement("button"); del.type="button"; del.className="lib-del"; del.textContent="Löschen";
+    del.onclick=async()=>{ if(del.dataset.arm!=="1"){ del.dataset.arm="1"; del.textContent="Wirklich löschen?"; setTimeout(()=>{ del.dataset.arm=""; del.textContent="Löschen"; },3500); return; } await nlDel(p.id); nlRefresh(); };
+    li.append(b,del); ul.appendChild(li);
+  });
+}
+async function nlAddFiles(files,target){
+  if(!files||!files.length) return;
+  let piece=target||{id:"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:"",pdf:null,pdfName:"",score:null,scoreName:"",mix:null,created:Date.now()};
+  const errs=[];
+  for(const f of files){
+    try{
+      const k=await fileKind(f);
+      if(k==="pdf"){ piece.pdf=await f.arrayBuffer(); piece.pdfName=f.name; }
+      else { piece.score=await readScoreFile(f); piece.scoreName=f.name; piece.mix=null; }
+    }catch(e){ errs.push(e&&e.message?e.message:"„"+f.name+"“ konnte nicht gelesen werden."); }
+  }
+  if(!piece.pdf&&!piece.score){ nlStatus(errs.join(" ")); return; }
+  const tIn=$("pTitle");
+  if(!target){ piece.title=(tIn.value||"").trim()||(piece.score&&piece.score.title)||((piece.pdfName||piece.scoreName||"").replace(/\.[^.]+$/,"")); tIn.value=""; }
+  piece.updated=Date.now();
+  try{ await nlPut(piece); }catch(e){ nlStatus("Speichern ist fehlgeschlagen. Ist der Speicher voll?"); return; }
+  nlStatus((errs.length?errs.join(" ")+" ":"")+"Gespeichert: „"+piece.title+"“.");
+  await nlRefresh(); nlOpen(piece.id);
+}
+
+/* --- Ansicht eines Stücks --- */
+async function nlOpen(id){
+  plStop();
+  const p=NL.pieces.find(x=>x.id===id); if(!p) return;
+  NL.cur=p; $("libHome").hidden=true; $("viewer").hidden=false;
+  $("vTitle").textContent=p.title||"Ohne Titel";
+  $("vFiles").textContent=[p.pdfName&&("PDF: "+p.pdfName),p.scoreName&&("Stimmen: "+p.scoreName)].filter(Boolean).join(" · ");
+  plSetup(p); omrRefreshUI();
+  $("noPdf").hidden=!!p.pdf; $("pdfBar").hidden=!p.pdf; $("pdfPages").innerHTML="";
+  NL.pdfDoc=null;
+  $("noten").scrollIntoView({behavior:"auto"});
+  if(p.pdf){
+    $("pdfInfo").textContent="Lade Noten …";
+    try{
+      await loadScript("lib/pdf.min.js");
+      pdfjsLib.GlobalWorkerOptions.workerSrc="lib/pdf.worker.min.js";
+      NL.pdfDoc=await pdfjsLib.getDocument({data:new Uint8Array(p.pdf.slice(0))}).promise;
+      nlRender();
+    }catch(e){ $("pdfInfo").textContent="Die PDF konnte nicht geöffnet werden."; }
+  }
+}
+async function nlRender(){
+  const doc=NL.pdfDoc; if(!doc) return;
+  const tok=++NL.renderToken, box=$("pdfPages"); box.innerHTML="";
+  const w=Math.max(280,box.clientWidth||document.documentElement.clientWidth-32), dpr=Math.min(2,window.devicePixelRatio||1);
+  $("pdfInfo").textContent=doc.numPages+(doc.numPages===1?" Seite":" Seiten")+" · Zoom "+Math.round(NL.zoom*100)+" %";
+  for(let i=1;i<=doc.numPages;i++){
+    const page=await doc.getPage(i); if(tok!==NL.renderToken) return;
+    const v1=page.getViewport({scale:1}), css=(w*NL.zoom)/v1.width, vp=page.getViewport({scale:css*dpr});
+    const wrap=document.createElement("div"); wrap.className="pdfpage";
+    const cv=document.createElement("canvas"); cv.width=Math.floor(vp.width); cv.height=Math.floor(vp.height);
+    cv.style.width=Math.floor(vp.width/dpr)+"px"; cv.style.height=Math.floor(vp.height/dpr)+"px";
+    cv.setAttribute("aria-label","Notenseite "+i);
+    const lab=document.createElement("span"); lab.className="pdfnum"; lab.textContent="Seite "+i+" / "+doc.numPages;
+    wrap.append(cv,lab); box.appendChild(wrap);
+    try{ await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise; }catch(e){}
+    if(tok!==NL.renderToken) return;
+  }
+}
+
+/* --- Stimmen-Player --- */
+const PL={on:false,base:0,q0:0,qEnd:0,map:null,idx:[],timer:null,raf:null,gains:[],pans:[],bus:null,oscs:[],saveT:null};
+function plMix(p){
+  const n=p.score.parts.length;
+  if(!p.mix||!p.mix.parts||p.mix.parts.length!==n) p.mix={mine:-1,mode:"all",tempo:100,countIn:true,loop:false,from:"",to:"",parts:p.score.parts.map(pt=>({name:pt.name,vol:80,mute:false,solo:false,oct:0}))};
+  p.mix.parts.forEach(pt=>{ if(pt.oct==null) pt.oct=0; });
+  return p.mix;
+}
+function plSave(){ clearTimeout(PL.saveT); PL.saveT=setTimeout(()=>{ if(NL.cur){ NL.cur.updated=Date.now(); nlPut(NL.cur).catch(()=>{}); } },400); }
+function plSetup(p){
+  const has=!!p.score; $("player").hidden=!has; $("noScore").hidden=has;
+  if(!has) return;
+  const mx=plMix(p), sc=p.score;
+  const sel=$("pMine"); sel.innerHTML='<option value="-1">keine</option>'+mx.parts.map((pt,i)=>'<option value="'+i+'"></option>').join("");
+  [...sel.options].slice(1).forEach((o,i)=>o.textContent=mx.parts[i].name);
+  sel.value=String(mx.mine); $("pMode").value=mx.mode; $("pTempo").value=mx.tempo; $("pCount").checked=mx.countIn; $("pLoop").checked=mx.loop;
+  $("pFrom").value=mx.from; $("pTo").value=mx.to;
+  const real=sc.measures.filter(m=>!m.end);
+  $("pFrom").placeholder=real.length?real[0].n:"1"; $("pTo").placeholder=real.length?real[real.length-1].n:"";
+  plTempoLabel();
+  const box=$("pParts"); box.innerHTML="";
+  mx.parts.forEach((pt,i)=>{
+    const row=document.createElement("div"); row.className="prow";
+    const nm=document.createElement("input"); nm.type="text"; nm.id="pName"+i; nm.value=pt.name; nm.setAttribute("aria-label","Name der Stimme "+(i+1));
+    nm.onchange=()=>{ pt.name=nm.value.trim()||pt.name; nm.value=pt.name; const o=$("pMine").options[i+1]; if(o) o.textContent=pt.name; plSave(); };
+    const so=document.createElement("button"); so.type="button"; so.textContent="Solo"; so.setAttribute("aria-pressed",pt.solo?"true":"false");
+    so.onclick=()=>{ pt.solo=!pt.solo; so.setAttribute("aria-pressed",pt.solo?"true":"false"); plApplyGains(); plSave(); };
+    const mu=document.createElement("button"); mu.type="button"; mu.textContent="Stumm"; mu.setAttribute("aria-pressed",pt.mute?"true":"false");
+    mu.onclick=()=>{ pt.mute=!pt.mute; mu.setAttribute("aria-pressed",pt.mute?"true":"false"); plApplyGains(); plSave(); };
+    const vol=document.createElement("input"); vol.type="range"; vol.min=0; vol.max=100; vol.value=pt.vol; vol.id="pVol"+i; vol.setAttribute("aria-label","Lautstärke "+pt.name);
+    vol.oninput=()=>{ pt.vol=+vol.value; plApplyGains(); plSave(); };
+    const rng=sc.parts[i].notes.reduce((a,n)=>[Math.min(a[0],n.m),Math.max(a[1],n.m)],[127,0]);
+    const info=document.createElement("span"); info.className="prange";
+    const showR=()=>{ info.textContent=midiName(rng[0]+12*pt.oct)+"–"+midiName(rng[1]+12*pt.oct); };
+    const oc=document.createElement("select"); oc.id="pOct"+i; oc.className="poct"; oc.setAttribute("aria-label","Oktave "+pt.name);
+    oc.innerHTML='<option value="-1">8va tiefer</option><option value="0">Oktave normal</option><option value="1">8va höher</option>';
+    oc.value=String(pt.oct); oc.onchange=()=>{ pt.oct=+oc.value; showR(); plSave(); if(PL.on){ const q=plPauseQ(); plStart(q); } };
+    showR();
+    row.append(nm,info,so,mu,vol,oc); box.appendChild(row);
+  });
+  plPos(sc.measures.length?0:0,0);
+}
+function midiName(m){ const o=Math.floor(m/12)-1, pc=["c","cis","d","es","e","f","fis","g","as","a","b","h"][m%12];
+  if(o<=2){ const up=pc.charAt(0).toUpperCase()+pc.slice(1); return o===2?up:up+"₁".repeat(Math.max(1,2-o)); }
+  return pc+(o===4?"′":o===5?"″":o===6?"‴":""); }
+function plGainFor(i){
+  const mx=NL.cur.mix, pt=mx.parts[i], anySolo=mx.parts.some(x=>x.solo);
+  let g=pt.vol/100; if(pt.mute) g=0; if(anySolo&&!pt.solo) g=0;
+  const mine=+mx.mine;
+  if(mine>=0){
+    if(mx.mode==="lead") g*=i===mine?1.6:0.45;
+    else if(mx.mode==="only") g*=i===mine?1.4:0;
+    else if(mx.mode==="without") g*=i===mine?0:1;
+  }
+  return g*0.55/Math.sqrt(Math.max(1,mx.parts.length/2));
+}
+function plApplyGains(){ if(!PL.gains.length||!ctx) return; PL.gains.forEach((g,i)=>g.gain.setTargetAtTime(plGainFor(i),ctx.currentTime,0.03)); }
+function plTempoLabel(){ const mx=NL.cur&&NL.cur.mix; if(!mx) return; const sc=NL.cur.score; const bpm=Math.round(sc.tempos[0].bpm*mx.tempo/100);
+  $("pTempoVal").textContent=mx.tempo+" % · ♩ = "+bpm; }
+function plFindMeasure(sc,label,isEnd){
+  const real=sc.measures.filter(m=>!m.end); if(!label) return isEnd?sc.measures.length-1:0;
+  let i=sc.measures.findIndex(m=>!m.end&&m.n===String(label).trim());
+  if(i<0){ const k=parseInt(label,10); if(k>0) i=Math.min(real.length-1,k-1); }
+  if(i<0) i=isEnd?sc.measures.length-1:0;
+  return isEnd?Math.min(sc.measures.length-1,i+1):i;
+}
+function plVoice(midi,t,dur,gainNode){
+  const c=ctx, g=c.createGain(), a=Math.min(0.04,dur*0.3);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+a);
+  g.gain.setTargetAtTime(0.7,t+a,0.25);
+  const rel=Math.max(t+a+0.02,t+dur-0.04); g.gain.setTargetAtTime(0,rel,0.05);
+  const o=c.createOscillator(); o.setPeriodicWave(wave); o.frequency.value=hz(midi);
+  const vib=c.createOscillator(), vg=c.createGain(); vib.frequency.value=5.2; vg.gain.value=hz(midi)*0.0035;
+  vib.connect(vg); vg.connect(o.frequency);
+  o.connect(g); g.connect(gainNode);
+  const stopAt=rel+0.3; o.start(t); vib.start(t); o.stop(stopAt); vib.stop(stopAt);
+  PL.oscs.push(o,vib); if(PL.oscs.length>600) PL.oscs.splice(0,200);
+}
+function plClick(t,strong){
+  const c=ctx, o=c.createOscillator(), g=c.createGain(); o.frequency.value=strong?1600:1100;
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+0.07);
+  o.connect(g); g.connect(PL.bus); o.start(t); o.stop(t+0.09); PL.oscs.push(o);
+}
+function plStart(fromQ){
+  const p=NL.cur; if(!p||!p.score) return;
+  const sc=p.score, mx=p.mix, c=ac();
+  if(c.state!=="running"){ const pr=c.resume(); if(pr&&pr.then){ pr.then(()=>{ if(ctx.state==="running") plStart(fromQ); }); return; } }
+  plStop(true);
+  const iFrom=plFindMeasure(sc,mx.from,false), iTo=plFindMeasure(sc,mx.to,true);
+  PL.q0=fromQ!=null?fromQ:sc.measures[iFrom].q; PL.qEnd=Math.max(PL.q0+0.25,sc.measures[iTo].q);
+  const f=mx.tempo/100, m=tempoMap(sc);
+  PL.map={sec:q=>m.sec(q)/f,q:s=>m.q(s*f)};
+  PL.bus=c.createGain(); PL.bus.gain.value=1; PL.bus.connect(master);
+  PL.gains=sc.parts.map((pt,i)=>{ const g=c.createGain(); g.gain.value=plGainFor(i);
+    let node=g; try{ const pn=c.createStereoPanner(); const n=sc.parts.length; pn.pan.value=n>1?(-0.55+1.1*i/(n-1)):0; g.connect(pn); pn.connect(PL.bus); }catch(e){ g.connect(PL.bus); }
+    return g; });
+  let lead=0.15;
+  if(mx.countIn){
+    const ts=timeAt(sc,PL.q0), beatQ=4/ts.den, bpmQ=m.bpmAt(PL.q0)*f, beatS=beatQ*60/bpmQ;
+    const nb=ts.num>=6&&ts.num%3===0&&ts.den===8?ts.num/3:ts.num, step=(ts.num*beatS)/nb;
+    for(let k=0;k<nb;k++) plClick(c.currentTime+lead+k*step,k===0);
+    lead+=nb*step;
+  }
+  PL.base=c.currentTime+lead-PL.map.sec(PL.q0);
+  PL.idx=sc.parts.map(pt=>{ let lo=0,hi=pt.notes.length; while(lo<hi){ const md=(lo+hi)>>1; if(pt.notes[md].q<PL.q0-1e-6) lo=md+1; else hi=md; } return lo; });
+  PL.on=true; $("pPlay").textContent="❚❚ Pause"; $("pPlay").setAttribute("aria-label","Pause");
+  plTick(); PL.timer=setInterval(plTick,60); plAnim();
+}
+function plTick(){
+  if(!PL.on) return;
+  const sc=NL.cur.score, horizon=ctx.currentTime+0.35;
+  sc.parts.forEach((pt,i)=>{
+    while(PL.idx[i]<pt.notes.length){
+      const n=pt.notes[PL.idx[i]]; if(n.q>=PL.qEnd-1e-6){ PL.idx[i]=pt.notes.length; break; }
+      const t=PL.base+PL.map.sec(n.q); if(t>horizon) break;
+      const qe=Math.min(n.q+n.d,PL.qEnd), dur=Math.max(0.06,PL.map.sec(qe)-PL.map.sec(n.q));
+      if(t>=ctx.currentTime-0.02) plVoice(n.m+12*(NL.cur.mix.parts[i].oct||0),Math.max(t,ctx.currentTime),dur,PL.gains[i]);
+      PL.idx[i]++;
+    }
+  });
+  const endT=PL.base+PL.map.sec(PL.qEnd);
+  if(ctx.currentTime>endT+0.25){
+    if(NL.cur.mix.loop){ plStart(); } else { plStop(); plPos(measureAt(sc,PL.q0),0); }
+  }
+}
+function plAnim(){
+  if(!PL.on) return;
+  const s=ctx.currentTime-PL.base, q=PL.map.q(Math.max(s,PL.map.sec(PL.q0)));
+  const sc=NL.cur.score, mi=measureAt(sc,q), ms=sc.measures[mi], ts=timeAt(sc,ms.q), beatQ=4/ts.den;
+  plPos(mi,Math.floor((q-ms.q)/beatQ+1e-6)+1, s<PL.map.sec(PL.q0)-0.02);
+  PL.raf=requestAnimationFrame(plAnim);
+}
+function plPos(mi,beat,counting){
+  const sc=NL.cur&&NL.cur.score; if(!sc) return;
+  const m=sc.measures[Math.min(mi,sc.measures.length-1)];
+  $("pPos").textContent=counting?"Einzählen …":(m.end?"Ende":"Takt "+m.n+(beat?" · "+beat:""));
+}
+function plStop(keep){
+  PL.on=false; clearInterval(PL.timer); cancelAnimationFrame(PL.raf);
+  PL.oscs.forEach(o=>{ try{ o.stop(); }catch(e){} }); PL.oscs=[];
+  try{ PL.bus&&PL.bus.disconnect(); }catch(e){}
+  PL.gains=[];
+  if(!keep&&$("pPlay")){ $("pPlay").textContent="▶ Abspielen"; $("pPlay").setAttribute("aria-label","Abspielen"); }
+}
+function plPauseQ(){ return PL.on?Math.max(PL.q0,PL.map.q(ctx.currentTime-PL.base)):null; }
+function plEntry(){
+  const p=NL.cur, mx=p&&p.mix; if(!mx) return;
+  const sc=p.score, mine=+mx.mine, c=ac();
+  const q0=PL.paused!=null?PL.paused:sc.measures[plFindMeasure(sc,mx.from,false)].q;
+  const pick=i=>sc.parts[i].notes.find(n=>n.q>=q0-1e-6);
+  let notes;
+  const sh=i=>12*(mx.parts[i].oct||0);
+  if(mine>=0){ const n0=pick(mine), n=n0?{m:n0.m+sh(mine)}:null; notes=n?[n.m]:[]; $("pPos").textContent=n?"Einsatzton "+midiName(n.m):"Keine Note mehr"; }
+  else { notes=sc.parts.map((_,i)=>{ const n=pick(i); return n?n.m+sh(i):null; }).filter(v=>v!=null); $("pPos").textContent="Einsatzakkord"; }
+  if(!notes.length) return;
+  run([{t:0,midi:notes,d:1.6,vol:notes.length>1?0.12:0.22}],()=>{},()=>{});
+}
+
+
+/* --- Automatische Umwandlung PDF → MusicXML über GitHub --- */
+const OMR_FILES={".github/workflows/umwandeln.yml": "name: Noten umwandeln\n\non:\n  push:\n    paths:\n      - \"umwandeln/**.pdf\"\n  workflow_dispatch:\n\npermissions:\n  contents: write\n\nconcurrency:\n  group: umwandeln\n  cancel-in-progress: false\n\njobs:\n  umwandeln:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 45\n    steps:\n      - uses: actions/checkout@v4\n\n      - uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n\n      - name: PDF-Werkzeug installieren\n        run: sudo apt-get update -q && sudo apt-get install -y -q poppler-utils\n\n      - name: Notenerkennung aus dem Zwischenspeicher holen\n        id: cache\n        uses: actions/cache@v4\n        with:\n          path: ~/omr-venv\n          key: homr-0.7.0-onnx-1.31.0-py312-v1\n\n      - name: Notenerkennung installieren\n        if: steps.cache.outputs.cache-hit != 'true'\n        run: |\n          python -m venv ~/omr-venv\n          ~/omr-venv/bin/pip install -q \"homr==0.7.0\" \"onnxruntime==1.31.0\"\n          # Modelle beim ersten Lauf herunterladen, damit sie mit zwischengespeichert werden\n          ~/omr-venv/bin/python - <<'EOF'\n          from PIL import Image\n          Image.new(\"RGB\", (800, 300), \"white\").save(\"/tmp/leer.png\")\n          EOF\n          ~/omr-venv/bin/homr /tmp/leer.png || true\n\n      - name: Umwandeln\n        run: |\n          export PATH=\"$HOME/omr-venv/bin:$PATH\"\n          python tools/omr.py\n\n      - name: Ergebnis speichern\n        run: |\n          git config user.name \"Noten-Umwandlung\"\n          git config user.email \"41898282+github-actions[bot]@users.noreply.github.com\"\n          git add -A ergebnis umwandeln\n          git commit -m \"Noten umgewandelt\" || exit 0\n          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done\n", "tools/omr.py": "#!/usr/bin/env python3\n\"\"\"PDF-Chornoten -> MusicXML (für die Blattsingen-App).\n\nAblauf je PDF in umwandeln/:  Seiten als Bilder (300 dpi) -> Notenerkennung mit homr ->\nSeiten zu einer Partitur zusammenfügen -> Tenor-Oktave korrigieren -> Stimmen benennen ->\nergebnis/<id>.musicxml + ergebnis/<id>.json (Status für die App).\n\"\"\"\nimport json, os, subprocess, sys, tempfile, glob, time, shutil, copy\nimport xml.etree.ElementTree as ET\n\nIN_DIR, OUT_DIR = \"umwandeln\", \"ergebnis\"\n\n\ndef status(job, **kw):\n    os.makedirs(OUT_DIR, exist_ok=True)\n    kw.setdefault(\"zeit\", int(time.time()))\n    with open(os.path.join(OUT_DIR, job + \".json\"), \"w\", encoding=\"utf-8\") as f:\n        json.dump(kw, f, ensure_ascii=False, indent=1)\n\n\ndef pages_to_png(pdf, tmp):\n    subprocess.run([\"pdftoppm\", \"-r\", \"300\", \"-png\", pdf, os.path.join(tmp, \"seite\")], check=True)\n    return sorted(glob.glob(os.path.join(tmp, \"seite*.png\")), key=lambda p: int(p.rsplit(\"-\", 1)[-1].split(\".\")[0]))\n\n\ndef recognize(png):\n    r = subprocess.run([\"homr\", png], capture_output=True, text=True, timeout=1500)\n    out = png[:-4] + \".musicxml\"\n    if r.returncode != 0 or not os.path.exists(out):\n        raise RuntimeError((r.stderr or r.stdout or \"unbekannter Fehler\").strip().splitlines()[-1][:300])\n    return out\n\n\ndef clef_of(part):\n    for m in part.findall(\"measure\"):\n        c = m.find(\"attributes/clef\")\n        if c is not None:\n            sign = (c.findtext(\"sign\") or \"\").strip()\n            oc = (c.findtext(\"clef-octave-change\") or \"0\").strip()\n            return sign, int(oc or 0)\n    return \"\", 0\n\n\ndef shift_octave(part, k):\n    for p in part.iter(\"pitch\"):\n        o = p.find(\"octave\")\n        if o is not None and (o.text or \"\").strip().lstrip(\"-\").isdigit():\n            o.text = str(int(o.text) + k)\n\n\ndef merge(files, warnings):\n    trees = [ET.parse(f) for f in files]\n    base = trees[0].getroot()\n    bparts = base.findall(\"part\")\n    for pi, t in enumerate(trees[1:], start=2):\n        parts = t.getroot().findall(\"part\")\n        if len(parts) != len(bparts):\n            warnings.append(f\"Seite {pi}: {len(parts)} statt {len(bparts)} Stimmen erkannt – bitte prüfen.\")\n        for i, p in enumerate(parts[:len(bparts)]):\n            for m in p.findall(\"measure\"):\n                bparts[i].append(copy.deepcopy(m))\n        # fehlende Stimmen mit Pausentakten auffüllen, damit alle gleich lang bleiben\n        if len(parts) < len(bparts) and parts:\n            ref = parts[0].findall(\"measure\")\n            for p in bparts[len(parts):]:\n                for m in ref:\n                    nm = ET.SubElement(p, \"measure\")\n                    dur = sum(int(n.findtext(\"duration\") or 0) for n in m.findall(\"note\") if n.find(\"chord\") is None)\n                    if dur:\n                        n = ET.SubElement(nm, \"note\"); ET.SubElement(n, \"rest\"); ET.SubElement(n, \"duration\").text = str(dur)\n    for p in bparts:\n        for k, m in enumerate(p.findall(\"measure\"), start=1):\n            m.set(\"number\", str(k))\n    return trees[0]\n\n\ndef name_parts(tree, warnings):\n    root = tree.getroot()\n    parts = root.findall(\"part\")\n    clefs = [clef_of(p) for p in parts]\n    signs = [c[0] for c in clefs]\n    names = None\n    if len(parts) == 4 and signs[3] == \"F\" and signs[0] == \"G\" and signs[1] == \"G\":\n        names = [\"Sopran\", \"Alt\", \"Tenor\", \"Bass\"]\n        if signs[2] == \"G\" and clefs[2][1] == 0:\n            shift_octave(parts[2], -1)\n            warnings.append(\"Tenor eine Oktave tiefer gesetzt (Violinschlüssel mit 8).\")\n    elif len(parts) == 2 and signs == [\"G\", \"F\"]:\n        names = [\"Frauenstimmen\", \"Männerstimmen\"]\n    elif len(parts) == 3 and signs == [\"G\", \"G\", \"F\"]:\n        names = [\"Sopran\", \"Alt\", \"Bass\"]\n    if names is None:\n        names = [f\"Stimme {i + 1}\" for i in range(len(parts))]\n    byid = {sp.get(\"id\"): sp for sp in root.findall(\"part-list/score-part\")}\n    for p, nm in zip(parts, names):\n        sp = byid.get(p.get(\"id\"))\n        if sp is not None:\n            pn = sp.find(\"part-name\")\n            if pn is None:\n                pn = ET.SubElement(sp, \"part-name\")\n            pn.text = nm\n    return names\n\n\ndef convert(pdf):\n    job = os.path.splitext(os.path.basename(pdf))[0]\n    status(job, status=\"läuft\")\n    warnings = []\n    tmp = tempfile.mkdtemp()\n    try:\n        pngs = pages_to_png(pdf, tmp)\n        if not pngs:\n            raise RuntimeError(\"Die PDF enthält keine Seiten.\")\n        if len(pngs) > 30:\n            raise RuntimeError(\"Die PDF hat mehr als 30 Seiten.\")\n        xmls = []\n        for i, png in enumerate(pngs, start=1):\n            try:\n                xmls.append(recognize(png))\n            except Exception as e:\n                warnings.append(f\"Seite {i} wurde übersprungen: keine Noten erkannt.\")\n        if not xmls:\n            raise RuntimeError(\"Auf keiner Seite wurden Noten erkannt. Ist die PDF gut lesbar (nicht schief, nicht zu klein)?\")\n        tree = merge(xmls, warnings)\n        names = name_parts(tree, warnings)\n        measures = len(tree.getroot().find(\"part\").findall(\"measure\"))\n        os.makedirs(OUT_DIR, exist_ok=True)\n        tree.write(os.path.join(OUT_DIR, job + \".musicxml\"), encoding=\"UTF-8\", xml_declaration=True)\n        status(job, status=\"fertig\", seiten=len(pngs), stimmen=names, takte=measures, hinweise=warnings)\n    except Exception as e:\n        status(job, status=\"fehler\", meldung=str(e)[:400], hinweise=warnings)\n    finally:\n        shutil.rmtree(tmp, ignore_errors=True)\n        try:\n            os.remove(pdf)\n        except OSError:\n            pass\n\n\nif __name__ == \"__main__\":\n    pdfs = sys.argv[1:] or sorted(glob.glob(os.path.join(IN_DIR, \"*.pdf\")))\n    for p in pdfs:\n        print(\"Wandle um:\", p, flush=True)\n        convert(p)\n"};
+const GH={polls:{}};
+function ghCfg(){ try{ const c=JSON.parse(localStorage.getItem("nl_gh")||"null"); return c&&c.owner&&c.token?c:null; }catch(e){ return null; } }
+function ghSetCfg(c){ try{ if(c) localStorage.setItem("nl_gh",JSON.stringify(c)); else localStorage.removeItem("nl_gh"); }catch(e){} }
+function ghMsg(t){ $("ghMsg").textContent=t||""; }
+async function gh(path,opt,cfg){
+  const c=cfg||ghCfg(); if(!c) throw new Error("Die Verbindung zu GitHub ist noch nicht eingerichtet.");
+  opt=opt||{};
+  const h={"Authorization":"Bearer "+c.token,"Accept":opt.raw?"application/vnd.github.raw+json":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};
+  if(opt.body) h["Content-Type"]="application/json";
+  return fetch("https://api.github.com/repos/"+encodeURIComponent(c.owner)+"/"+encodeURIComponent(c.repo)+path,{method:opt.method||"GET",headers:h,body:opt.body?JSON.stringify(opt.body):undefined,cache:"no-store"});
+}
+function ghErr(r){
+  if(r.status===401) return "Der Zugangsschlüssel ist ungültig oder abgelaufen.";
+  if(r.status===403) return "Dem Zugangsschlüssel fehlen Rechte. Nötig sind „Contents“ und „Workflows“, jeweils „Read and write“.";
+  if(r.status===404) return "Das Repository wurde nicht gefunden. Stimmen Benutzername und Repository-Name, und ist der Schlüssel für dieses Repository freigegeben?";
+  if(r.status===409) return "Das Repository ist noch leer. Lege es mit „Add a README file“ an und versuche es erneut.";
+  if(r.status===422) return "GitHub hat die Datei abgelehnt (zu groß oder ungültig).";
+  return "GitHub meldet Fehler "+r.status+".";
+}
+function b64(buf){ const u=buf instanceof Uint8Array?buf:new Uint8Array(buf); let s=""; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+async function ghPutFile(path,content64,msg,cfg){
+  let sha=null; const g=await gh("/contents/"+path,null,cfg);
+  if(g.ok){ const j=await g.json(); sha=j.sha; if(j.content&&j.content.replace(/\s/g,"")===content64) return "gleich"; }
+  else if(g.status!==404) throw new Error(ghErr(g));
+  const body={message:msg,content:content64}; if(sha) body.sha=sha;
+  const r=await gh("/contents/"+path,{method:"PUT",body},cfg);
+  if(!r.ok) throw new Error(ghErr(r));
+  return "neu";
+}
+function ghRenderCfg(){
+  const c=ghCfg();
+  if(c){ $("ghOwner").value=c.owner; $("ghRepo").value=c.repo; } else if(!$("ghRepo").value) $("ghRepo").value="blattsingen-konverter";
+  $("ghToken").value=""; $("ghToken").placeholder=c?"gespeichert – nur zum Ändern neu eintragen":"github_pat_…";
+  $("ghState").textContent=c?"Verbunden mit "+c.owner+"/"+c.repo+".":"Noch nicht eingerichtet.";
+  $("ghRemove").hidden=!c;
+}
+async function ghSetup(){
+  const old=ghCfg();
+  const owner=$("ghOwner").value.trim().replace(/^@/,""), repo=($("ghRepo").value.trim()||"blattsingen-konverter"), token=$("ghToken").value.trim()||(old&&old.token);
+  if(!owner||!token){ ghMsg("Bitte GitHub-Benutzername und Zugangsschlüssel eintragen."); return; }
+  const cfg={owner,repo,token}; $("ghSave").disabled=true; ghMsg("Prüfe den Zugang …");
+  try{
+    const r=await gh("",null,cfg); if(!r.ok){ ghMsg(ghErr(r)); return; }
+    const info=await r.json();
+    ghMsg("Richte die Umwandlung im Repository ein …");
+    for(const p of Object.keys(OMR_FILES)) await ghPutFile(p,b64(new TextEncoder().encode(OMR_FILES[p])),"Umwandlung einrichten",cfg);
+    ghSetCfg(cfg); ghRenderCfg();
+    ghMsg("Fertig eingerichtet. Öffne ein Stück mit PDF und tippe auf „PDF in Stimmen umwandeln“."+(info.private?"":" Achtung: Das Repository ist öffentlich, hochgeladene Noten wären für alle sichtbar. Stelle es bei GitHub unter Settings › „Change visibility“ auf „Private“."));
+  }catch(e){ ghMsg((e&&e.message)||"Die Einrichtung ist fehlgeschlagen."); }
+  finally{ $("ghSave").disabled=false; }
+}
+function omrShow(pid,t){ if(NL.cur&&NL.cur.id===pid) $("omrStatus").textContent=t; }
+function omrRefreshUI(){
+  const p=NL.cur, box=$("omrBox"); if(!p||!p.pdf){ box.hidden=true; return; }
+  box.hidden=false; const busy=!!p.job;
+  $("omrBtn").disabled=busy; $("omrBtn").textContent=p.score?"PDF erneut in Stimmen umwandeln":"PDF in Stimmen umwandeln";
+  if(busy){ omrShow(p.id,"Die Umwandlung läuft …"); omrPoll(p.id); return; }
+  if(!ghCfg()) $("omrStatus").textContent="Für die automatische Umwandlung einmalig die Verbindung zu GitHub einrichten: „← Alle Stücke“ › „Automatische Umwandlung einrichten“.";
+  else $("omrStatus").textContent=(p.omrNotes&&p.omrNotes.length)?"Hinweise der letzten Erkennung: "+p.omrNotes.join(" "):(p.score?"":"Dauert beim ersten Mal ca. 5–8 Minuten, danach meist 1–3 Minuten. Du kannst die App in der Zeit schließen.");
+}
+async function omrStart(){
+  const p=NL.cur; if(!p||!p.pdf) return;
+  if(!ghCfg()){ omrRefreshUI(); return; }
+  const btn=$("omrBtn");
+  if(p.score&&btn.dataset.arm!=="1"){ btn.dataset.arm="1"; btn.textContent="Vorhandene Stimmen ersetzen?"; setTimeout(()=>{ if(btn.dataset.arm==="1"){ btn.dataset.arm=""; omrRefreshUI(); } },4000); return; }
+  btn.dataset.arm="";
+  if(p.pdf.byteLength>40e6){ $("omrStatus").textContent="Die PDF ist größer als 40 MB. Bitte verkleinern."; return; }
+  const job="j"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  btn.disabled=true; $("omrStatus").textContent="Lade die PDF zu GitHub hoch …";
+  try{
+    await ghPutFile("umwandeln/"+job+".pdf",b64(p.pdf),"Umwandeln: "+(p.title||job).slice(0,60));
+    p.job={id:job,start:Date.now()}; p.updated=Date.now(); await nlPut(p);
+    omrPoll(p.id);
+  }catch(e){ $("omrStatus").textContent=(e&&e.message)||"Das Hochladen ist fehlgeschlagen."; btn.disabled=false; }
+}
+function omrPoll(pid){
+  if(GH.polls[pid]) return; GH.polls[pid]=true;
+  const getP=async()=>(NL.cur&&NL.cur.id===pid)?NL.cur:(NL.pieces.find(x=>x.id===pid)||(await nlAll()).find(x=>x.id===pid));
+  const done=()=>{ delete GH.polls[pid]; };
+  const step=async()=>{
+    const p=await getP(); if(!p||!p.job){ done(); return; }
+    const mins=Math.floor((Date.now()-p.job.start)/60000);
+    let st=null, note="";
+    try{ const r=await gh("/contents/ergebnis/"+p.job.id+".json",{raw:true}); if(r.ok) st=JSON.parse(await r.text()); else if(r.status!==404) note=" ("+ghErr(r)+")"; }
+    catch(e){ note=" (gerade keine Verbindung zu GitHub)"; }
+    if(st&&st.status==="fertig"){
+      try{
+        const r=await gh("/contents/ergebnis/"+p.job.id+".musicxml",{raw:true}); if(!r.ok) throw new Error(ghErr(r));
+        p.score=parseMusicXML(await r.text()); p.scoreName="automatisch erkannt"; p.mix=null; p.omrNotes=st.hinweise||[]; p.job=null; p.updated=Date.now();
+        await nlPut(p); done();
+        if(NL.cur&&NL.cur.id===pid){
+          plSetup(p); omrRefreshUI(); $("vFiles").textContent="PDF: "+p.pdfName+" · Stimmen: automatisch erkannt";
+          omrShow(pid,"Fertig: "+p.score.parts.length+" Stimmen und "+(st.takte||"?")+" Takte erkannt. "+(p.omrNotes.length?p.omrNotes.join(" ")+" ":"")+"Vergleiche stichprobenartig mit den Noten, einzelne Fehler sind möglich.");
+        } else nlRefresh();
+      }catch(e){ done(); omrShow(pid,"Das Ergebnis konnte nicht gelesen werden. "+((e&&e.message)||"")); }
+      return;
+    }
+    if(st&&st.status==="fehler"){ p.job=null; await nlPut(p); done(); omrRefreshUI(); omrShow(pid,"Die Erkennung hat nicht geklappt: "+(st.meldung||"unbekannter Fehler")); return; }
+    if(mins>=45){ p.job=null; await nlPut(p); done(); omrRefreshUI(); const c=ghCfg(); omrShow(pid,"Die Umwandlung dauert ungewöhnlich lange. Schau bei GitHub im Repository unter „Actions“ nach"+(c?" (github.com/"+c.owner+"/"+c.repo+"/actions)":"")+"."); return; }
+    omrShow(pid,(st&&st.status==="läuft"?"Noten werden erkannt …":"Warte auf GitHub …")+" "+(mins<1?"Gerade gestartet.":"Seit "+mins+" Min.")+note);
+    setTimeout(step,15000);
+  };
+  step();
+}
+
+/* --- Bedienung verdrahten --- */
+$("pFiles").onchange=e=>{ const f=[...(e.target.files||[])]; e.target.value=""; nlAddFiles(f,null); };
+$("vAddFile").onchange=e=>{ const f=[...(e.target.files||[])]; e.target.value=""; if(NL.cur) nlAddFiles(f,NL.cur); };
+$("vBack").onclick=()=>{ plStop(); NL.cur=null; NL.pdfDoc=null; NL.renderToken++; $("viewer").hidden=true; $("libHome").hidden=false; $("pdfPages").innerHTML=""; nlRefresh(); };
+$("zIn").onclick=()=>{ NL.zoom=Math.min(2.5,+(NL.zoom+0.25).toFixed(2)); nlRender(); };
+$("zOut").onclick=()=>{ NL.zoom=Math.max(0.5,+(NL.zoom-0.25).toFixed(2)); nlRender(); };
+$("pPlay").onclick=()=>{ if(PL.on){ PL.paused=plPauseQ(); plStop(); $("pPlay").textContent="▶ Weiter"; } else { const q=PL.paused; PL.paused=null; plStart(q!=null?q:undefined); } };
+$("pRewind").onclick=()=>{ PL.paused=null; const was=PL.on; plStop(); if(NL.cur&&NL.cur.score) plPos(plFindMeasure(NL.cur.score,NL.cur.mix.from,false),0); if(was) plStart(); };
+$("pTon").onclick=plEntry;
+$("pMixT").onclick=()=>{ const open=$("pMix").hidden; $("pMix").hidden=!open; $("pMixT").setAttribute("aria-expanded",open?"true":"false"); $("pMixT").textContent=open?"Stimmen ▴":"Stimmen ▾"; };
+$("pMine").onchange=e=>{ NL.cur.mix.mine=+e.target.value; plApplyGains(); plSave(); };
+$("pMode").onchange=e=>{ NL.cur.mix.mode=e.target.value; plApplyGains(); plSave(); };
+$("pTempo").oninput=e=>{ NL.cur.mix.tempo=+e.target.value; plTempoLabel(); plSave(); };
+$("pTempo").onchange=()=>{ if(PL.on){ const q=plPauseQ(); plStart(q); } };
+$("pCount").onchange=e=>{ NL.cur.mix.countIn=e.target.checked; plSave(); };
+$("pLoop").onchange=e=>{ NL.cur.mix.loop=e.target.checked; plSave(); };
+$("pFrom").onchange=e=>{ NL.cur.mix.from=e.target.value.trim(); PL.paused=null; plSave(); if(NL.cur.score) plPos(plFindMeasure(NL.cur.score,NL.cur.mix.from,false),0); };
+$("pTo").onchange=e=>{ NL.cur.mix.to=e.target.value.trim(); plSave(); };
+let nlResizeT=null; window.addEventListener("resize",()=>{ clearTimeout(nlResizeT); nlResizeT=setTimeout(()=>{ if(NL.pdfDoc&&!$("viewer").hidden) nlRender(); },300); });
+$("omrBtn").onclick=omrStart;
+$("ghSave").onclick=ghSetup;
+$("ghRemove").onclick=()=>{ ghSetCfg(null); ghRenderCfg(); ghMsg("Die Verbindung wurde von diesem Gerät entfernt. Den Zugangsschlüssel kannst du bei GitHub zusätzlich löschen."); };
+ghRenderCfg();
+nlRefresh();
 
 /* Start */
 $("showNames").checked=store.get("names",false);

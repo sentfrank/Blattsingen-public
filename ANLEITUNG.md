@@ -5,7 +5,7 @@ Die App ist eine Web-App: Sie läuft in Safari, lässt sich auf den Home-Bildsch
 ## Update einspielen (wenn die App schon online ist)
 
 1. Im GitHub-Repository „Add file“ → „Upload files“.
-2. Alle Dateien aus dieser ZIP hineinziehen und die alten überschreiben, dann „Commit changes“.
+2. Alle Dateien aus dieser ZIP hineinziehen, **einschließlich des Ordners „lib“**, und die alten überschreiben, dann „Commit changes“.
 3. Ein bis zwei Minuten warten. Am iPhone die App komplett schließen (vom unteren Rand hochwischen, App wegwischen) und neu öffnen. Bei Bedarf zweimal.
 
 ## 1. Online stellen (einmalig, ca. 10 Minuten, am Computer)
@@ -13,7 +13,7 @@ Die App ist eine Web-App: Sie läuft in Safari, lässt sich auf den Home-Bildsch
 1. Auf github.com ein kostenloses Konto anlegen (falls noch keins da ist).
 2. Oben rechts „+“ → „New repository“. Name z. B. `blattsingen`, Sichtbarkeit „Public“, „Create repository“.
 3. Auf der leeren Repository-Seite „uploading an existing file“ anklicken.
-4. Alle Dateien aus dieser ZIP hineinziehen (index.html, manifest.webmanifest, sw.js und die drei PNG-Bilder), dann „Commit changes“.
+4. Alle Dateien aus dieser ZIP hineinziehen, **auch den Ordner „lib“** (am Computer den ganzen entpackten Inhalt markieren und ins Browserfenster ziehen), dann „Commit changes“.
 5. „Settings“ → links „Pages“ → bei „Branch“ `main` und `/ (root)` wählen → „Save“.
 6. Nach ein bis zwei Minuten steht oben die Adresse, etwa `https://DEINNAME.github.io/blattsingen/`.
 
@@ -32,6 +32,36 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 - „Live starten“: Der Grundton erklingt, dann singst du die Tonleiter.
 - Das Stimmgerät zeigt laufend, wie weit du vom Zielton weg bist. Jeder gehaltene Ton landet sofort als farbiger Punkt neben seiner Note.
 - Zwischen gleich hohen Tönen kurz absetzen.
+
+## 4. Meine Noten
+
+- Abschnitt „Meine Noten“ → „Dateien auswählen“: die PDF eines Stücks und, wenn vorhanden, die passende **MusicXML-** (.musicxml, .xml, .mxl) oder **MIDI-Datei** (.mid). Beide können auf einmal ausgewählt werden.
+- Die PDF wird angezeigt (Zoom mit − / +). Die Stimmen spielt die App aus der MusicXML- oder MIDI-Datei, nicht aus der PDF: Eine PDF ist nur ein Bild der Noten.
+- „Stimmen ▾“ öffnet den Mixer: **Meine Stimme** wählen, dann „hervorheben“, „nur meine Stimme“ oder „ohne meine Stimme“ (zum Mitsingen). Pro Stimme gibt es Solo, Stumm und Lautstärke. Dazu Tempo, ab/bis Takt, Einzähler und Wiederholen.
+- „Einsatzton“ spielt den nächsten Ton deiner Stimme ab der aktuellen Stelle.
+- Die Stücke bleiben auf dem iPhone gespeichert, auch offline. Wenn du die App vom Home-Bildschirm löschst, sind sie weg.
+- Wiederholungszeichen und Sprünge (D.C., Coda) spielt die App nicht aus. Das Stück läuft einmal durch.
+
+## 5. PDF automatisch in Stimmen umwandeln
+
+Die App kann aus einer PDF selbst die Stimmen erkennen. Die Erkennung läuft kostenlos bei GitHub, in einem zweiten, **privaten** Repository, damit deine Noten nicht öffentlich werden. Einmalig einrichten (ca. 5 Minuten, am besten am Computer, geht aber auch am iPhone):
+
+1. Auf github.com oben rechts „+“ → „New repository“. Name **blattsingen-konverter**, **Private**, Haken bei „Add a README file“, „Create repository“.
+2. Zugangsschlüssel anlegen: github.com/settings/personal-access-tokens/new
+   - Token name: z. B. „Blattsingen“, Expiration nach Wunsch (z. B. 1 Jahr)
+   - Repository access: „Only select repositories“ → **blattsingen-konverter**
+   - Permissions → Repository permissions: **Contents** = „Read and write“ und **Workflows** = „Read and write“
+   - „Generate token“, den Schlüssel (beginnt mit `github_pat_`) kopieren
+3. In der App unter „Meine Noten“ → „Automatische Umwandlung einrichten“: Benutzername und Schlüssel eintragen, „Verbinden und einrichten“. Die App legt alles Nötige im Repository selbst an.
+
+Danach in einem Stück mit PDF auf **„PDF in Stimmen umwandeln“** tippen. Die erste Umwandlung dauert ca. 5–8 Minuten (GitHub installiert dabei die Erkennung), danach meist 1–3 Minuten. Die App darf in der Zeit geschlossen werden und holt das Ergebnis beim nächsten Öffnen ab.
+
+Gut zu wissen:
+- Am besten klappt es mit sauber gesetzten Noten (Verlags- oder Notensatz-PDF). Bei Scans, Fotos, Handschrift oder sehr dichter Partitur entstehen mehr Fehler. Vergleiche das Ergebnis stichprobenartig.
+- Bei vier Systemen (S, A, T, B) setzt die App den Tenor automatisch eine Oktave tiefer und benennt die Stimmen. Liegt eine Stimme trotzdem falsch, im Mixer pro Stimme „8va tiefer / höher“ wählen.
+- Haltebögen über den Taktstrich werden manchmal nicht erkannt. Der Ton wird dann neu angeschlagen statt gehalten.
+- Schlüssel ablaufen lassen oder löschen: github.com/settings/personal-access-tokens. In der App dann „Verbindung entfernen“.
+- Läuft etwas schief, steht der Grund im Repository unter „Actions“.
 
 ## Wenn das Mikrofon nicht startet
 
