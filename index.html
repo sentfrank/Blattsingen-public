@@ -288,7 +288,7 @@ body.uebe .pdfpages{gap:6px}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 15 · 15.10.2026</span>
+  <span class="appver">App-Version 16 · 15.10.2026</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1602,15 +1602,18 @@ qzWheel(); qzInfo();
 
 /* ---------- Live-Modus mit Mikrofon ---------- */
 const live={mode:"scale",on:false,stream:null,src:null,an:null,buf:null,timer:null,seq:[],idx:0,match:[],oct:null,win:[],cur:null,frames:[],t0:0};
-function yinFrame(x,sr){
+function yinFrame(x,sr,gate){
   let r=0; for(let j=0;j<x.length;j++) r+=x[j]*x[j]; r=Math.sqrt(r/x.length);
-  if(r<0.012) return null;
+  if(r<(gate==null?0.012:gate)) return null;
   const tauMin=Math.floor(sr/1100), tauMax=Math.ceil(sr/55), W=Math.min(x.length-tauMax-1,Math.round(sr*0.05));
   if(W<100) return null;
   const c=new Float32Array(tauMax+1); let run=0;
   for(let tau=1;tau<=tauMax;tau++){let a=0;for(let j=0;j<W;j++){const v=x[j]-x[j+tau];a+=v*v;} run+=a; c[tau]=run>0?a*tau/run:1;}
-  let best=-1;
-  for(let tau=tauMin;tau<tauMax;tau++){ if(c[tau]<0.15){ while(tau+1<tauMax&&c[tau+1]<c[tau])tau++; best=tau; break; } }
+  let best=-1, gm=tauMin;
+  const th=gate==null?0.15:0.2;
+  for(let tau=tauMin;tau<tauMax;tau++){ if(c[tau]<c[gm]) gm=tau; if(best<0&&c[tau]<th){ while(tau+1<tauMax&&c[tau+1]<c[tau])tau++; best=tau; } }
+  if(best<0&&gate!=null&&c[gm]<0.3) best=gm;
+  if(typeof live!=="undefined"&&live.dbg) live.dbg.c=Math.min(live.dbg.c,c[gm]);
   if(best<0) return null;
   const a=c[best-1],b=c[best],cc=c[best+1]||b,den=a-2*b+cc, tf=best+(den!==0?(a-cc)/(2*den):0);
   return 69+12*Math.log2((sr/tf)/440);
@@ -1684,9 +1687,14 @@ function liveTick(){
   if(!live.on) return;
   live.an.getFloatTimeDomainData(live.buf);
   const SR=live.actx.sampleRate, f=Math.max(1,Math.round(SR/11025)), x=decimate(live.buf,f), sr=SR/f;
-  const m=yinFrame(x,sr), t=performance.now()/1000-live.t0;
   let rms=0; for(let j=0;j<live.buf.length;j+=4) rms+=live.buf[j]*live.buf[j]; rms=Math.sqrt(rms/(live.buf.length/4));
+  // Grundrauschen langsam mitführen; Schwelle = deutlich über dem Rauschen, unabhängig von der Mikrofon-Lautstärke
+  live.nf=live.nf==null?rms:(rms<live.nf?live.nf*0.8+rms*0.2:live.nf*0.999+rms*0.001);
+  const gate=Math.max(0.0015,Math.min(0.012,live.nf*2.5));
+  const m=yinFrame(x,sr,gate), t=performance.now()/1000-live.t0;
   live.peak=Math.max(live.peak||0,rms);
+  const D=live.dbg; D.n++; if(m!=null) D.v++; D.rms=Math.max(D.rms,rms);
+  if(!D.told&&t>6&&D.v===0&&live.peak>0.002){ D.told=true; $("liveStatus").textContent="Ich höre etwas, erkenne aber keinen Ton. Halte einen Ton ruhig auf „a“ oder „o“. (Technisch: "+live.actx.sampleRate+" Hz, Pegel "+D.rms.toFixed(4)+", Klarheit "+(D.c<9?D.c.toFixed(2):"–")+")"; }
   const lv=$("tLevel"); if(lv) lv.style.width=Math.min(100,Math.round(Math.sqrt(rms)*260))+"%";
   if(!live.warned&&t>4&&live.peak<0.002){ live.warned=true; $("liveStatus").textContent="Ich höre nichts vom Mikrofon (Audio: "+live.actx.state+"). Sing lauter oder näher am Gerät. Bleibt der Pegelbalken leer: App ganz schließen, neu öffnen und als Erstes „Live starten“ tippen."; }
   live.frames.push({t,m});
@@ -1722,7 +1730,8 @@ async function startLive(mode){
   try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record"; }catch(e){}
   try{ if(silentEl) silentEl.pause(); }catch(e){}
   let err=null; live.stream=null;
-  try{ live.stream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ err=e; }
+  try{ live.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }catch(e){ err=e; }
+  if(!live.stream&&err&&(err.name==="OverconstrainedError"||err.name==="TypeError")){ err=null; try{ live.stream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ err=e; } }
   if(!live.stream){
     micMode=false;
     try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
@@ -1739,7 +1748,8 @@ async function startLive(mode){
   if(c.state!=="running"){ try{ await Promise.race([c.resume(),new Promise(r=>setTimeout(r,1500))]); }catch(e){} }
   live.actx=c; live.peak=0; live.warned=false;
   live.src=c.createMediaStreamSource(live.stream); live.an=c.createAnalyser(); live.an.fftSize=4096; live.src.connect(live.an);
-  live.buf=new Float32Array(live.an.fftSize);
+  try{ const z=c.createGain(); z.gain.value=0; live.an.connect(z); z.connect(c.destination); }catch(e){}
+  live.buf=new Float32Array(live.an.fftSize); live.nf=null; live.dbg={n:0,v:0,rms:0,c:9,told:false};
   live.seq=mode==="read"?melody:scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
   if(mode==="scale") $("recOut").hidden=false; else $("readStats").hidden=true;
   liveRedraw();
@@ -2143,7 +2153,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="15 · 15.10.2026";
+const APP_VERSION="16 · 15.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -2577,7 +2587,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=15;
+const APP_BUILD=16;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
