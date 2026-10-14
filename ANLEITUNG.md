@@ -64,10 +64,12 @@ Danach in einem Stück mit PDF auf **„PDF in Stimmen umwandeln“** tippen. Di
 
 **Mitlesen in den Noten:** Bei umgewandelten Stücken markiert die App beim Abspielen den aktuellen Takt direkt in der PDF, mit einem Strich, der im Takt mitläuft. Am Zeilenende blättert sie automatisch weiter (abschaltbar unter „Stimmen ▾“ › „Noten mitblättern“). Tippst du auf einen Takt in den Noten, startet die Wiedergabe dort, praktisch zum Üben einzelner Stellen. Stücke, die vor diesem Update umgewandelt wurden, einmal „erneut umwandeln“. Mit **„Nur Noten“** in der Bedienleiste blendet die App alles außer Bedienleiste und Noten aus. Unter der Bedienleiste steht, ob das Mitlesen aktiv ist, und falls nicht, warum.
 
+**Notenband:** Während der Wiedergabe zeigt ein Band über dem Mixer den aktuellen und den nächsten Takt **deiner Stimme** als Noten, mit Schlüssel und Vorzeichen. Die gerade klingende Note ist farbig markiert, ein Strich läuft mit. So siehst du immer genau den Ton, der gerade gespielt wird, auch wenn die Markierung in der PDF einmal danebenliegt.
+
 Gut zu wissen:
 - Am besten klappt es mit sauber gesetzten Noten (Verlags- oder Notensatz-PDF). Bei Scans, Fotos, Handschrift oder sehr dichter Partitur entstehen mehr Fehler. Vergleiche das Ergebnis stichprobenartig.
 - Die App erkennt die Besetzung an der Schlüsselfolge (z. B. SATB, SSATB, SATBB, SSAATTBB, Doppelchor), benennt die Stimmen und setzt Tenöre im Violinschlüssel automatisch eine Oktave tiefer. Liegt eine Stimme trotzdem falsch, im Mixer pro Stimme „8va tiefer / höher“ wählen.
-- Haltebögen über den Taktstrich werden manchmal nicht erkannt. Der Ton wird dann neu angeschlagen statt gehalten.
+- Haltebögen: Die Erkennung liefert sie als Bögen. Die App wertet einen Bogen zwischen zwei gleich hohen, direkt aufeinanderfolgenden Tönen als Haltebogen und spielt einen durchgehenden Ton. Stücke, die vor Version 15 umgewandelt wurden, einmal „erneut umwandeln“.
 - Schlüssel ablaufen lassen oder löschen: github.com/settings/personal-access-tokens. In der App dann „Verbindung entfernen“.
 - Läuft etwas schief, steht der Grund im Repository unter „Actions“.
 
