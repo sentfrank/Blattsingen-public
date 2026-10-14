@@ -189,6 +189,12 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
 .pdfpage canvas{background:#fff;border:1px solid var(--line);border-radius:4px;display:block}
 .pdfnum{font:500 .75rem var(--mono);color:var(--muted)}
 .pdfwrap{position:relative;cursor:pointer}
+.follow-state{font-size:.85rem}
+body.uebe header,body.uebe section:not(#noten),body.uebe #noten>.sechead,body.uebe .vhead,body.uebe #omrBox,body.uebe footer,body.uebe .pdfnum{display:none!important}
+body.uebe #noten{padding-block:8px}
+body.uebe .viewer{gap:8px}
+body.uebe .pdfpages{gap:6px}
+#pFocus[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
 .follow{position:absolute;inset:0;pointer-events:none}
 .fbox{position:absolute;background:var(--hl);opacity:.16;border:2px solid var(--hl);border-radius:4px;box-sizing:border-box;transition:left .12s ease,top .2s ease,width .12s ease}
 .fline{position:absolute;width:3px;margin-left:-1px;background:var(--hl);border-radius:2px;opacity:.9}
@@ -359,6 +365,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
   <div class="sechead">
     <span class="label">Eigene Stücke</span>
     <h2>Meine Noten</h2>
+    <p class="hint" id="appVersion"></p>
     <p>Lade die PDF eines Stücks zum Lesen und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei zum Abspielen einzelner Stimmen. Alles bleibt auf diesem Gerät gespeichert.</p>
   </div>
   <div id="libHome" class="lib-home">
@@ -419,6 +426,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
         <span class="ppos" id="pPos" aria-live="off">Takt 1</span>
         <button type="button" id="pTon">Einsatzton</button>
         <button type="button" id="pMixT" aria-expanded="false" aria-controls="pMix">Stimmen ▾</button>
+        <button type="button" id="pFocus" aria-pressed="false">Nur Noten</button>
       </div>
       <div class="pmix" id="pMix" hidden>
         <div class="controls">
@@ -438,6 +446,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
     </div>
     <p class="hint" id="noScore" hidden>Für dieses Stück gibt es noch keine Stimmen-Datei. Ergänze eine MusicXML- oder MIDI-Datei, dann kannst du die Stimmen einzeln abspielen.</p>
     <p class="hint" id="noPdf" hidden>Für dieses Stück gibt es keine PDF. Über „Datei ergänzen“ kannst du sie hinzufügen.</p>
+    <p class="hint follow-state" id="followState" aria-live="polite"></p>
     <p class="hint" id="followHint" hidden>Die Markierung in den Noten gibt es für Stücke, die die App selbst aus der PDF umgewandelt hat. Mit „PDF erneut in Stimmen umwandeln“ bekommt auch dieses Stück die Mitlese-Markierung.</p>
     <div class="pdfbar" id="pdfBar"><button type="button" id="zOut" aria-label="Verkleinern">−</button><button type="button" id="zIn" aria-label="Vergrößern">+</button><span class="hint" id="pdfInfo"></span></div>
     <div class="pdfpages" id="pdfPages"></div>
@@ -1362,7 +1371,7 @@ async function nlOpen(id){
   $("vTitle").textContent=p.title||"Ohne Titel";
   $("vFiles").textContent=[p.pdfName&&("PDF: "+p.pdfName),p.scoreName&&("Stimmen: "+p.scoreName)].filter(Boolean).join(" · ");
   FL.last=-1; FL.lastSys=null; plSetup(p); omrRefreshUI();
-  $("followHint").hidden=!(p.pdf&&p.score&&!(p.layout&&p.layout.length));
+  $("followHint").hidden=true; flState();
   $("noPdf").hidden=!!p.pdf; $("pdfBar").hidden=!p.pdf; $("pdfPages").innerHTML="";
   NL.pdfDoc=null;
   $("noten").scrollIntoView({behavior:"auto"});
@@ -1372,8 +1381,8 @@ async function nlOpen(id){
       await loadScript("lib/pdf.min.js");
       pdfjsLib.GlobalWorkerOptions.workerSrc="lib/pdf.worker.min.js";
       NL.pdfDoc=await pdfjsLib.getDocument({data:new Uint8Array(p.pdf.slice(0))}).promise;
-      nlRender();
-    }catch(e){ $("pdfInfo").textContent="Die PDF konnte nicht geöffnet werden."; }
+      nlRender(); flState();
+    }catch(e){ $("pdfInfo").textContent="Die PDF konnte nicht angezeigt werden ("+((e&&(e.name||e.message))||"unbekannt")+"). Lade die App neu; hilft das nicht, schick mir diesen Text."; $("followState").textContent=""; }
   }
 }
 async function nlRender(){
@@ -1441,6 +1450,39 @@ function flTap(ev,pi){
   $("pPos").textContent="Takt "+sc.measures[mi].n;
   FL.userScroll=0;
   if(PL.on){ plStart(q); } else { PL.paused=q; $("pPlay").textContent="▶ Ab Takt "+sc.measures[mi].n; flShow(mi,0,false); }
+}
+
+
+/* --- Übeansicht und Mitlese-Status --- */
+const APP_VERSION="6 · 14.10.2026";
+function flStateText(){
+  const p=NL.cur; if(!p) return "";
+  if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
+  if(!p.score) return "";
+  if(!(p.layout&&p.layout.length)) return p.scoreName==="automatisch erkannt"
+    ? "Mitlesen nicht verfügbar: Das Stück wurde vor dem Update umgewandelt. Tippe auf „PDF erneut in Stimmen umwandeln“."
+    : "Mitlesen nicht verfügbar: Die Stimmen stammen aus einer eigenen Datei. Nur bei Umwandlung aus der PDF kennt die App die Taktpositionen.";
+  const ok=p.layout.filter(Boolean).length;
+  if(!NL.pdfDoc) return "Mitlesen bereit ("+ok+" Takte). Die Noten werden noch geladen …";
+  return "Mitlesen aktiv: "+ok+" von "+p.layout.length+" Takten in der PDF gefunden.";
+}
+function flState(){ const e=$("followState"); if(e) e.textContent=flStateText(); }
+function nlToPdf(){
+  // Noten sichtbar machen: aktuellen Takt oder sonst die erste Seite unter die Bedienleiste holen
+  if(!NL.cur||!NL.cur.pdf) return;
+  const top=($("player").hidden?0:$("player").getBoundingClientRect().height)+16;
+  const L=flLayout();
+  if(L&&FL.last>=0&&L[FL.last]){ FL.lastSys=null; FL.userScroll=0; flShow(FL.last,0,true); return; }
+  const first=$("pdfPages").firstElementChild; if(!first) return;
+  const r=first.getBoundingClientRect();
+  if(r.top>window.innerHeight*0.45||r.top<0) window.scrollBy({top:r.top-top,behavior:"auto"});
+}
+function nlFocus(on){
+  document.body.classList.toggle("uebe",on);
+  $("pFocus").setAttribute("aria-pressed",on?"true":"false");
+  $("pFocus").textContent=on?"Ansicht normal":"Nur Noten";
+  try{ localStorage.setItem("nl_focus",on?"1":""); }catch(e){}
+  setTimeout(()=>{ if(NL.pdfDoc) nlRender(); nlToPdf(); },60);
 }
 
 /* --- Stimmen-Player --- */
@@ -1549,6 +1591,8 @@ function plStart(fromQ){
   PL.base=c.currentTime+lead-PL.map.sec(PL.q0);
   PL.idx=sc.parts.map(pt=>{ let lo=0,hi=pt.notes.length; while(lo<hi){ const md=(lo+hi)>>1; if(pt.notes[md].q<PL.q0-1e-6) lo=md+1; else hi=md; } return lo; });
   PL.on=true; $("pPlay").textContent="❚❚ Pause"; $("pPlay").setAttribute("aria-label","Pause");
+  if(!$("pMix").hidden){ $("pMix").hidden=true; $("pMixT").setAttribute("aria-expanded","false"); $("pMixT").textContent="Stimmen ▾"; }
+  FL.last=Math.max(0,measureAt(sc,PL.q0)); setTimeout(nlToPdf,30);
   plTick(); PL.timer=setInterval(plTick,60); plAnim();
 }
 function plTick(){
@@ -1699,7 +1743,7 @@ function omrPoll(pid){
         p.score=parseMusicXML(await r.text()); p.scoreName="automatisch erkannt"; p.mix=null; p.omrNotes=st.hinweise||[]; p.layout=(st.layout&&st.layout.length)?st.layout:null; p.job=null; p.updated=Date.now();
         await nlPut(p); done();
         if(NL.cur&&NL.cur.id===pid){
-          FL.last=-1; FL.lastSys=null; plSetup(p); omrRefreshUI(); $("followHint").hidden=!!(p.layout&&p.layout.length); $("vFiles").textContent="PDF: "+p.pdfName+" · Stimmen: automatisch erkannt";
+          FL.last=-1; FL.lastSys=null; plSetup(p); omrRefreshUI(); flState(); $("vFiles").textContent="PDF: "+p.pdfName+" · Stimmen: automatisch erkannt";
           omrShow(pid,"Fertig: "+p.score.parts.length+" Stimmen und "+(st.takte||"?")+" Takte erkannt. "+(p.omrNotes.length?p.omrNotes.join(" ")+" ":"")+"Vergleiche stichprobenartig mit den Noten, einzelne Fehler sind möglich.");
         } else nlRefresh();
       }catch(e){ done(); omrShow(pid,"Das Ergebnis konnte nicht gelesen werden. "+((e&&e.message)||"")); }
@@ -1735,6 +1779,10 @@ let nlResizeT=null; window.addEventListener("resize",()=>{ clearTimeout(nlResize
 $("omrBtn").onclick=omrStart;
 $("ghSave").onclick=ghSetup;
 $("ghRemove").onclick=()=>{ ghSetCfg(null); ghRenderCfg(); ghMsg("Die Verbindung wurde von diesem Gerät entfernt. Den Zugangsschlüssel kannst du bei GitHub zusätzlich löschen."); };
+$("pFocus").onclick=()=>nlFocus(!document.body.classList.contains("uebe"));
+try{ if(localStorage.getItem("nl_focus")==="1") document.body.classList.add("uebe"); }catch(e){}
+$("pFocus").textContent=document.body.classList.contains("uebe")?"Ansicht normal":"Nur Noten";
+$("appVersion").textContent="App-Version "+APP_VERSION;
 ghRenderCfg();
 nlRefresh();
 

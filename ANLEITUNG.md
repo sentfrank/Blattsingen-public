@@ -56,7 +56,7 @@ Die App kann aus einer PDF selbst die Stimmen erkennen. Die Erkennung läuft kos
 
 Danach in einem Stück mit PDF auf **„PDF in Stimmen umwandeln“** tippen. Die erste Umwandlung dauert ca. 5–8 Minuten (GitHub installiert dabei die Erkennung), danach meist 1–3 Minuten. Die App darf in der Zeit geschlossen werden und holt das Ergebnis beim nächsten Öffnen ab.
 
-**Mitlesen in den Noten:** Bei umgewandelten Stücken markiert die App beim Abspielen den aktuellen Takt direkt in der PDF, mit einem Strich, der im Takt mitläuft. Am Zeilenende blättert sie automatisch weiter (abschaltbar unter „Stimmen ▾“ › „Noten mitblättern“). Tippst du auf einen Takt in den Noten, startet die Wiedergabe dort, praktisch zum Üben einzelner Stellen. Stücke, die vor diesem Update umgewandelt wurden, einmal „erneut umwandeln“.
+**Mitlesen in den Noten:** Bei umgewandelten Stücken markiert die App beim Abspielen den aktuellen Takt direkt in der PDF, mit einem Strich, der im Takt mitläuft. Am Zeilenende blättert sie automatisch weiter (abschaltbar unter „Stimmen ▾“ › „Noten mitblättern“). Tippst du auf einen Takt in den Noten, startet die Wiedergabe dort, praktisch zum Üben einzelner Stellen. Stücke, die vor diesem Update umgewandelt wurden, einmal „erneut umwandeln“. Mit **„Nur Noten“** in der Bedienleiste blendet die App alles außer Bedienleiste und Noten aus. Unter der Bedienleiste steht, ob das Mitlesen aktiv ist, und falls nicht, warum.
 
 Gut zu wissen:
 - Am besten klappt es mit sauber gesetzten Noten (Verlags- oder Notensatz-PDF). Bei Scans, Fotos, Handschrift oder sehr dichter Partitur entstehen mehr Fehler. Vergleiche das Ergebnis stichprobenartig.
