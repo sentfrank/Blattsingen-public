@@ -5,7 +5,8 @@ Die App ist eine Web-App: Sie läuft in Safari, lässt sich auf den Home-Bildsch
 ## Update einspielen (wenn die App schon online ist)
 
 1. Im GitHub-Repository „Add file“ → „Upload files“.
-2. Alle Dateien aus dieser ZIP hineinziehen, **einschließlich des Ordners „lib“**, und die alten überschreiben, dann „Commit changes“.
+2. Alle Dateien aus dieser ZIP hineinziehen, **einschließlich der Ordner „lib“ und „uebung“**, und die alten überschreiben, dann „Commit changes“. Das geht nur am Computer: Ordner lassen sich am iPhone nicht hochladen.
+   Prüfen: Im Repository muss danach ein Ordner `uebung` mit 31 Dateien stehen (ub01.pdf … ub10.json, index.json).
 3. Ein bis zwei Minuten warten. Am iPhone die App komplett schließen (vom unteren Rand hochwischen, App wegwischen) und neu öffnen. Bei Bedarf zweimal.
 
 ## 1. Online stellen (einmalig, ca. 10 Minuten, am Computer)
@@ -39,9 +40,9 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 
 **Theorie:** Der Bereich „Theorie“ enthält die zehn Kapitel Musiktheorie zum Aufklappen und einen interaktiven Quintenzirkel. Tippe auf eine Tonart: Die App zeigt die Vorzeichen im Violin- und Bassschlüssel, die Moll-Parallele und die Regel, mit der du die Tonart aus den Vorzeichen bestimmst, und spielt auf Wunsch die Tonleiter.
 
-**Trainer im Hochformat:** Notenzeilen brechen auf dem Handy automatisch um, die Tabs stehen in zwei Reihen. Am Anfang jeder Tonleiter und Treffübung stehen die Vorzeichen der Tonart; innerhalb der Tonart braucht es dann keine Versetzungszeichen mehr.
+**Trainer im Hochformat:** Die Übungen passen in eine Notenzeile, das Notenbild wird dafür passend verkleinert. Die Tabs stehen in zwei Reihen. Am Anfang jeder Tonleiter und Treffübung stehen die Vorzeichen der Tonart; innerhalb der Tonart braucht es dann keine Versetzungszeichen mehr.
 
-**Tonleiter live:** Die gesungenen Töne erscheinen wie in der Treffübung als farbige Notenköpfe (grün, gelb, rot). Die bisherige Ansicht mit Cent-Punkten und Tonhöhenkurve öffnest du darunter mit „Detailansicht“.
+**Tonleiter live:** Aufgebaut wie die Treffübung: „🎤 Live mitsingen“ steht direkt über der Tonleiter, die gesungenen Töne erscheinen als farbige Notenköpfe (grün, gelb, rot) in der Tonleiter selbst. Die bisherige Ansicht mit Cent-Punkten und Tonhöhenkurve öffnest du darunter mit „Detailansicht“. Weiter unten kannst du wie bisher eine Aufnahme prüfen.
 
 **Rhythmus:** Stufe 1–6 (Viertel bis Sechzehntel, Synkopen, 6/8, Triolen). „Anhören“ spielt den Rhythmus vor, „Mitklopfen“ zählt einen Takt ein, dann tippst du auf die große Fläche (oder Leertaste). Jede Note wird grün, gelb oder rot, mit Abweichung in Millisekunden. Bei Bluetooth-Kopfhörern den „Kopfhörer-Ausgleich“ wählen.
 

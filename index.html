@@ -311,7 +311,7 @@ body.uebe .pdfpages{gap:6px}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 18 · 15.10.2026</span>
+  <span class="appver">App-Version 20 · 15.10.2026</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -405,24 +405,10 @@ body.uebe .pdfpages{gap:6px}
         <div class="btnrow"><button class="primary" id="playScale" type="button">Abspielen</button><button id="stopScale" type="button">Stopp</button></div>
       </div>
       <div class="now" aria-live="polite"><span class="big" id="nowScale">–</span><span class="small" id="nowScaleSub"></span></div>
+      <div class="btnrow readbtns"><button class="primary" type="button" id="liveStart">🎤 Live mitsingen</button><button type="button" id="liveStop" disabled>Beenden</button></div>
       <div class="staffbox"><svg id="staffScale" role="img" aria-label="Tonleiter auf Notenlinien"></svg></div>
-      <p class="hint">Im Modus „Ich singe zuerst“ wird der nächste Ton markiert, eine Zählzeit lang bleibt es still: Du singst. Dann kommt der richtige Ton zur Kontrolle. Merkst du, dass du zu tief oder zu hoch warst, stoppe und wiederhole diesen Schritt.</p>
-      <div class="rec">
-        <h3>Eigene Töne prüfen</h3>
-        <h3>Live mitsingen</h3>
-        <p class="hint">Mit Kopfhörern üben, damit das Mikrofon nur deine Stimme hört. „Live starten“ spielt den Grundton, danach singst du die Tonleiter in der eingestellten Richtung. Jeder gehaltene Ton wird sofort neben seiner Zielnote eingetragen.</p>
-        <div class="btnrow"><button class="primary" type="button" id="liveStart">Live starten</button><button type="button" id="liveStop" disabled>Beenden</button></div>
-        <div id="recOut" hidden>
-          <div class="stats" id="scaleStats" hidden></div>
-          <div class="staffbox"><svg id="staffLive" role="img" aria-label="Gesungene Töne als farbige Noten"></svg></div>
-          <p class="hint"><b class="c-good">Grün</b> getroffen (bis ±20 Cent), <b class="c-hl">gelb</b> knapp daneben, <b class="c-bad">rot</b> daneben; ein ganz anderer Ton erscheint als rote Note neben der Zielnote.</p>
-          <details class="recdetail" id="recDetail"><summary>Detailansicht: Abweichung in Cent und Tonhöhenkurve</summary>
-          <div class="stats" id="recStats"></div>
-          <div class="legend"><span><span class="dot" style="background:var(--good)"></span>bis ±20 Cent</span><span><span class="dot" style="background:var(--hl)"></span>21–45 Cent</span><span><span class="dot" style="background:var(--bad)"></span>über 45 Cent oder falscher Ton</span><span>Schwarze Note = Ziel, Punkt daneben = dein Ton (eine Notenstufe Abstand = 100 Cent)</span></div>
-          <div class="staffbox"><svg id="staffRec" role="img" aria-label="Gesungene Töne im Vergleich zur Tonleiter"></svg></div>
-          <div class="staffbox"><svg id="curveRec" role="img" aria-label="Tonhöhenverlauf der Aufnahme"></svg></div>
-          </details>
-        </div>
+      <div class="readlive" id="scaleLive">
+        <div class="stats" id="scaleStats" hidden></div>
         <div id="scaleTunerSlot"><div class="tuner" id="tuner" hidden>
           <div class="tuner-top"><span class="label">Ziel</span><span class="tnote" id="tTarget">–</span><span class="label">Du singst</span><span class="tnote" id="tSung">–</span><span class="tcents" id="tCents"></span></div>
           <div class="gauge" aria-hidden="true"><div class="gzone"></div><div class="gmid"></div><div class="gneedle" id="tNeedle"></div></div>
@@ -430,6 +416,18 @@ body.uebe .pdfpages{gap:6px}
           <div class="level" aria-hidden="true"><span>Mikrofon</span><div class="lbar"><div id="tLevel"></div></div></div>
         </div>
         <p class="hint" id="liveStatus" aria-live="polite"></p></div>
+        <p class="hint">Mit Kopfhörern: Grundton hören, dann die Tonleiter in der eingestellten Richtung singen, jeden Ton etwa eine Sekunde. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp daneben, <b class="c-bad">rot</b> daneben; ein ganz anderer Ton erscheint als rote Note neben der Zielnote.</p>
+        <div id="recOut" hidden>
+          <details class="recdetail" id="recDetail"><summary>Detailansicht: Abweichung in Cent und Tonhöhenkurve</summary>
+          <div class="stats" id="recStats"></div>
+          <div class="legend"><span><span class="dot" style="background:var(--good)"></span>bis ±20 Cent</span><span><span class="dot" style="background:var(--hl)"></span>21–45 Cent</span><span><span class="dot" style="background:var(--bad)"></span>über 45 Cent oder falscher Ton</span><span>Schwarze Note = Ziel, Punkt daneben = dein Ton (eine Notenstufe Abstand = 100 Cent)</span></div>
+          <div class="staffbox"><svg id="staffRec" role="img" aria-label="Gesungene Töne im Vergleich zur Tonleiter"></svg></div>
+          <div class="staffbox"><svg id="curveRec" role="img" aria-label="Tonhöhenverlauf der Aufnahme"></svg></div>
+          </details>
+        </div>
+      </div>
+      <p class="hint">Im Modus „Ich singe zuerst“ wird der nächste Ton markiert, eine Zählzeit lang bleibt es still: Du singst. Dann kommt der richtige Ton zur Kontrolle. Merkst du, dass du zu tief oder zu hoch warst, stoppe und wiederhole diesen Schritt.</p>
+      <div class="rec">
         <h3>Aus einer Aufnahme prüfen</h3>
         <ol>
           <li>Oben „Abspielen“ oder den Bordun-Ton nutzen, um den Grundton zu hören.</li>
@@ -1195,14 +1193,17 @@ function staffAvail(svg){
 function drawStaff(svg,notes,active,showLabels,opt){
   opt=opt||{};
   const V=VOICES[st.voice], f=opt.fifths!=null?opt.fifths:keyFifths(st.root,st.scale==="chrom"?"dur":st.scale);
-  const W=staffAvail(svg), narrow=W<560, gap=opt.gap||(narrow?34:46), ksw=Math.abs(f)*10;
-  const x0=58+ksw+(narrow?22:30), extra=opt.extra||0, baseH=showLabels?190:150, LH=baseH+extra;
-  const per=Math.max(3,Math.floor((W-x0-20)/gap)), lines=Math.max(1,Math.ceil(notes.length/per));
-  const H=LH*lines;
-  svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("width",W); svg.setAttribute("height",H);
+  const Wa=staffAvail(svg), ksw=Math.abs(f)*10, x0=58+ksw+24, extra=opt.extra||0, baseH=showLabels?190:150, LH=baseH+extra;
+  // Im Hochformat alles in EINE Zeile: Notenbild verkleinern statt umbrechen (erst bei sehr vielen Tönen umbrechen)
+  let gap=opt.gap||Math.max(30,Math.min(46,(Wa-x0-20)/Math.max(1,notes.length)));
+  let W=Math.max(Wa,x0+notes.length*gap+20);
+  let per=notes.length;
+  if(Wa/W<0.42){ gap=34; W=Wa; per=Math.max(3,Math.floor((W-x0-20)/gap)); }
+  const lines=Math.max(1,Math.ceil(notes.length/per)), H=LH*lines, lab=Math.min(1.5,Math.max(1,W/Wa*0.8));
+  svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("width",Wa); svg.setAttribute("height",Math.round(H*Wa/W));
   svg.innerHTML="";
   const pos=i=>{ const l=Math.floor(i/per), top=l*LH; return {x:x0+(i-l*per)*gap,yb:top+100,top,lab:top+baseH+extra-10,line:l}; };
-  svg._lay={pos,per,lines,LH,W,gap};
+  svg._lay={pos,per,lines,LH,W,gap,lab};
   for(let l=0;l<lines;l++){
     const yb=l*LH+100, cnt=Math.min(per,notes.length-l*per), xe=l===lines-1?Math.min(W-12,x0+cnt*gap+10):W-12;
     for(let i=0;i<5;i++) svg.appendChild(el("line",{x1:12,x2:xe,y1:yb-i*10,y2:yb-i*10,stroke:"var(--muted)","stroke-width":1}));
@@ -1211,7 +1212,7 @@ function drawStaff(svg,notes,active,showLabels,opt){
     drawClef(svg,V.clef,22,yb);
     drawKeySig(svg,V.clef,f,50,yb);
   }
-  svg.appendChild(el("text",{x:20,y:H-extra-8,"font-family":"var(--mono)","font-size":10,fill:"var(--muted)"},V.name+(f?" · "+Math.abs(f)+(f>0?" Kreuz":" b")+(Math.abs(f)>1&&f>0?"e":""):"")));
+  svg.appendChild(el("text",{x:20,y:18,"font-family":"var(--mono)","font-size":(10*lab).toFixed(1),fill:"var(--muted)"},V.name+(f?" · "+Math.abs(f)+(f>0?" Kreuz":" b")+(Math.abs(f)>1&&f>0?"e":""):"")));
   const cur={};  // gültiges Vorzeichen je Notenstufe (Tonart, dann wie im Takt)
   notes.forEach((n,i)=>{
     const P=pos(i), x=P.x, yb=P.yb, p=n.d-V.ref, y=yb-p*5, on=i===active, col=on?"var(--hl)":"var(--fg)", li=((n.d%7)+7)%7;
@@ -1223,8 +1224,8 @@ function drawStaff(svg,notes,active,showLabels,opt){
     const up=p<4;
     svg.appendChild(el("line",{x1:up?x+6:x-6,x2:up?x+6:x-6,y1:y,y2:up?y-32:y+32,stroke:col,"stroke-width":1.4}));
     if(showLabels){
-      svg.appendChild(el("text",{x:x,y:yb+50,"text-anchor":"middle","font-family":"var(--body)","font-size":13,"font-weight":on?600:500,fill:col},n.name));
-      svg.appendChild(el("text",{x:x,y:yb+66,"text-anchor":"middle","font-family":"var(--mono)","font-size":11,fill:on?"var(--hl)":"var(--muted)"},n.sol));
+      svg.appendChild(el("text",{x:x,y:yb+44+8*lab,"text-anchor":"middle","font-family":"var(--body)","font-size":(13*lab).toFixed(1),"font-weight":on?600:500,fill:col},n.name));
+      svg.appendChild(el("text",{x:x,y:yb+50+22*lab,"text-anchor":"middle","font-family":"var(--mono)","font-size":(11*lab).toFixed(1),fill:on?"var(--hl)":"var(--muted)"},n.sol));
     }
   });
 }
@@ -1251,7 +1252,7 @@ function scaleSeq(){
   if(dir==="down") return down;
   return up.concat(down.slice(1));
 }
-function renderScale(active){drawStaff($("staffScale"),scaleSeq(),active,true)}
+function renderScale(active){ const seq=scaleSeq(); if(SCALE_RES&&SCALE_RES.key===seq.map(n=>n.midi).join(",")){ drawMatchStaff($("staffScale"),seq,SCALE_RES.match,{names:true,active}); return; } SCALE_RES=null; $("scaleStats").hidden=true; drawStaff($("staffScale"),seq,active,true); }
 function setNow(id,big,sub){$(id).textContent=big; $(id+"Sub").textContent=sub||""}
 $("playScale").onclick=()=>{
   const seq=scaleSeq(), b=beat(), first=$("mode").value==="first", ev=[];
@@ -2085,7 +2086,7 @@ function drawMatchStaff(svg,seq,match,o){
       svg.appendChild(el("path",{d:c>0?("M"+(x+14)+" "+(y-2)+"l5 -7l5 7z"):("M"+(x+14)+" "+(y+2)+"l5 7l5 -7z"),fill:col}));
     }
     const rr=Math.round(mt.m), label=Math.abs(c)>=50?PC[((rr%12)+12)%12]:(c>0?"+":"")+c;
-    svg.appendChild(el("text",{x:x,y:lab,"text-anchor":"middle","font-family":"var(--mono)","font-size":11,"font-weight":600,fill:col},label));
+    svg.appendChild(el("text",{x:x,y:lab,"text-anchor":"middle","font-family":"var(--mono)","font-size":(11*(LAY.lab||1)).toFixed(1),"font-weight":600,fill:col},label));
   });
   // laufende Note sichtbar halten (bei mehreren Zeilen)
   if(o.arrow!=null&&LAY.lines>1&&o.follow){ const P=LAY.pos(Math.min(o.arrow,seq.length-1)), r=svg.getBoundingClientRect(), sc=r.height/(LAY.LH*LAY.lines), yTop=r.top+P.top*sc;
@@ -2104,9 +2105,11 @@ function drawReadLive(active){
   const k=readCounts(), s=$("readStats");
   if(k.n){ s.hidden=false; s.innerHTML=statsHTML(k,seq.length); }
 }
+let SCALE_RES=null;
 /* Tonleiter: neue Ansicht (farbige Notenköpfe), alte Ansicht (Punkte + Kurve) zuschaltbar */
 function drawScaleLive(seq,match,arrow){
-  drawMatchStaff($("staffLive"),seq,match,{names:true,arrow,follow:arrow!=null});
+  SCALE_RES={key:seq.map(n=>n.midi).join(","),match};
+  drawMatchStaff($("staffScale"),seq,match,{names:true,arrow,follow:arrow!=null});
   const k=matchCounts(seq,match), s=$("scaleStats"); s.hidden=!k.n; if(k.n) s.innerHTML=statsHTML(k,seq.length);
 }
 function finalizeNote(){
@@ -2190,7 +2193,7 @@ async function startLive(mode){
   try{ const z=c.createGain(); z.gain.value=0; live.an.connect(z); z.connect(c.destination); }catch(e){}
   live.buf=new Float32Array(live.an.fftSize); live.nf=null; live.dbg={n:0,v:0,rms:0,c:9,told:false};
   live.seq=mode==="read"?melody:scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
-  if(mode==="scale") $("recOut").hidden=false; else $("readStats").hidden=true;
+  if(mode==="scale"){ $("recOut").hidden=false; $("scaleStats").hidden=true; } else $("readStats").hidden=true;
   liveRedraw();
   $("tuner").hidden=false; $(UI.stop).disabled=false;
   out.textContent="Hör den Grundton, dann sing los.";
@@ -2624,7 +2627,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="18 · 15.10.2026";
+const APP_VERSION="20 · 15.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -3053,7 +3056,14 @@ $("appVersion").textContent="App-Version "+APP_VERSION;
 ghRenderCfg();
 /* --- Übungsblätter: 30-Sekunden-Ausschnitte gemeinfreier Chorstücke, mit der App ausgeliefert --- */
 const UB={list:null};
-async function ubLoad(){ if(UB.list) return UB.list; const r=await fetch("uebung/index.json",{cache:"no-cache"}); if(!r.ok) throw new Error(r.status); UB.list=await r.json(); return UB.list; }
+const UB_INDEX=[{"id": "ub01", "title": "Choral BWV 324", "composer": "Johann Sebastian Bach (1685–1750)", "stufe": "Leicht", "info": "Vierstimmiger Choral, ruhige Viertel, fast nur Schritte. Erst den Bass allein, dann mit allen Stimmen.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 9, "v": 2}, {"id": "ub02", "title": "Agnus Dei I", "composer": "Giovanni Pierluigi da Palestrina (um 1525–1594)", "stufe": "Leicht", "info": "Renaissance-Polyphonie in Halben und Ganzen. Die Stimmen setzen nacheinander ein: Einsatz zählen!", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 7, "v": 2}, {"id": "ub03", "title": "Choral BWV 32.6", "composer": "Johann Sebastian Bach (1685–1750)", "stufe": "Leicht bis mittel", "info": "Mehr Achtel im Bass, Sprünge bis zur Quinte.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 8, "v": 2}, {"id": "ub04", "title": "Madrigal aus dem 3. Madrigalbuch (Nr. 4)", "composer": "Claudio Monteverdi (1567–1643)", "stufe": "Mittel", "info": "Fünfstimmig, wechselnd homophon und imitierend. Auf Pausen und Einsätze achten.", "stimmen": ["Sopran 1", "Sopran 2", "Alt", "Tenor", "Bass"], "takte": 9, "v": 2}, {"id": "ub05", "title": "Choral BWV 406", "composer": "Johann Sebastian Bach (1685–1750)", "stufe": "Mittel", "info": "Ein b vorgezeichnet, viele Achtelbewegungen im Bass.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 9, "v": 2}, {"id": "ub06", "title": "Agnus Dei II", "composer": "Giovanni Pierluigi da Palestrina (um 1525–1594)", "stufe": "Mittel", "info": "Fünfstimmig mit zwei Bässen, lange Linien und versetzte Einsätze.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass 1", "Bass 2"], "takte": 7, "v": 2}, {"id": "ub07", "title": "Choral BWV 420", "composer": "Johann Sebastian Bach (1685–1750)", "stufe": "Mittel bis schwer", "info": "Zwischendominanten: mehrere Versetzungszeichen im Bass.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 9, "v": 2}, {"id": "ub08", "title": "Choral BWV 56.5", "composer": "Johann Sebastian Bach (1685–1750)", "stufe": "Schwer", "info": "Zwei b, chromatische Wendungen und große Sprünge.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 9, "v": 2}, {"id": "ub09", "title": "„Es ist genug“ (Choral aus BWV 60)", "composer": "Johann Sebastian Bach (1685–1750)", "stufe": "Schwer", "info": "Berühmt für den Tritonus am Anfang der Melodie und kühne Harmonik.", "stimmen": ["Sopran", "Alt", "Tenor", "Bass"], "takte": 7, "v": 2}, {"id": "ub10", "title": "„Ond’ei, di morte“ (3. Madrigalbuch, Nr. 20)", "composer": "Claudio Monteverdi (1567–1643)", "stufe": "Sehr schwer", "info": "Chromatik und Dissonanzen, fünf selbstständige Stimmen.", "stimmen": ["Sopran 1", "Sopran 2", "Alt", "Tenor", "Bass"], "takte": 9, "v": 2}];
+async function ubLoad(){ if(UB.list) return UB.list; UB.list=UB_INDEX; return UB.list; }
+async function ubFetch(name,kind){
+  let r; try{ r=await fetch("uebung/"+name,{cache:"no-cache"}); }catch(e){ throw new Error("Keine Verbindung zum Server ("+name+")."); }
+  const ct=(r.headers.get("content-type")||"").toLowerCase();
+  if(!r.ok||ct.includes("text/html")) throw new Error("Die Datei „uebung/"+name+"“ fehlt auf deiner GitHub-Seite"+(r.ok?"":" (Fehler "+r.status+")")+". Bitte den Ordner „uebung“ aus der ZIP mit ins Repository hochladen (am Computer: ganzen Ordner ins Browserfenster ziehen).");
+  return kind==="buf"?r.arrayBuffer():kind==="json"?r.json():r.text();
+}
 async function ubRender(){
   const ul=$("ubList"); if(!ul) return;
   let L; try{ L=await ubLoad(); }catch(e){ ul.innerHTML='<li class="lib-empty">Die Übungsblätter konnten nicht geladen werden. Bitte mit Internet einmal öffnen, danach gehen sie auch offline.</li>'; return; }
@@ -3076,10 +3086,7 @@ async function ubOpen(it,k,btn){
   try{
     let p=null; try{ p=(await nlAll()).find(x=>x.id===it.id); }catch(e){}
     if(!p||p.ubv!==it.v){
-      const [pdf,xml,js]=await Promise.all([
-        fetch("uebung/"+it.id+".pdf").then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); }),
-        fetch("uebung/"+it.id+".musicxml").then(r=>{ if(!r.ok) throw 0; return r.text(); }),
-        fetch("uebung/"+it.id+".json").then(r=>{ if(!r.ok) throw 0; return r.json(); })]);
+      const [pdf,xml,js]=await Promise.all([ubFetch(it.id+".pdf","buf"),ubFetch(it.id+".musicxml","text"),ubFetch(it.id+".json","json")]);
       const keep=p&&p.mix;
       p={id:it.id,builtin:true,ubv:it.v,title:"Übungsblatt "+(k+1)+": "+it.title,pdf,pdfName:"",score:parseMusicXML(xml),scoreName:"",scoreXml:xml,layout:js.layout,mix:null,created:Date.now()};
       if(keep&&keep.parts&&keep.parts.length===p.score.parts.length) p.mix=keep;
@@ -3089,7 +3096,7 @@ async function ubOpen(it,k,btn){
     NL.pieces=NL.pieces.filter(x=>x.id!==p.id).concat([p]);
     if(meta) meta.textContent=old;
     NL.from="uebung"; nlOpen(p.id);
-  }catch(e){ if(meta) meta.textContent="Konnte nicht geladen werden. Ist das Gerät online?"; }
+  }catch(e){ if(meta) meta.textContent=(e&&e.message)||"Konnte nicht geladen werden."; if(meta) meta.style.color="var(--bad)"; }
 }
 ubRender();
 
@@ -3104,7 +3111,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=18;
+const APP_BUILD=20;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
