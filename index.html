@@ -64,8 +64,16 @@ section{padding-block:40px 8px;display:grid;gap:20px}
 
 /* Wochen */
 .weeks{display:grid;gap:14px}
-.week{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;grid-template-columns:72px 1fr;gap:6px 18px}
+.weeks{gap:8px!important}
 .week.done{border-color:var(--good)}
+.wsum{display:grid;gap:2px}
+.wsum .label{font-size:.7rem}
+.wok{display:none;color:var(--good);font:700 1.1rem var(--body)}
+.week.done .wok{display:inline}
+.week.done .th-n{color:var(--good)}
+.routine-d .routine{margin:0 16px 16px}
+.rsum{display:grid;gap:2px}
+.rsum small{font:500 .78rem var(--mono);color:var(--muted)}
 .wnum{font:600 2.6rem/1 var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
 .week.done .wnum{color:var(--good)}
 .wbody{display:grid;gap:10px;min-width:0}
@@ -78,7 +86,7 @@ section{padding-block:40px 8px;display:grid;gap:20px}
 .wfoot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .donebox{display:flex;gap:8px;align-items:center;font-size:.92rem;color:var(--muted);cursor:pointer}
 .donebox input{width:18px;height:18px;accent-color:var(--good)}
-@media (max-width:560px){.week{grid-template-columns:1fr}.wnum{font-size:2rem}}
+
 
 /* Buttons & Controls */
 button{font:500 .95rem var(--body);border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer}
@@ -311,7 +319,7 @@ body.uebe .pdfpages{gap:6px}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 20 · 15.10.2026</span>
+  <span class="appver">App-Version 21 · 15.10.2026</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -321,13 +329,16 @@ body.uebe .pdfpages{gap:6px}
     <h2>Die tägliche halbe Stunde</h2>
     <p>Regelmäßigkeit schlägt Dauer. Lieber sechs Tage à 30 Minuten als einmal drei Stunden. Die Inhalte der Wochen setzt du in diese Struktur ein.</p>
   </div>
+  <details class="th routine-d">
+  <summary><span class="th-n">30′</span><span class="rsum">Ablauf der täglichen Übung<small>5′ Einsingen · 5′ Intervalle · 5′ Rhythmus · 12′ Neues vom Blatt · 3′ Notiz</small></span></summary>
   <div class="routine">
     <div><span class="min">5′</span><b>Einsingen</b><p>Die Folge unter „Einsingen“ in deiner Stimmlage. Danach die Tonleiter der Woche im Trainer, Modus „Ich singe zuerst“.</p></div>
     <div><span class="min">5′</span><b>Intervalle</b><p>20 Runden Intervall-Quiz. Falsche Intervalle sofort nachsingen.</p></div>
-    <div><span class="min">5′</span><b>Rhythmus</b><p>Rhythmus des heutigen Stücks auf „da“ sprechen, Metronom an, Puls im Körper.</p></div>
-    <div><span class="min">12′</span><b>Neues vom Blatt</b><p>Unbekanntes Stück: 30 Sek. Tonart, Takt, Grundton prüfen. Einmal ohne Anhalten durchsingen, dann kontrollieren.</p></div>
+    <div><span class="min">5′</span><b>Rhythmus</b><p>Im Trainer „Rhythmus“: einen Rhythmus auf „da“ sprechen, dann mitklopfen. Puls im Körper.</p></div>
+    <div><span class="min">12′</span><b>Neues vom Blatt</b><p>Ein Übungsblatt oder unbekanntes Stück: 30 Sek. Tonart, Takt, Grundton prüfen. Einmal ohne Anhalten durchsingen, dann kontrollieren.</p></div>
     <div><span class="min">3′</span><b>Notiz</b><p>Welche Stelle, welches Intervall ging schief? Das wird morgen die erste Übung.</p></div>
   </div>
+  </details>
 </section>
 
 <section id="plan">
@@ -1529,15 +1540,14 @@ $("testBtn").onclick=()=>{
 /* Wochen rendern */
 const done=store.get("done",{});
 $("weeks").innerHTML=WEEKS.map((w,i)=>
- '<article class="week'+(done[i]?' done':'')+'" id="w'+(i+1)+'">'+
- '<div class="wnum">'+(i+1)+'</div><div class="wbody">'+
- '<span class="label">Woche '+(i+1)+'</span><h3>'+w.t+'</h3>'+
+ '<details class="th week'+(done[i]?' done':'')+'" id="w'+(i+1)+'">'+
+ '<summary><span class="th-n">'+(i+1)+'</span><span class="wsum"><span class="label">Woche '+(i+1)+'</span>'+w.t+'</span><span class="wok" aria-label="Checkpoint geschafft">✓</span></summary><div class="wbody th-body">'+
  '<div class="tags">'+w.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div>'+
  '<ul>'+w.items.map(x=>'<li>'+x+'</li>').join("")+'</ul>'+
  '<p class="check"><b>Checkpoint:</b> '+w.check+'</p>'+
  '<div class="wfoot"><button type="button" class="practice" data-w="'+i+'">Im Trainer üben</button>'+
  '<label class="donebox"><input type="checkbox" id="done'+i+'" data-w="'+i+'"'+(done[i]?' checked':'')+'> Checkpoint geschafft</label></div>'+
- '</div></article>').join("");
+ '</div></details>').join("");
 document.querySelectorAll(".practice").forEach(b=>b.onclick=()=>{
   const c=WEEKS[+b.dataset.w].cfg; st.scale=c.scale; st.level=c.level; st.iv=c.iv;
   syncInputs(); refreshAll(); showTab(c.level>=1&&+b.dataset.w===0?"scale":"read");
@@ -2627,7 +2637,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="20 · 15.10.2026";
+const APP_VERSION="21 · 15.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -3111,7 +3121,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=20;
+const APP_BUILD=21;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
