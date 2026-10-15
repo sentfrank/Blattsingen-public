@@ -39,6 +39,16 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 
 **Theorie:** Der Bereich „Theorie“ enthält die zehn Kapitel Musiktheorie zum Aufklappen und einen interaktiven Quintenzirkel. Tippe auf eine Tonart: Die App zeigt die Vorzeichen im Violin- und Bassschlüssel, die Moll-Parallele und die Regel, mit der du die Tonart aus den Vorzeichen bestimmst, und spielt auf Wunsch die Tonleiter.
 
+**Trainer im Hochformat:** Notenzeilen brechen auf dem Handy automatisch um, die Tabs stehen in zwei Reihen. Am Anfang jeder Tonleiter und Treffübung stehen die Vorzeichen der Tonart; innerhalb der Tonart braucht es dann keine Versetzungszeichen mehr.
+
+**Tonleiter live:** Die gesungenen Töne erscheinen wie in der Treffübung als farbige Notenköpfe (grün, gelb, rot). Die bisherige Ansicht mit Cent-Punkten und Tonhöhenkurve öffnest du darunter mit „Detailansicht“.
+
+**Rhythmus:** Stufe 1–6 (Viertel bis Sechzehntel, Synkopen, 6/8, Triolen). „Anhören“ spielt den Rhythmus vor, „Mitklopfen“ zählt einen Takt ein, dann tippst du auf die große Fläche (oder Leertaste). Jede Note wird grün, gelb oder rot, mit Abweichung in Millisekunden. Bei Bluetooth-Kopfhörern den „Kopfhörer-Ausgleich“ wählen.
+
+**Notennamen:** Eine Note erscheint, du tippst den Namen (C D E F G A H; mit Vorzeichen zuerst ♭/♯ wählen). „60-Sekunden-Sprint“ zählt die richtigen Antworten und merkt sich deinen Rekord. Schlüssel: wie Stimmlage, Violin-, Tenor-, Bassschlüssel oder gemischt.
+
+**Einsingen mit Noten:** Beim Abspielen zeigt die App die Noten der laufenden Übung mit Schlüssel und Tonart-Vorzeichen; der klingende Ton ist farbig markiert.
+
 ## 4. Meine Noten
 
 - Abschnitt „Meine Noten“ → „Dateien auswählen“: die PDF eines Stücks und, wenn vorhanden, die passende **MusicXML-** (.musicxml, .xml, .mxl) oder **MIDI-Datei** (.mid). Beide können auf einmal ausgewählt werden.
@@ -47,6 +57,10 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 - „Einsatzton“ spielt den nächsten Ton deiner Stimme ab der aktuellen Stelle.
 - Die Stücke bleiben auf dem iPhone gespeichert, auch offline. Wenn du die App vom Home-Bildschirm löschst, sind sie weg.
 - Wiederholungszeichen und Sprünge (D.C., Coda) spielt die App nicht aus. Das Stück läuft einmal durch.
+
+## Übungsblätter
+
+Zehn Ausschnitte von je etwa 30 Sekunden aus gemeinfreien Chorwerken (Bach-Choräle, Palestrina, Monteverdi), nach Schwierigkeit geordnet. Antippen öffnet das Blatt wie ein Stück in „Meine Noten“: Noten, Stimmen einzeln abspielen, klingende Note markiert (deine Stimme aus dem Training, z. B. Bass). Die Blätter haben keinen Liedtext: auf „la“, Silben oder Notennamen singen.
 
 ## 5. PDF automatisch in Stimmen umwandeln
 
