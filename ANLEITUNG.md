@@ -58,7 +58,7 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 - „Einsatzton“ spielt den nächsten Ton deiner Stimme ab der aktuellen Stelle.
 - **Tempo** direkt in der Bedienleiste: − / + ändert in 5-%-Schritten, auch während der Wiedergabe; Tippen auf die Prozentzahl setzt auf 100 % zurück. **Metronom** klickt beim Abspielen jeden Schlag mit (Takt-Eins betont).
 - Die Stücke bleiben auf dem iPhone gespeichert, auch offline. Wenn du die App vom Home-Bildschirm löschst, sind sie weg.
-- Wiederholungszeichen und Sprünge (D.C., Coda) spielt die App nicht aus. Das Stück läuft einmal durch.
+- Wiederholungen, 1./2. Klammer, D.C., D.S., Coda und Fine spielt die App aus, wenn sie in der Datei stehen (abschaltbar unter „Stimmen ▾“ › „Wiederholungen beachten“). Bei Wiederholungen steht ein Strich hinter der Taktnummer (Takt 5′). Die Erkennung aus der PDF findet Wiederholungszeichen und Klammern, aber keine D.C.- oder Coda-Anweisungen: Dann unter „Eigener Ablauf“ die Takte eintragen, z. B. „1-16, 1-8, 17-32“.
 
 ## Übungsblätter
 
