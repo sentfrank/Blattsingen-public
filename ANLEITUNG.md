@@ -56,6 +56,7 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 - Die PDF wird angezeigt (Zoom mit − / +). Die Stimmen spielt die App aus der MusicXML- oder MIDI-Datei, nicht aus der PDF: Eine PDF ist nur ein Bild der Noten.
 - „Stimmen ▾“ öffnet den Mixer: **Meine Stimme** wählen, dann „hervorheben“, „nur meine Stimme“ oder „ohne meine Stimme“ (zum Mitsingen). Pro Stimme gibt es Solo, Stumm und Lautstärke. Dazu Tempo, ab/bis Takt, Einzähler und Wiederholen.
 - „Einsatzton“ spielt den nächsten Ton deiner Stimme ab der aktuellen Stelle.
+- **Tempo** direkt in der Bedienleiste: − / + ändert in 5-%-Schritten, auch während der Wiedergabe; Tippen auf die Prozentzahl setzt auf 100 % zurück. **Metronom** klickt beim Abspielen jeden Schlag mit (Takt-Eins betont).
 - Die Stücke bleiben auf dem iPhone gespeichert, auch offline. Wenn du die App vom Home-Bildschirm löschst, sind sie weg.
 - Wiederholungszeichen und Sprünge (D.C., Coda) spielt die App nicht aus. Das Stück läuft einmal durch.
 
@@ -83,6 +84,7 @@ Danach in einem Stück mit PDF auf **„PDF in Stimmen umwandeln“** tippen. Di
 
 Gut zu wissen:
 - Am besten klappt es mit sauber gesetzten Noten (Verlags- oder Notensatz-PDF). Bei Scans, Fotos, Handschrift oder sehr dichter Partitur entstehen mehr Fehler. Vergleiche das Ergebnis stichprobenartig.
+- Klavier- oder Orgelsatz unter den Chorstimmen (z. B. „Pianoforte“) erkennt die App an Akkorden und mehrstimmigen Zeilen: Die Zeilen heißen dann „Klavier rechts / links“, zählen nicht als Chorstimmen und sind zunächst stumm (im Mixer einschaltbar).
 - Die App erkennt die Besetzung an der Schlüsselfolge (z. B. SATB, SSATB, SATBB, SSAATTBB, Doppelchor), benennt die Stimmen und setzt Tenöre im Violinschlüssel automatisch eine Oktave tiefer. Liegt eine Stimme trotzdem falsch, im Mixer pro Stimme „8va tiefer / höher“ wählen.
 - Haltebögen: Die Erkennung liefert sie als Bögen. Die App wertet einen Bogen zwischen zwei gleich hohen, direkt aufeinanderfolgenden Tönen als Haltebogen und spielt einen durchgehenden Ton. Stücke, die vor Version 15 umgewandelt wurden, einmal „erneut umwandeln“.
 - Schlüssel ablaufen lassen oder löschen: github.com/settings/personal-access-tokens. In der App dann „Verbindung entfernen“.
