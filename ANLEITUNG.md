@@ -58,7 +58,7 @@ Danach funktioniert die App auch ohne Internet, nur die Schriften sehen dann etw
 - „Einsatzton“ spielt den nächsten Ton deiner Stimme ab der aktuellen Stelle.
 - **Tempo** direkt in der Bedienleiste: − / + ändert in 5-%-Schritten, auch während der Wiedergabe; Tippen auf die Prozentzahl setzt auf 100 % zurück. **Metronom** klickt beim Abspielen jeden Schlag mit (Takt-Eins betont).
 - Die Stücke bleiben auf dem iPhone gespeichert, auch offline. Wenn du die App vom Home-Bildschirm löschst, sind sie weg.
-- Wiederholungen, 1./2. Klammer, D.C., D.S., Coda und Fine spielt die App aus, wenn sie in der Datei stehen (abschaltbar unter „Stimmen ▾“ › „Wiederholungen beachten“). Bei Wiederholungen steht ein Strich hinter der Taktnummer (Takt 5′). Die Erkennung aus der PDF findet Wiederholungszeichen und Klammern, aber keine D.C.- oder Coda-Anweisungen: Dann unter „Eigener Ablauf“ die Takte eintragen, z. B. „1-16, 1-8, 17-32“.
+- Wiederholungen, 1./2. Klammer, D.C., D.S., Coda und Fine spielt die App aus, wenn sie in der Datei stehen (abschaltbar unter „Stimmen ▾“ › „Wiederholungen beachten“). Bei Wiederholungen steht ein Strich hinter der Taktnummer (Takt 5′). Die Umwandlung aus der PDF liest auch Anweisungen wie „To Coda“, „Coda“, „D.C.“ und „Fine“ über den Noten (Texterkennung). Stimmt der Ablauf nicht, unter „Eigener Ablauf“ die Takte eintragen, z. B. „1-16, 1-8, 17-32“.
 
 ## Übungsblätter
 
@@ -91,6 +91,23 @@ Gut zu wissen:
 - Haltebögen: Die Erkennung liefert sie als Bögen. Die App wertet einen Bogen zwischen zwei gleich hohen, direkt aufeinanderfolgenden Tönen als Haltebogen und spielt einen durchgehenden Ton. Stücke, die vor Version 15 umgewandelt wurden, einmal „erneut umwandeln“.
 - Schlüssel ablaufen lassen oder löschen: github.com/settings/personal-access-tokens. In der App dann „Verbindung entfernen“.
 - Läuft etwas schief, steht der Grund im Repository unter „Actions“.
+
+## App mit anderen teilen (mit Anmeldung)
+
+Andere öffnen einfach deine Adresse (z. B. `https://DEINNAME.github.io/blattsingen/`) in Safari und legen sie auf den Home-Bildschirm. Damit du siehst, wer sie nutzt, fragt die App beim ersten Start nach Name, E-Mail, Chor und Stimmlage und schickt das an ein Google-Formular, das dir gehört. Einmalig einrichten (ca. 5 Minuten, am Computer):
+
+1. forms.google.com › leeres Formular „Blattsingen-Anmeldungen“. Sechs Fragen vom Typ **Kurzantwort** anlegen: Name, E-Mail, Chor, Stimmlage, Version, Gerät (keine als Pflicht markieren).
+2. Oben „Antworten“ › „In Tabellen ansehen“: Die Einträge landen in einer Google-Tabelle.
+3. Drei-Punkte-Menü › **„Vorausgefüllten Link abrufen“**. In die Felder genau diese Platzhalter tippen: `NAME`, `EMAIL`, `CHOR`, `STIMME`, `VERSION`, `GERAET`. „Link abrufen“ › „Link kopieren“.
+4. Im GitHub-Repository der App „Add file“ › „Create new file“, Name `anmeldung.json`, Inhalt:
+   `{"link": "HIER DEN KOPIERTEN LINK EINFÜGEN"}` › „Commit changes“.
+
+Ab dann erscheint die Anmeldung beim ersten Start (auch bei dir einmal). Ohne `anmeldung.json` gibt es keine Anmeldung. Die Datei ist nicht in der ZIP, Updates überschreiben sie also nicht.
+
+Gut zu wissen:
+- **Notenumwandlung:** Andere Nutzer brauchen dafür ein eigenes privates GitHub-Repository und einen eigenen Schlüssel (Abschnitt 5). Gib deinen Schlüssel nicht weiter: Damit könnten andere in dein Repository schreiben und deine Noten sehen.
+- **Datenschutz:** Die Anmeldung enthält einen Einwilligungstext. Wenn du die App öffentlich verbreitest, ist ein kurzer Datenschutzhinweis (wer du bist, wofür die Daten sind, Löschung auf Anfrage) sinnvoll.
+- **Spätere Nutzlizenz:** Mit der Anmeldetabelle weißt du, wer die App nutzt. Für eine kostenpflichtige Lizenz kann die App später einen Freischaltcode abfragen. Ehrlich gesagt: Eine Web-App auf GitHub Pages lässt sich technisch kopieren; einen wirklichen Kopierschutz gibt es nur mit Server-Anmeldung oder über den App Store.
 
 ## Wenn das Mikrofon nicht startet
 
