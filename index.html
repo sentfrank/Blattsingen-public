@@ -361,7 +361,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 35 · 19.10.2026</span>
+  <span class="appver">App-Version 36 · 19.10.2026</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -2928,7 +2928,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="35 · 19.10.2026";
+const APP_VERSION="36 · 19.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -3342,12 +3342,25 @@ function accTok(){ try{ return localStorage.getItem("blattsingen_srv_tok")||""; 
 function accSetTok(t){ try{ if(t) localStorage.setItem("blattsingen_srv_tok",t); else localStorage.removeItem("blattsingen_srv_tok"); }catch(e){} }
 function accCacheInfo(i){ ACC.info=i||null; try{ if(i) localStorage.setItem("blattsingen_srv_konto",JSON.stringify(i)); else localStorage.removeItem("blattsingen_srv_konto"); }catch(e){} }
 try{ ACC.info=JSON.parse(localStorage.getItem("blattsingen_srv_konto")||"null"); }catch(e){}
-async function accPing(){ if(ACC.ping||!SRV.url) return ACC.ping; try{ ACC.ping=await srvJSON(SRV.url+"?a=ping"); }catch(e){ ACC.ping=null; } return ACC.ping; }
+async function accPing(){ if(ACC.ping||!SRV.url) return ACC.ping; try{ const j=await srvJSON(SRV.url+(SRV.url.includes("?")?"&":"?")+"a=ping"); if(j&&j.ok) ACC.ping=j; }catch(e){} return ACC.ping; }
 function accNeeded(){ return !!(SRV.url&&ACC.ping&&ACC.ping.zugang==="konto"); }
 async function srvPost(a,data){ const fd=new FormData(); for(const k in data) fd.append(k,data[k]==null?"":data[k]); return srvJSON(SRV.url+"?a="+a,{method:"POST",body:fd}); }
 const MONATE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+function accMailMode(){ return !!(SRV.url&&ACC.ping&&ACC.ping.zugang==="email"); }
 function accUI(){
   const box=$("srvAcct"); if(!box) return;
+  if(accMailMode()){   // Dienst ohne Passwort: Name und E-Mail genügen
+    const reg=srvReg(), form=$("acctForm"), inn=$("acctIn");
+    box.hidden=false;
+    if(reg.email&&ACC.mode!=="mail"){ form.hidden=true; inn.hidden=false; $("acctLine").textContent="Umwandlung für "+(reg.name||reg.email)+" ("+reg.email+")"; $("acctPw").hidden=true; $("acctOut").textContent="Ändern"; $("acctPro").hidden=true; return; }
+    inn.hidden=true; form.hidden=false;
+    $("acctNameF").hidden=false; $("acctCodeF").hidden=true; $("acctNewF").hidden=true; $("acctMail").closest(".field").hidden=false;
+    $("acctPass").closest(".field").hidden=true; $("acctSwitch").hidden=true; $("acctCancel").hidden=!reg.email;
+    $("acctGo").textContent="Speichern"; $("acctIntro").textContent="Für die Umwandlung bitte Name und E-Mail angeben.";
+    if(!$("acctMail").value&&reg.email) $("acctMail").value=reg.email; if(!$("acctName").value&&reg.name) $("acctName").value=reg.name;
+    return;
+  }
+  $("acctPass").closest(".field").hidden=false; $("acctPw").hidden=false; $("acctOut").textContent="Abmelden";
   if(!accNeeded()){ box.hidden=true; return; }
   box.hidden=false;
   const logged=!!(accTok()&&ACC.info), form=$("acctForm"), inn=$("acctIn");
@@ -3385,6 +3398,12 @@ async function accRefresh(){
 }
 async function accSubmit(ev){
   ev.preventDefault(); if(ACC.busy) return;
+  if(accMailMode()){
+    const name=$("acctName").value.trim(), email=$("acctMail").value.trim();
+    if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ $("acctMsg").textContent="Bitte Name und eine gültige E-Mail-Adresse eingeben."; return; }
+    const reg=Object.assign(srvReg(),{name,email}); try{ localStorage.setItem("blattsingen_reg",JSON.stringify(reg)); }catch(e){}
+    ACC.mode="login"; $("acctMsg").textContent=""; accUI(); $("omrStatus").textContent="Gespeichert – du kannst jetzt umwandeln."; return;
+  }
   const msg=$("acctMsg"), m=ACC.mode; msg.textContent=""; ACC.busy=true; $("acctGo").disabled=true;
   try{
     let j;
@@ -3420,7 +3439,8 @@ async function omrStart(){
   btn.disabled=true; $("omrStatus").textContent="";
   if(SRV.url){
     await accPing();
-    if(accNeeded()&&!accTok()){ ACC.mode=ACC.ping.registrieren&&!localStorage.getItem("blattsingen_srv_konto")?"reg":"login"; accUI(); $("omrStatus").textContent="Bitte zuerst anmelden oder ein Konto anlegen."; btn.disabled=false; try{ $("srvAcct").scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){} return; }
+    if(accMailMode()&&!srvReg().email){ ACC.mode="mail"; accUI(); $("omrStatus").textContent="Bitte zuerst Name und E-Mail angeben (Feld oben)."; btn.disabled=false; try{ $("srvAcct").scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){} return; }
+    if(accNeeded()&&!accTok()){ ACC.mode=ACC.ping.registrieren&&!localStorage.getItem("blattsingen_srv_konto")?"reg":"login"; accUI(); $("omrStatus").textContent="Bitte zuerst oben anmelden oder ein Konto anlegen."; btn.disabled=false; try{ $("srvAcct").scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){} return; }
     try{
       // Betreiber (mit GitHub-Verbindung): Umwandlungs-Programm im Repository aktuell halten
       if(ghCfg()){ try{ omrPhase(p.id,"sync",1,2,6,"Umwandlung aktualisieren …"); for(const f of Object.keys(OMR_FILES)) await ghPutFile(f,b64(new TextEncoder().encode(OMR_FILES[f])),"Umwandlung aktualisieren"); }catch(e){} }
@@ -3436,7 +3456,8 @@ async function omrStart(){
       omrPoll(p.id);
     }catch(e){
       omrEnd(p.id,false); $("omrStatus").textContent=(e&&e.message)||"Das Hochladen ist fehlgeschlagen."; btn.disabled=false;
-      if(e&&e.data&&e.data.anmelden){ accSetTok(""); accCacheInfo(null); ACC.mode="login"; accUI(); }
+      if(e&&e.data&&e.data.anmelden){ if(!ACC.ping) ACC.ping={zugang:"konto",registrieren:true}; accSetTok(""); accCacheInfo(null); ACC.mode="login"; accUI(); try{ $("srvAcct").scrollIntoView({behavior:"smooth",block:"center"}); }catch(_){} }
+      if(e&&e.data&&e.data.email_fehlt){ ACC.ping=Object.assign(ACC.ping||{},{zugang:"email"}); ACC.mode="mail"; accUI(); }
       if(e&&e.data&&e.data.kontingent){ accRefresh(); }
     }
     return;
@@ -3592,7 +3613,7 @@ $("projDelete").onclick=()=>{ const d=$("projDelete"); if(d.dataset.arm!=="1"){ 
 $("acctSwitch").onclick=()=>{ ACC.mode=ACC.mode==="reg"?"login":"reg"; $("acctMsg").textContent=""; accUI(); };
 $("acctCancel").onclick=()=>{ ACC.mode="login"; $("acctMsg").textContent=""; accUI(); };
 $("acctPw").onclick=()=>{ ACC.mode="pw"; $("acctMsg").textContent=""; accUI(); $("acctPass").focus(); };
-$("acctOut").onclick=()=>{ accSetTok(""); accCacheInfo(null); ACC.mode="login"; accUI(); $("omrStatus").textContent="Abgemeldet."; };
+$("acctOut").onclick=()=>{ if(accMailMode()){ ACC.mode="mail"; accUI(); return; } accSetTok(""); accCacheInfo(null); ACC.mode="login"; accUI(); $("omrStatus").textContent="Abgemeldet."; };
 
 nlRefresh();
 
@@ -3653,7 +3674,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=35;
+const APP_BUILD=36;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
