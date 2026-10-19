@@ -361,7 +361,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version 34 · 19.10.2026</span>
+  <span class="appver">App-Version 35 · 19.10.2026</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -2928,7 +2928,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="34 · 19.10.2026";
+const APP_VERSION="35 · 19.10.2026";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -3332,7 +3332,10 @@ async function srvLoad(){ if(SRV.checked) return SRV.url; SRV.checked=true;
   try{ const r=await fetch("server.json?t="+Date.now(),{cache:"no-store"}); if(r.ok){ const j=await r.json(); if(j&&j.url) SRV.url=j.url; } }catch(e){}
   try{ $("ghBox").hidden=!!SRV.url; }catch(e){} return SRV.url; }
 function srvReg(){ try{ return JSON.parse(localStorage.getItem("blattsingen_reg")||"null")||{}; }catch(e){ return {}; } }
-async function srvJSON(url,opt){ const r=await fetch(url,opt); let j=null; try{ j=await r.json(); }catch(e){} if(!r.ok){ const e=new Error((j&&j.fehler)||("Der Dienst antwortet nicht ("+r.status+").")); e.data=j||{}; e.status=r.status; throw e; } return j; }
+async function srvJSON(url,opt){ let r;
+  try{ r=await fetch(url,opt); }
+  catch(e){ let host=url; try{ host=new URL(url).host; }catch(_){}
+    const err=new Error("Keine Verbindung zum Umwandlungsdienst ("+host+"). Prüfe: Öffnet "+url.split("?")[0]+"?a=ping im Browser „{\"ok\":true …}“? Stimmt die Adresse in server.json? ("+((e&&e.message)||"Netzwerkfehler")+")"); err.data={}; err.status=0; throw err; } let j=null; try{ j=await r.json(); }catch(e){} if(!r.ok){ const e=new Error((j&&j.fehler)||("Der Dienst antwortet nicht ("+r.status+").")); e.data=j||{}; e.status=r.status; throw e; } return j; }
 /* --- Konto beim Umwandlungsdienst (Passwort, Zählung je Konto) --- */
 const ACC={ping:null,info:null,mode:"login",busy:false};
 function accTok(){ try{ return localStorage.getItem("blattsingen_srv_tok")||""; }catch(e){ return ""; } }
@@ -3650,7 +3653,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=34;
+const APP_BUILD=35;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
