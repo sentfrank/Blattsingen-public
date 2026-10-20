@@ -49,3 +49,7 @@ const LIMIT_PER_MONTH = 20;
 const BLOCKED = [];
 // Größte PDF in MB
 const MAX_MB = 30;
+
+// Nur für die Strato-Fassung ohne SFTP (aktualisieren.php): geheimer Schlüssel, GENAU GLEICH als Secret
+// "STRATO_DEPLOY_KEY" im App-Repository eintragen. Leer lassen, wenn du per SFTP hochlädst.
+const DEPLOY_KEY = '';

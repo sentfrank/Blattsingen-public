@@ -257,8 +257,14 @@ if ($a === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($code !== 204) {
     @unlink("$DATA/$job.pdf"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
     if ($kto) zaehlen($email, -1, $mon);
-    protokoll($email, $job, 'start fehlgeschlagen (GitHub ' . $code . ')', $titel);
-    out(502, ['fehler' => 'Die Umwandlung konnte nicht gestartet werden (GitHub ' . $code . '). Bitte dem Betreiber Bescheid geben.']);
+    $ghm = substr((string)(json_decode((string)$r, true)['message'] ?? ''), 0, 120);
+    $tipp = [401 => 'GH_TOKEN in config.php ungültig oder abgelaufen',
+             403 => 'GH_TOKEN hat keine Berechtigung „Actions: Read and write“ für ' . GH_REPO,
+             404 => 'GH_REPO falsch, Token hat keinen Zugriff auf dieses Repository oder server.yml fehlt im Branch main',
+             422 => 'server.yml im Konverter-Repository ist veraltet (Eingabe „dienst“ fehlt)'][$code] ?? '';
+    protokoll($email, $job, 'start fehlgeschlagen (GitHub ' . $code . ($ghm ? ': ' . $ghm : '') . ')', $titel);
+    out(502, ['fehler' => 'Die Umwandlung konnte nicht gestartet werden (GitHub ' . $code . ($ghm ? ': ' . $ghm : '') . ').'
+      . ($tipp ? ' Hinweis für den Betreiber: ' . $tipp . '.' : ' Bitte dem Betreiber Bescheid geben.')]);
   }
   protokoll($email, $job, 'gestartet', $titel);
   $info = $kto ? konto_info(konten_lesen()[$email]) : null;
