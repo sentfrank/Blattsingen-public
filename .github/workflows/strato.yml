@@ -1,7 +1,8 @@
 name: Auf Strato veröffentlichen
 
-# Lädt diesen Branch bei jedem Commit per SFTP nach www.w-esel.de/blattsingen.
+# Lädt diesen Branch bei jedem Commit nach www.w-esel.de/blattsingen (SFTP, wahlweise FTPS).
 # Dateien, die nur auf dem Server liegen (dienst/config.php, dienst/daten/), werden nie überschrieben oder gelöscht.
+# Secrets: STRATO_HOST, STRATO_USER, STRATO_PASS, STRATO_PATH, optional STRATO_PROTOKOLL (sftp | ftps)
 on:
   push:
     branches: [strato]
@@ -12,25 +13,58 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Zugangsdaten prüfen
+      - name: lftp installieren
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp > /dev/null
+      - name: Hochladen
+        shell: bash
         env:
           HOST: ${{ secrets.STRATO_HOST }}
           USER: ${{ secrets.STRATO_USER }}
-          PASS: ${{ secrets.STRATO_PASS }}
-        run: |
-          [ -n "$HOST" ] && [ -n "$USER" ] && [ -n "$PASS" ] || { echo "::error::Secrets STRATO_HOST, STRATO_USER und STRATO_PASS fehlen (Settings › Secrets and variables › Actions)."; exit 1; }
-      - name: Per SFTP hochladen
-        env:
-          HOST: ${{ secrets.STRATO_HOST }}
-          USER: ${{ secrets.STRATO_USER }}
-          PASS: ${{ secrets.STRATO_PASS }}
+          LFTP_PASSWORD: ${{ secrets.STRATO_PASS }}
           ZIEL: ${{ secrets.STRATO_PATH }}
+          ART: ${{ secrets.STRATO_PROTOKOLL }}
         run: |
-          sudo apt-get update -q && sudo apt-get install -y -q lftp
-          ZIEL="${ZIEL:-/blattsingen}"
-          lftp -u "$USER","$PASS" "sftp://$HOST" -e "set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; \
+          t() { printf '%s' "$1" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+          HOST=$(t "$HOST"); HOST=${HOST#*://}; HOST=${HOST%%/*}
+          USER=$(t "$USER"); ZIEL=$(t "$ZIEL"); ART=$(t "$ART"); ART=${ART,,}; ART=${ART:-sftp}
+          LFTP_PASSWORD=$(t "$LFTP_PASSWORD"); export LFTP_PASSWORD
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$LFTP_PASSWORD" ]; then
+            echo "::error::Secrets STRATO_HOST, STRATO_USER oder STRATO_PASS fehlen (Settings › Secrets and variables › Actions)."; exit 1
+          fi
+          ZIEL=${ZIEL:-/blattsingen}
+          if [ "$ART" = ftps ]; then
+            [ "$HOST" = ssh.strato.de ] && HOST=ftp.strato.de
+            URL="ftp://$HOST"; OPT="set ftp:ssl-force yes; set ftp:ssl-protect-data yes; set ftp:passive-mode yes;"
+          else
+            URL="sftp://$HOST"; OPT="set sftp:auto-confirm yes;"
+          fi
+          OPT="$OPT set net:max-retries 1; set net:timeout 40; set net:reconnect-interval-base 10;"
+          echo "Server: $HOST · Protokoll: $ART · Benutzer: $USER · Ziel: $ZIEL"
+
+          ok=
+          for v in 1 2 3; do
+            echo "::group::Anmeldung testen (Versuch $v)"
+            if lftp -d --env-password -u "$USER" "$URL" -e "$OPT cls -1 / ; bye" > test.log 2>&1; then ok=1; fi
+            tail -n 25 test.log; echo "::endgroup::"
+            [ -n "$ok" ] && break
+            grep -qi "login incorrect\|permission denied\|authentication" test.log && break
+            sleep 40
+          done
+          if [ -z "$ok" ]; then
+            if grep -qi "login incorrect\|permission denied\|authentication" test.log; then
+              echo "::error::Anmeldung abgelehnt: STRATO_USER oder STRATO_PASS stimmt nicht (SFTP-Zugang, nicht Kundenlogin)."
+            elif [ "$ART" = sftp ]; then
+              echo "::error::Strato hat die SFTP-Verbindung geschlossen. Meist: Zugang noch nicht aktiv (bis 30 Min. warten) oder nach Fehlversuchen kurz gesperrt. Alternative: Secret STRATO_PROTOKOLL = ftps anlegen."
+            else
+              echo "::error::FTPS-Verbindung fehlgeschlagen – Details oben unter „Anmeldung testen“."
+            fi
+            exit 1
+          fi
+
+          lftp --env-password -u "$USER" "$URL" -e "$OPT set net:max-retries 3; \
             mkdir -p -f $ZIEL; \
             mirror -R --verbose --no-perms \
               --exclude-glob .git* --exclude-glob .github/ --exclude-glob BRANCH.md \
-              --exclude-glob dienst/config.php --exclude-glob dienst/daten/ \
+              --exclude-glob dienst/config.php --exclude-glob dienst/daten/ --exclude-glob test.log \
               ./ $ZIEL; bye"
+          echo "Fertig: https://www.w-esel.de/blattsingen/"
