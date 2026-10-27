@@ -50,7 +50,8 @@ $job = $_GET['job'] ?? '';
 
 if ($a === 'ping') out(200, ['ok' => true, 'dienst' => 'blattsingen', 'zugang' => ZUGANG, 'registrieren' => SELBST_REGISTRIEREN,
   'code' => EINLADUNGSCODE !== '', 'limit' => ZUGANG === 'konto' ? (TARIFE[TARIF_NEU]['limit'] ?? 0) : LIMIT_PER_MONTH,
-  'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT]);
+  'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT,
+  'sync' => ZUGANG === 'konto' && (!defined('SYNC_AN') || SYNC_AN), 'sync_mb' => defined('SYNC_MB') ? (int)SYNC_MB : 300]);
 
 function post($n) { return (string)($_POST[$n] ?? ''); }
 function nur_post() { if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') out(405, ['fehler' => 'Nur POST']); }
@@ -60,6 +61,7 @@ function konto_aus_token() {
   if (!empty($k['gesperrt'])) out(403, ['fehler' => 'Dein Konto ist gesperrt. Bitte wende dich an den Betreiber.']);
   return $k;
 }
+require __DIR__ . '/sync.php';   // Stücke und Projekte geräteübergreifend (sync_*)
 
 if ($a === 'registrieren') {
   nur_post();

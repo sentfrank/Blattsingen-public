@@ -40,6 +40,13 @@ const PRO_TEXT = 'Mehr Umwandlungen mit Blattsingen Pro';
 // für den Aufruf api.php?a=tarif. Leer = ausgeschaltet.
 const ZAHLUNG_KEY = '';
 
+// ----- Geräte-Abgleich -----
+// Stücke, PDFs und Projekte werden je Konto auf dem Server gesichert und erscheinen auf jedem Gerät,
+// auf dem man sich anmeldet (nur mit ZUGANG = 'konto'). false = ausgeschaltet.
+const SYNC_AN = true;
+// Speicherplatz je Konto in MB
+const SYNC_MB = 300;
+
 // ----- Sonstiges -----
 // Von welcher Adresse die App den Dienst benutzen darf ('*' = von überall)
 const ALLOW_ORIGIN = '*';
