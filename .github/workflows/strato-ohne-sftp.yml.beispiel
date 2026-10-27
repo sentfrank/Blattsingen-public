@@ -1,0 +1,37 @@
+name: Auf Strato veröffentlichen
+
+# Bei jedem Commit in diesem Branch ruft GitHub www.w-esel.de/blattsingen/aktualisieren.php auf.
+# Der Server holt sich dann selbst den neuen Stand von GitHub und entpackt ihn (kein FTP/SFTP nötig).
+# Dateien, die nur auf dem Server liegen (dienst/config.php, dienst/daten/), werden nie überschrieben.
+# Secrets: STRATO_DEPLOY_KEY (= DEPLOY_KEY in dienst/config.php), optional STRATO_URL
+on:
+  push:
+    branches: [strato]
+  workflow_dispatch:
+
+jobs:
+  hochladen:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Server aktualisieren
+        shell: bash
+        env:
+          KEY: ${{ secrets.STRATO_DEPLOY_KEY }}
+          URL: ${{ secrets.STRATO_URL }}
+        run: |
+          KEY=$(printf '%s' "$KEY" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          URL=${URL:-https://www.w-esel.de/blattsingen/aktualisieren.php}
+          [ -n "$KEY" ] || { echo "::error::Secret STRATO_DEPLOY_KEY fehlt (Settings › Secrets and variables › Actions)."; exit 1; }
+          for v in 1 2 3; do
+            code=$(curl -sS -o antwort.txt -w '%{http_code}' --max-time 280 -X POST \
+                     -H "X-Key: $KEY" --data-urlencode "ref=$GITHUB_SHA" "$URL") || code=000
+            cat antwort.txt 2>/dev/null; echo
+            [ "$code" = 200 ] && { echo "Fertig: https://www.w-esel.de/blattsingen/"; exit 0; }
+            case "$code" in
+              403) echo "::error::Schlüssel falsch: STRATO_DEPLOY_KEY muss genau gleich DEPLOY_KEY in dienst/config.php sein."; exit 1;;
+              404) echo "::error::$URL nicht gefunden: aktualisieren.php einmal per Webspace-Explorer nach /w-esel/blattsingen/ hochladen."; exit 1;;
+              500) echo "::error::Fehler auf dem Server – siehe Meldung oben."; exit 1;;
+            esac
+            echo "Versuch $v fehlgeschlagen (HTTP $code), neuer Versuch in 20 s …"; sleep 20
+          done
+          echo "::error::Server nicht erreichbar ($URL)."; exit 1

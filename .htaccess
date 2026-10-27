@@ -1,0 +1,13 @@
+# Blattsingen-App auf Strato
+AddType application/manifest+json .webmanifest
+AddType application/vnd.recordare.musicxml+xml .musicxml
+# Programmdateien immer frisch laden, damit Updates sofort ankommen
+<IfModule mod_headers.c>
+<FilesMatch "^(index\.html|sw\.js|version\.json|server\.json|anmeldung\.json|manifest\.webmanifest)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
+</IfModule>
+# Hinweisdateien nicht ausliefern
+<FilesMatch "^(BRANCH\.md|ANLEITUNG.*\.md)$">
+  Require all denied
+</FilesMatch>
