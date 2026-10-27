@@ -172,7 +172,9 @@ if (strpos($a, 'admin_') === 0) {
       'konten' => admin_konten(), 'statistik' => admin_statistik(), 'cloudflare' => post('cf') ? ['strato' => true] : null]);
   }
   if ($a === 'admin_konverter') {   // Konverter-Repository auf den Stand der App bringen (tools/*.py, Workflows)
+    // Dateien kommen base64-kodiert (Python-Quelltext im Klartext blockt die Firewall mancher Hoster mit 403)
     $files = json_decode(post('dateien'), true); $write = post('schreiben') === '1';
+    if (post('dateien_b64') !== '') { $files = []; foreach ((json_decode(post('dateien_b64'), true) ?: []) as $k => $v) $files[$k] = base64_decode((string)$v); }
     if (!is_array($files) || !$files) out(400, ['fehler' => 'Keine Dateien übergeben.']);
     $api = (defined('GH_API') ? GH_API : 'https://api.github.com') . '/repos/' . GH_REPO . '/contents/';
     $gh = function ($method, $url, $body = null) {
