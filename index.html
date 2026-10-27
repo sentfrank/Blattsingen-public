@@ -390,7 +390,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.1.1 · 27.10.2026 · Strato (Build 46)</span>
+  <span class="appver">App-Version S1.2.0 · 27.10.2026 · Strato (Build 47)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -431,7 +431,8 @@ body.regopen{overflow:hidden}
     <div class="wu-bar">
       <div class="field"><label class="label" for="wuVoice">Stimmlage</label>
         <select id="wuVoice"><option value="S">Sopran</option><option value="A">Alt</option><option value="T">Tenor</option><option value="B">Bass</option></select></div>
-      <div class="btnrow"><button class="primary" type="button" id="wuAll">▶ Ganzes Einsingen (5 Min.)</button><button type="button" id="wuStop" disabled>Stopp</button></div>
+      <div class="btnrow"><button class="primary" type="button" id="wuAll">▶ Ganzes Einsingen (5 Min.)</button><button type="button" id="wuCar">🚗 Im Auto (10 Min., mit Ansagen)</button><button type="button" id="wuStop" disabled>Stopp</button></div>
+      <p class="hint" id="wuCarHint">Im Auto: Die App sagt jede Übung an und spielt sie dann ab – du musst nicht auf den Bildschirm schauen. Handy vorher mit dem Autoradio verbinden (Bluetooth/CarPlay), Lautstärke einstellen, dann starten. Der Bildschirm bleibt dabei an.</p>
       <div class="wu-now" aria-live="polite"><span class="wu-step" id="wuStep">Bereit</span><span class="wu-key" id="wuKey"></span><span class="wu-time" id="wuTime"></span></div>
       <div class="wu-prog" aria-hidden="true"><div id="wuProg"></div></div>
       <div class="wu-staff" id="wuStaffBox" hidden><svg id="wuStaff" role="img" aria-label="Noten der aktuellen Übung"></svg></div>
@@ -477,6 +478,7 @@ body.regopen{overflow:hidden}
       <button role="tab" id="tab-nn" aria-selected="false" aria-controls="p-nn">Notennamen</button>
       <button role="tab" id="tab-iv" aria-selected="false" aria-controls="p-iv">Intervall-Quiz</button>
       <button role="tab" id="tab-ivs" aria-selected="false" aria-controls="p-ivs">Intervalle singen</button>
+      <button role="tab" id="tab-chs" aria-selected="false" aria-controls="p-chs">Akkorde singen</button>
       <button role="tab" id="tab-fork" aria-selected="false" aria-controls="p-fork">Stimmgabel</button>
       <button role="tab" id="tab-kb" aria-selected="false" aria-controls="p-kb">Tastatur</button>
     </div>
@@ -662,6 +664,35 @@ body.regopen{overflow:hidden}
       <p class="hint">So läuft es: Ausgangston hören und nachsingen, dann jeden Sprung bewusst als Intervall singen – nicht als Tonname, sondern „eine Quarte hoch“. Beim Live-Mitsingen erklingt der Ausgangston, danach singst du ihn und alle weiteren Töne, jeden etwa eine Sekunde. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp, <b class="c-bad">rot</b> daneben.</p>
     </div>
 
+
+    <div class="panel" id="p-chs" role="tabpanel" hidden>
+      <div class="controls">
+        <div class="field"><label class="label" for="chsSet">Akkorde</label>
+          <select id="chsSet">
+            <option value="dur">nur Dur</option>
+            <option value="moll">nur Moll</option>
+            <option value="dm" selected>Dur und Moll</option>
+            <option value="alle">+ vermindert und übermäßig</option>
+          </select></div>
+        <div class="field"><label class="label" for="chsInv">Lage</label>
+          <select id="chsInv"><option value="0">Grundstellung</option><option value="1" selected>mit Umkehrungen</option></select></div>
+        <div class="field"><label class="label" for="chsRole">Du singst</label>
+          <select id="chsRole"><option value="x" selected>zufällig</option><option value="0">den Grundton</option><option value="1">die Terz</option><option value="2">die Quinte</option><option value="top">den oberen Ton</option><option value="mid">den mittleren Ton</option><option value="low">den unteren Ton</option></select></div>
+        <label class="donebox"><input type="checkbox" id="chsShow"> Zielton im Notenbild zeigen</label>
+        <label class="donebox"><input type="checkbox" id="chsShowIv" checked> Abstände anzeigen</label>
+      </div>
+      <div class="btnrow">
+        <button id="chsPlay2" type="button">1 · Zwei Töne hören</button>
+        <button class="primary" id="chsPlay3" type="button">2 · Auflösen (alle drei)</button>
+        <button id="chsNew" type="button">Neue Aufgabe</button>
+        <button id="chsStop" type="button">Stopp</button>
+      </div>
+      <div class="btnrow readbtns"><button class="primary" type="button" id="chsLive">🎤 Dazusingen und prüfen</button><button type="button" id="chsLiveStop" disabled>Beenden</button><button type="button" id="chsLiveNext">Neue Aufgabe und los</button></div>
+      <div class="staffbox"><svg id="chsSvg" role="img" aria-label="Akkord auf Notenlinien"></svg></div>
+      <div class="stats" id="chsStats" hidden></div>
+      <div class="now" aria-live="polite"><span class="big" id="nowChs">–</span><span class="small" id="nowChsSub"></span></div>
+      <p class="hint">So läuft es: Zwei Töne eines Dreiklangs erklingen und bleiben liegen – du singst den fehlenden dritten dazu. Das „?“ im Notenbild zeigt, wo er steht. Beim Prüfen hört das Mikrofon etwa sechs Sekunden zu; mit Kopfhörern klappt die Erkennung am besten, weil die gespielten Töne dann nicht mitgehört werden. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp, <b class="c-bad">rot</b> daneben.</p>
+    </div>
     <div class="panel" id="p-fork" role="tabpanel" hidden>
       <div class="controls">
         <div class="field"><label class="label" for="forkRef">Kammerton a′</label>
@@ -1747,8 +1778,8 @@ function showTab(name){
   TABS.forEach(n=>{$("tab-"+n).setAttribute("aria-selected",n===name?"true":"false"); $("p-"+n).hidden=n!==name});
   redrawStaffs();
 }
-const TABS=["scale","read","rh","nn","iv","ivs","fork","kb"];
-function redrawStaffs(){ try{ renderScale(-1); renderRead(-1); if(RH.bars.length) rhDraw(); }catch(e){} try{ ivsDraw(); kbLayout(); kbDraw(); forkDrawStaff(); }catch(e){} }
+const TABS=["scale","read","rh","nn","iv","ivs","chs","fork","kb"];
+function redrawStaffs(){ try{ renderScale(-1); renderRead(-1); if(RH.bars.length) rhDraw(); }catch(e){} try{ ivsDraw(); kbLayout(); kbDraw(); forkDrawStaff(); }catch(e){} try{ chsDraw(); }catch(e){} }
 let _rsz=null, _rw=window.innerWidth; window.addEventListener("resize",()=>{ clearTimeout(_rsz); _rsz=setTimeout(()=>{ if(Math.abs(window.innerWidth-_rw)>20){ _rw=window.innerWidth; redrawStaffs(); } },200); });
 TABS.forEach(n=>$("tab-"+n).onclick=()=>showTab(n));
 
@@ -1910,6 +1941,84 @@ $("wuStop").onclick=()=>wuStop(false);
 $("wuVoice").onchange=()=>{ store.set("wuVoice",$("wuVoice").value); if(wuOn) wuStop(false); };
 $("wuVoice").value=store.get("wuVoice",st.voice||"S");
 wuRender();
+
+/* ---------- Einsingen im Auto ---------- */
+const WU_CAR=[
+ {id:"atem",dur:60,say:"Atmen. Aufrecht sitzen, Schultern locker, Hände bleiben am Lenkrad. Bei den vier hohen Klicks durch die Nase einatmen, bei den tiefen Klicks langsam auf einem zischenden S ausatmen."},
+ {id:"brr",dur:70,say:"Lippenflattern, wie ein Pferd prustet. Ich spiele fünf Töne hinauf und wieder hinunter, du flatterst mit. Nach jeder Runde geht es einen Halbton höher."},
+ {id:"summen",dur:55,say:"Summen auf M. Lippen locker, die Zähne berühren sich nicht. Vorne an den Lippen soll es kribbeln."},
+ {id:"sirene",dur:60,say:"Sirene auf dem Klang am Ende des Wortes singen. Mund zu, wie ein Gähnen. Den Dreiklang bis zur Oktave hinauf und wieder hinunter, ganz weich verbunden."},
+ {id:"vokale",dur:70,say:"Vokale. Mi, me, ma, mo, mu, ein Vokal pro Ton, abwärts. Alle Vokale im gleichen Raum bilden, der Kiefer bleibt ruhig."},
+ {id:"stacc",dur:55,say:"Staccato auf ha. Kurze, federnde Töne aus der Bauchmitte. Zwischen den Tönen lässt der Bauch wieder los."},
+ {id:"legato",dur:70,say:"Legato auf nu. Erst der Oktavsprung nach oben, dann gebunden die Tonleiter hinunter. Den hohen Ton von oben denken, nicht hochschieben."},
+ {id:"klang",dur:30,say:"Ton halten auf o. Zum Akkord den Grundton singen, leise anschwellen und wieder abschwellen. Ruhig und gerade."},
+ {id:"ausklang",dur:40,say:"Zum Schluss summend abwärts, ganz leicht und locker."}
+];
+const WU_CAR_EXTRA={
+ sirene:{id:"sirene",name:"Sirene",syl:"ng",beat:.5,pat:[0,4,7,12,7,4,0],deg:"1-3-5-8-5-3-1",dur:60,how:""},
+ ausklang:{id:"ausklang",name:"Summend ausklingen",syl:"mmm",beat:.6,pat:[7,4,2,0],deg:"5-3-2-1",dur:40,how:""}
+};
+const CAR={on:false,res:null,wake:null,voice:null};
+function carEx(s){ const base=WU.find(x=>x.id===s.id)||WU_CAR_EXTRA[s.id]; return Object.assign({},base,{dur:s.dur}); }
+function carVoice(){
+  try{ const vs=speechSynthesis.getVoices(); return vs.find(v=>/^de(-|_|$)/i.test(v.lang)&&/anna|petra|helena|katja|google|siri/i.test(v.name))||vs.find(v=>/^de/i.test(v.lang))||null; }catch(e){ return null; }
+}
+function carSay(text){
+  return new Promise(res=>{
+    $("wuKey").textContent=text;
+    if(!("speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined"){ setTimeout(res,Math.max(2500,text.length*55)); return; }
+    // in Sätze teilen (lange Ansagen brechen in manchen Browsern ab)
+    const parts=text.match(/[^.!?]+[.!?]?/g)||[text]; let k=0, done=false;
+    const fin=()=>{ if(done) return; done=true; clearTimeout(guard); res(); };
+    const guard=setTimeout(fin,text.length*110+4000);
+    const next=()=>{ if(!CAR.on||k>=parts.length){ fin(); return; }
+      const u=new SpeechSynthesisUtterance(parts[k++].trim()); u.lang="de-DE"; const v=CAR.voice||carVoice(); if(v) u.voice=v; u.rate=1; u.volume=1;
+      u.onend=next; u.onerror=next; try{ speechSynthesis.speak(u); }catch(e){ fin(); } };
+    try{ speechSynthesis.cancel(); }catch(e){}
+    next();
+  });
+}
+function carRun(ev){ return new Promise(res=>{ CAR.res=res; run(ev,e=>{ if(e.wu) wuDraw(e.wu); else if(e.lbl) wuDraw(null); if(e.lbl&&e.lbl.key) $("wuKey").textContent=e.lbl.key; },()=>{ CAR.res=null; res(); }); }); }
+const carWait=ms=>new Promise(r=>setTimeout(r,ms));
+async function wuCarStart(){
+  if(CAR.on) return;
+  wuStop(true); CAR.on=true; wuOn=true; CAR.voice=carVoice();
+  $("wuStop").disabled=false; $("wuAll").disabled=true; $("wuCar").disabled=true;
+  try{ if(navigator.wakeLock) CAR.wake=await navigator.wakeLock.request("screen"); }catch(e){}
+  ac();   // Ton freischalten (nach dem Antippen)
+  const voice=$("wuVoice").value, steps=WU_CAR.map(carEx), names={S:"Sopran",A:"Alt",T:"Tenor",B:"Bass"};
+  const est=steps.reduce((a,ex,i)=>a+wuEvents(ex,voice,0,i).end,0)+steps.length*9+15, startAt=performance.now();
+  clearInterval(wuTimer);
+  wuTimer=setInterval(()=>{ const el=(performance.now()-startAt)/1000; $("wuTime").textContent="noch etwa "+wuFmt(Math.max(0,est-el)); $("wuProg").style.width=Math.min(100,el/est*100)+"%"; },500);
+  document.querySelectorAll(".wu-item").forEach(e=>e.classList.remove("on","done"));
+  $("wuStep").textContent="Einsingen im Auto";
+  await carSay("Einsingen für unterwegs, für "+names[voice]+". Etwa zehn Minuten, "+steps.length+" Übungen. Ich sage jede Übung an, dann spiele ich das Muster vor und du singst mit. Bleib entspannt und achte auf den Verkehr.");
+  for(let i=0;i<steps.length&&CAR.on;i++){
+    const ex=steps[i]; $("wuStep").textContent=(i+1)+" / "+steps.length+" · "+ex.name;
+    const k=WU.findIndex(x=>x.id===ex.id); document.querySelectorAll(".wu-item").forEach((e,j)=>e.classList.toggle("on",j===k));
+    await carSay((i===0?"Erste Übung: ":i===steps.length-1?"Letzte Übung: ":"Nächste Übung: ")+WU_CAR[i].say);
+    if(!CAR.on) break;
+    await carWait(700);
+    if(!CAR.on) break;
+    await carRun(wuEvents(ex,voice,0,i).ev);
+    if(k>=0&&$("wu"+k)) $("wu"+k).classList.add("done");
+    await carWait(600);
+  }
+  if(CAR.on){ $("wuStep").textContent="Fertig eingesungen"; $("wuProg").style.width="100%"; $("wuTime").textContent=""; wuDraw(null); await carSay("Fertig eingesungen. Viel Freude in der Probe!"); }
+  carEnd();
+}
+function carEnd(){
+  CAR.on=false; wuOn=false; clearInterval(wuTimer);
+  try{ speechSynthesis.cancel(); }catch(e){}
+  try{ CAR.wake&&CAR.wake.release(); }catch(e){} CAR.wake=null;
+  $("wuStop").disabled=true; $("wuAll").disabled=false; $("wuCar").disabled=false;
+  document.querySelectorAll(".wu-item").forEach(e=>e.classList.remove("on"));
+}
+function carStop(){ if(!CAR.on) return; CAR.on=false; $("wuCar").disabled=false; $("wuAll").disabled=false; try{ speechSynthesis.cancel(); }catch(e){} stopAll(); if(CAR.res){ const r=CAR.res; CAR.res=null; r(); } wuDraw(null); $("wuStep").textContent="Angehalten"; $("wuKey").textContent=""; $("wuTime").textContent=""; }
+$("wuCar").onclick=wuCarStart;
+$("wuStop").addEventListener("click",carStop);
+document.addEventListener("visibilitychange",()=>{ if(CAR.on&&document.visibilityState==="visible"&&!CAR.wake){ try{ navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>CAR.wake=w).catch(()=>{}); }catch(e){} } });
+try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{ CAR.voice=carVoice(); }; }catch(e){}
 
 
 /* ---------- Quintenzirkel ---------- */
@@ -2730,6 +2839,143 @@ $("kbClear").onclick=()=>{ KB.seq=[]; kbDraw(); };
 $("tab-kb").addEventListener("click",()=>setTimeout(()=>{ kbLayout(); if(!KB.scrolled){ KB.scrolled=true; kbScrollToMidi(VOICES[st.voice].lo+7); } kbDraw(); },30));
 $("tab-ivs").addEventListener("click",()=>setTimeout(()=>ivsDraw(),30));
 $("tab-fork").addEventListener("click",()=>setTimeout(()=>forkDrawStaff(),30));
+/* ---------- Akkorde singen: zwei Töne klingen, den dritten singt man ---------- */
+const CHORDS={dur:{n:"Dur",t:[4,7],d:[2,4]},moll:{n:"Moll",t:[3,7],d:[2,4]},verm:{n:"vermindert",t:[3,6],d:[2,4]},ueb:{n:"übermäßig",t:[4,8],d:[2,4]}};
+const CHS_ROLE=["Grundton","Terz","Quinte"];
+const CHS={notes:[],roles:[],target:-1,kind:"dur",root:null,solved:false,res:null,mic:null};
+function chsKinds(){ const v=$("chsSet").value; return v==="dur"?["dur"]:v==="moll"?["moll"]:v==="alle"?["dur","moll","dur","moll","verm","ueb"]:["dur","moll"]; }
+function chsNew(){
+  const lo=VOICES[st.voice].lo, hi=lo+19, kinds=chsKinds(), inv=$("chsInv").value==="1", want=$("chsRole").value;
+  for(let tries=0;tries<400;tries++){
+    const kind=kinds[Math.floor(Math.random()*kinds.length)], C=CHORDS[kind];
+    const rm=lo-7+Math.floor(Math.random()*(hi-lo+2));
+    if(Math.random()<.7&&!NAT.includes(((rm%12)+12)%12)) continue;
+    const root=spellMidi(rm,Math.random()<.5?"sharp":"flat"); if(!root) continue;
+    let tones=[root, ivsNote(rm+C.t[0],root.d+C.d[0]), ivsNote(rm+C.t[1],root.d+C.d[1])], roles=[0,1,2];
+    if(tones.some(n=>!n)) continue;
+    const k=inv?Math.floor(Math.random()*3):0;
+    for(let i=0;i<k;i++){ const n=tones.shift(), r=roles.shift(); tones.push(ivsNote(n.midi+12,n.d+7)); roles.push(r); }
+    if(tones.some(n=>!n)) continue;
+    let ti;
+    if(want==="x") ti=Math.floor(Math.random()*3);
+    else if(want==="top") ti=2; else if(want==="mid") ti=1; else if(want==="low") ti=0;
+    else ti=roles.indexOf(+want);
+    const t=tones[ti]; if(t.midi<lo-1||t.midi>hi+1) continue;
+    if(tones.some(n=>n.midi<36||n.midi>88)) continue;
+    CHS.notes=tones; CHS.roles=roles; CHS.target=ti; CHS.kind=kind; CHS.root=root; CHS.solved=false; CHS.res=null;
+    $("chsStats").hidden=true; chsDraw(); setNow("nowChs","Welcher Ton fehlt?",CHORDS[kind].n+"-Akkord – du singst "+(want==="x"?"den fehlenden Ton":"die "+(["low","mid","top"].includes(want)?({low:"unteren",mid:"mittleren",top:"oberen"})[want]+" Stimme":CHS_ROLE[+want])));
+    return;
+  }
+}
+function chsGap(){ const Wa=staffAvail($("chsSvg")); return Math.max(64,Math.min(110,(Wa-120)/3)); }
+function chsDraw(active){
+  if(!CHS.notes.length) return;
+  const svg=$("chsSvg"), show=CHS.solved||$("chsShow").checked;
+  drawStaff(svg,CHS.notes,active==null?-1:active,CHS.solved,{fifths:0,gap:chsGap()});
+  const L=svg._lay; if(!L) return;
+  // Zielton verdecken (oder einfärben, wenn ausgewertet)
+  const p=L.pos(CHS.target), bg=getComputedStyle(svg.parentElement).backgroundColor||"#fff";
+  const ty=p.yb-(CHS.notes[CHS.target].d-VOICES[st.voice].ref)*5;
+  if(!show){
+    svg.appendChild(el("rect",{x:p.x-17,y:p.yb-72,width:34,height:112,fill:bg}));
+    for(let i=0;i<5;i++) svg.appendChild(el("line",{x1:p.x-18,x2:p.x+18,y1:p.yb-i*10,y2:p.yb-i*10,stroke:"var(--muted)","stroke-width":1}));
+    svg.appendChild(el("rect",{x:p.x-14,y:p.yb-58,width:28,height:76,rx:8,fill:bg,"fill-opacity":.6,stroke:"var(--accent)","stroke-width":2,"stroke-dasharray":"4 3"}));
+    svg.appendChild(el("text",{x:p.x,y:p.yb-10,"text-anchor":"middle","font-family":"var(--display)","font-size":26,"font-weight":700,fill:"var(--accent)"},"?"));
+  } else if(CHS.res){
+    svg.appendChild(el("circle",{cx:p.x,cy:ty,r:13,fill:"none",stroke:CHS.res.col,"stroke-width":3}));
+  } else {
+    svg.appendChild(el("circle",{cx:p.x,cy:ty,r:12,fill:"none",stroke:"var(--accent)","stroke-width":2,"stroke-dasharray":"3 3"}));
+  }
+  if($("chsShowIv").checked){
+    for(let i=0;i<2;i++){ const a=L.pos(i), b=L.pos(i+1); if(a.line!==b.line) continue;
+      const hid=!show&&(i===CHS.target||i+1===CHS.target), s=CHS.notes[i+1].midi-CHS.notes[i].midi;
+      svg.appendChild(el("text",{x:(a.x+b.x)/2,y:a.top+(i%2?40:26),"text-anchor":"middle","font-family":"var(--body)","font-size":(11*(L.lab||1)).toFixed(1),"font-weight":600,fill:"var(--accent)"},hid?"…":IVSHORT[s]||"")); }
+  }
+}
+function chsGiven(){ return CHS.notes.filter((_,i)=>i!==CHS.target).map(n=>n.midi); }
+function chsPlay(all){
+  if(!CHS.notes.length) chsNew();
+  const g=chsGiven(), b=beat();
+  const ev=[{t:0,i:-1,midi:g,d:all?2.2:4.5,vol:.15}];
+  if(all){ ev.push({t:2.4,i:CHS.target,midi:CHS.notes[CHS.target].midi,d:2,vol:.2}); ev.push({t:4.6,i:-1,midi:CHS.notes.map(n=>n.midi),d:2.6,vol:.12}); CHS.solved=true; }
+  run(ev,e=>{ chsDraw(e.i>=0?e.i:null); if(e.i>=0) setNow("nowChs",CHS.notes[CHS.target].name+" – die "+CHS_ROLE[CHS.roles[CHS.target]],CHS.root.name+"-"+CHORDS[CHS.kind].n); else if(!all) setNow("nowChs","Sing den fehlenden Ton dazu","Die zwei Töne klingen ein paar Sekunden"); },()=>{ chsDraw(); if(all) setNow("nowChs",CHS.root.name+"-"+CHORDS[CHS.kind].n,"Gesucht war "+CHS.notes[CHS.target].name+" ("+CHS_ROLE[CHS.roles[CHS.target]]+")"); });
+}
+/* Prüfen: Mikrofon hört zu, während die zwei Töne klingen; Töne in der Nähe der gespielten werden ignoriert */
+async function chsLive(){
+  if(!CHS.notes.length) chsNew();
+  if(CHS.mic) chsMicStop();
+  try{ if(live.stream) stopLive(false); }catch(e){} try{ if(FORK.stream) forkStop(); }catch(e){}
+  if(!window.isSecureContext||!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ setNow("nowChs","Mikrofon nicht verfügbar","nur über https in Safari/Chrome"); return; }
+  $("chsLive").disabled=true; setNow("nowChs","Frage das Mikrofon an …","");
+  micMode=true; try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record"; }catch(e){}
+  try{ if(silentEl) silentEl.pause(); }catch(e){}
+  const sens=+(store.get("micSens","2")); let stream=null, err=null;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:sens>=3}}); }catch(e){ err=e; }
+  if(!stream&&err&&(err.name==="OverconstrainedError"||err.name==="TypeError")){ err=null; try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ err=e; } }
+  if(!stream){ micMode=false; $("chsLive").disabled=false; setNow("nowChs","Kein Mikrofon",micErrorText(err)); return; }
+  try{ stopAll(); }catch(e){} try{ if(ctx&&ctx.close) ctx.close(); }catch(e){} ctx=null;
+  const c=ac(); if(c.state!=="running"){ try{ await Promise.race([c.resume(),new Promise(r=>setTimeout(r,1500))]); }catch(e){} }
+  const src=c.createMediaStreamSource(stream), an=c.createAnalyser(); an.fftSize=4096; src.connect(an);
+  try{ const z=c.createGain(); z.gain.value=0; an.connect(z); z.connect(c.destination); }catch(e){}
+  CHS.mic={stream,src,an,buf:new Float32Array(an.fftSize),nf:null,win:[],frames:[],timer:null,actx:c,sens};
+  $("chsLiveStop").disabled=false; CHS.solved=false; CHS.res=null; chsDraw();
+  const g=chsGiven(), t=CHS.notes[CHS.target].midi;
+  setNow("nowChs","Jetzt dazusingen …","Die zwei Töne klingen etwa 6 Sekunden");
+  const t0=c.currentTime+.15; g.forEach(m=>tone(m,t0,6,.11));
+  const start=performance.now();
+  CHS.mic.timer=setInterval(()=>{
+    const M=CHS.mic; if(!M) return;
+    M.an.getFloatTimeDomainData(M.buf);
+    const SR=M.actx.sampleRate, f=Math.max(1,Math.round(SR/11025)), x=decimate(M.buf,f), sr=SR/f;
+    let rms=0; for(let j=0;j<M.buf.length;j+=4) rms+=M.buf[j]*M.buf[j]; rms=Math.sqrt(rms/(M.buf.length/4));
+    M.nf=M.nf==null?rms:(rms<M.nf?M.nf*0.8+rms*0.2:M.nf*0.999+rms*0.001);
+    const S=M.sens||2, gmin=[0,0.0015,0.0007,0.0003][S], gfac=[0,2.5,2.0,1.6][S], gmax=[0,0.012,0.008,0.005][S];
+    const m=yinFrame(x,sr,Math.max(gmin,Math.min(gmax,M.nf*gfac)));
+    M.win.push(m); if(M.win.length>5) M.win.shift();
+    const v=M.win.filter(q=>q!=null), sm=v.length>=3?median(v):null;
+    if(sm!=null&&(performance.now()-start)>500) M.frames.push(sm);
+    if(sm!=null){ const d=Math.round((sm-t)*100); if(Math.abs(d)<150) $("nowChsSub").textContent=(d>0?"+":"")+d+" Cent zum Zielton"; }
+    if(performance.now()-start>6600) chsEval();
+  },40);
+}
+function chsEval(){
+  const M=CHS.mic; if(!M) return;
+  const t=CHS.notes[CHS.target].midi, g=chsGiven();
+  const fr=M.frames.filter(m=>!g.some(p=>Math.abs(m-p)<0.5||Math.abs(m-p-12)<0.5||Math.abs(m-p+12)<0.5));   // gespielte Töne ignorieren
+  const near=fr.filter(m=>Math.abs(m-t)<1);
+  chsMicStop(true);
+  let res;
+  if(near.length>=8){ const c=Math.round((median(near)-t)*100), a=Math.abs(c); res={col:a<=20?"var(--good)":a<=45?"var(--hl)":"var(--bad)",txt:(a<=20?"Getroffen":a<=45?"Knapp":"Daneben")+" · "+(c>0?"+":"")+c+" Cent",c}; }
+  else if(fr.length>=8){ const m=median(fr), r=Math.round(m); res={col:"var(--bad)",txt:"Gesungen: "+midiName(r)+" – gesucht war "+CHS.notes[CHS.target].name}; }
+  else res={col:"var(--muted)",txt:"Nichts gehört – lauter singen oder Kopfhörer benutzen"};
+  CHS.res=res; CHS.solved=true; chsDraw();
+  setNow("nowChs",res.txt,CHS.root.name+"-"+CHORDS[CHS.kind].n+" · gesucht: "+CHS.notes[CHS.target].name+" ("+CHS_ROLE[CHS.roles[CHS.target]]+")");
+  const k=store.get("chsScore",{n:0,ok:0}); k.n++; if(res.col==="var(--good)") k.ok++; store.set("chsScore",k);
+  const s=$("chsStats"); s.hidden=false; s.textContent="Bisher "+k.ok+" von "+k.n+" Akkorden getroffen.";
+}
+function chsMicStop(quiet){
+  const M=CHS.mic; if(!M) return; CHS.mic=null;
+  clearInterval(M.timer); try{ M.src.disconnect(); }catch(e){} try{ M.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  micMode=false; try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  try{ stopAll(); }catch(e){} try{ if(ctx&&ctx.close) ctx.close(); }catch(e){} ctx=null;
+  try{ if(silentEl){ const p=silentEl.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){}
+  $("chsLive").disabled=false; $("chsLiveStop").disabled=true;
+  if(!quiet) setNow("nowChs","Beendet","");
+}
+$("chsNew").onclick=chsNew;
+$("chsPlay2").onclick=()=>chsPlay(false);
+$("chsPlay3").onclick=()=>chsPlay(true);
+$("chsStop").onclick=()=>{ stopAll(); chsMicStop(true); chsDraw(); setNow("nowChs","–",""); };
+$("chsLive").onclick=chsLive;
+$("chsLiveStop").onclick=()=>chsMicStop(false);
+$("chsLiveNext").onclick=()=>{ chsMicStop(true); chsNew(); chsLive(); };
+["chsSet","chsInv","chsRole"].forEach(id=>{ const v=store.get(id,null); if(v!=null) $(id).value=v; $(id).onchange=()=>{ store.set(id,$(id).value); chsNew(); }; });
+["chsShow","chsShowIv"].forEach(id=>{ const v=store.get(id,null); if(v!=null) $(id).checked=v; $(id).onchange=()=>{ store.set(id,$(id).checked); chsDraw(); }; });
+["tab-scale","tab-read","tab-iv","tab-ivs","tab-fork","tab-kb","tab-rh","tab-nn"].forEach(id=>{ const b=$(id); if(b) b.addEventListener("click",()=>{ if(CHS.mic) chsMicStop(true); }); });
+$("tab-chs").addEventListener("click",()=>{ try{ if(live.stream) stopLive(false); }catch(e){} try{ if(FORK.stream) forkStop(); }catch(e){} setTimeout(()=>chsDraw(),30); });
+$("voice").addEventListener("change",()=>setTimeout(chsNew,0));
+chsNew();
+
 
 
 /* ---------- Notenbibliothek: PDF anzeigen, Stimmen abspielen ---------- */
@@ -3354,7 +3600,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.1.1 · 27.10.2026 · Strato (Build 46)";
+const APP_VERSION="S1.2.0 · 27.10.2026 · Strato (Build 47)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4218,6 +4464,20 @@ function admRender(){
     const re=$("admCfRe"); if(re) re.onclick=()=>{ ADM.cf=null; admRender(); admLoad(true); };
   }
 }
+/* Konverter-Repository aus der Verwaltung aktualisieren (Dateien stecken in der App: OMR_FILES) */
+function admKonvCard(){
+  const box=$("admStat"); if(!box||$("admKonv")) return;
+  const d=document.createElement("div"); d.className="admcard"; d.id="admKonv";
+  d.innerHTML='<h3>Konverter (GitHub)</h3><p class="hint">Bringt die Umwandlung im Repository auf den Stand dieser App-Version – kein Hochladen von Hand mehr.</p><div class="btnrow"><button type="button" class="sm" id="admKonvCheck">Prüfen</button><button type="button" class="primary sm" id="admKonvGo">Jetzt aktualisieren</button></div><div id="admKonvOut" class="hint"></div>';
+  box.appendChild(d);
+  const go=async w=>{ const o=$("admKonvOut"); o.textContent=w?"Aktualisiere …":"Prüfe …";
+    try{ const j=await admCall("admin_konverter",{dateien:JSON.stringify(OMR_FILES),schreiben:w?"1":""});
+      const L=j.dateien||[], bad=L.filter(x=>x.stand!=="aktuell"&&x.stand!=="aktualisiert");
+      o.innerHTML=L.map(x=>"<div>"+esc(x.datei)+": <b>"+esc(x.stand)+"</b></div>").join("")+(j.hinweis?'<p class="full">'+esc(j.hinweis)+"</p>":"")+(!bad.length?"<p>✓ Alles auf dem Stand von App-Version "+esc(APP_VERSION)+".</p>":"");
+    }catch(e){ o.textContent=(e&&e.message)||"Fehler"; } };
+  $("admKonvCheck").onclick=()=>go(false); $("admKonvGo").onclick=()=>go(true);
+}
+{ const _admR=admRender; admRender=function(){ _admR(); try{ admKonvCard(); }catch(e){} }; }
 async function admKonto(data){
   admMsg("Speichere …");
   try{ const j=await admCall("admin_konto",data); ADM.data.konten=j.konten; if(data.act!=="speichern") ADM.edit=null; admMsg(j.meldung||"Gespeichert."); admRender(); }
@@ -4315,7 +4575,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=46;
+const APP_BUILD=47;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{

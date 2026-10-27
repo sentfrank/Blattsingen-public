@@ -171,6 +171,36 @@ if (strpos($a, 'admin_') === 0) {
     out(200, ['tarife' => TARIFE, 'tarif_neu' => TARIF_NEU, 'einstellungen' => ['zugang' => ZUGANG, 'registrieren' => SELBST_REGISTRIEREN, 'code' => EINLADUNGSCODE !== ''],
       'konten' => admin_konten(), 'statistik' => admin_statistik(), 'cloudflare' => post('cf') ? ['strato' => true] : null]);
   }
+  if ($a === 'admin_konverter') {   // Konverter-Repository auf den Stand der App bringen (tools/*.py, Workflows)
+    $files = json_decode(post('dateien'), true); $write = post('schreiben') === '1';
+    if (!is_array($files) || !$files) out(400, ['fehler' => 'Keine Dateien übergeben.']);
+    $api = (defined('GH_API') ? GH_API : 'https://api.github.com') . '/repos/' . GH_REPO . '/contents/';
+    $gh = function ($method, $url, $body = null) {
+      $h = ['Authorization: Bearer ' . GH_TOKEN, 'Accept: application/vnd.github+json', 'X-GitHub-Api-Version: 2022-11-28', 'User-Agent: blattsingen-server'];
+      if ($body !== null) $h[] = 'Content-Type: application/json';
+      $c = curl_init($url);
+      curl_setopt_array($c, [CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $h, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30]);
+      if ($body !== null) curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($body));
+      $r = curl_exec($c); $code = curl_getinfo($c, CURLINFO_HTTP_CODE); curl_close($c);
+      return [$code, json_decode((string)$r, true)];
+    };
+    $res = []; $fehlerRecht = false;
+    foreach ($files as $path => $inhalt) {
+      if (!is_string($path) || !preg_match('#^(\.github/workflows/[a-z0-9_-]+\.yml|tools/[a-z0-9_]+\.py)$#', $path) || !is_string($inhalt)) { $res[] = ['datei' => (string)$path, 'stand' => 'abgelehnt']; continue; }
+      [$code, $j] = $gh('GET', $api . $path . '?ref=main');
+      $sha = null; $alt = null;
+      if ($code === 200) { $sha = $j['sha'] ?? null; $alt = base64_decode(str_replace("\n", '', (string)($j['content'] ?? ''))); }
+      elseif ($code !== 404) { $res[] = ['datei' => $path, 'stand' => 'Fehler beim Lesen (GitHub ' . $code . ')']; if ($code === 403 || $code === 401) $fehlerRecht = true; continue; }
+      if ($alt === $inhalt) { $res[] = ['datei' => $path, 'stand' => 'aktuell']; continue; }
+      if (!$write) { $res[] = ['datei' => $path, 'stand' => $sha ? 'veraltet' : 'fehlt']; continue; }
+      $body = ['message' => 'Konverter aktualisiert (Blattsingen-Verwaltung)', 'content' => base64_encode($inhalt), 'branch' => 'main'];
+      if ($sha) $body['sha'] = $sha;
+      [$code2, $j2] = $gh('PUT', $api . $path, $body);
+      if ($code2 === 200 || $code2 === 201) $res[] = ['datei' => $path, 'stand' => 'aktualisiert'];
+      else { $res[] = ['datei' => $path, 'stand' => 'Fehler beim Schreiben (GitHub ' . $code2 . ')']; if (in_array($code2, [401, 403, 404], true)) $fehlerRecht = true; }
+    }
+    out(200, ['dateien' => $res, 'hinweis' => $fehlerRecht ? 'Der GitHub-Schlüssel (GH_TOKEN) braucht für das Aktualisieren zusätzlich die Rechte „Contents: Read and write“ und „Workflows: Read and write“ für ' . GH_REPO . '.' : '']);
+  }
   if ($a === 'admin_protokoll') out(200, ['protokoll' => admin_protokoll_lesen(min(5000, max(1, (int)post('n') ?: 200)))]);
   if ($a === 'admin_konto') {
     $act = post('act'); $email = mail_norm(post('email'));
