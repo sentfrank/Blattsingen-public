@@ -190,14 +190,14 @@ if (strpos($a, 'admin_') === 0) {
       [$code, $j] = $gh('GET', $api . $path . '?ref=main');
       $sha = null; $alt = null;
       if ($code === 200) { $sha = $j['sha'] ?? null; $alt = base64_decode(str_replace("\n", '', (string)($j['content'] ?? ''))); }
-      elseif ($code !== 404) { $res[] = ['datei' => $path, 'stand' => 'Fehler beim Lesen (GitHub ' . $code . ')']; if ($code === 403 || $code === 401) $fehlerRecht = true; continue; }
+      elseif ($code !== 404) { $res[] = ['datei' => $path, 'stand' => 'Fehler beim Lesen (GitHub ' . $code . (isset($j['message']) ? ': ' . substr((string)$j['message'], 0, 120) : '') . ')']; if ($code === 403 || $code === 401) $fehlerRecht = true; continue; }
       if ($alt === $inhalt) { $res[] = ['datei' => $path, 'stand' => 'aktuell']; continue; }
       if (!$write) { $res[] = ['datei' => $path, 'stand' => $sha ? 'veraltet' : 'fehlt']; continue; }
       $body = ['message' => 'Konverter aktualisiert (Blattsingen-Verwaltung)', 'content' => base64_encode($inhalt), 'branch' => 'main'];
       if ($sha) $body['sha'] = $sha;
       [$code2, $j2] = $gh('PUT', $api . $path, $body);
       if ($code2 === 200 || $code2 === 201) $res[] = ['datei' => $path, 'stand' => 'aktualisiert'];
-      else { $res[] = ['datei' => $path, 'stand' => 'Fehler beim Schreiben (GitHub ' . $code2 . ')']; if (in_array($code2, [401, 403, 404], true)) $fehlerRecht = true; }
+      else { $res[] = ['datei' => $path, 'stand' => 'Fehler beim Schreiben (GitHub ' . $code2 . (isset($j2['message']) ? ': ' . substr((string)$j2['message'], 0, 120) : '') . ')']; if (in_array($code2, [401, 403, 404], true)) $fehlerRecht = true; }
     }
     out(200, ['dateien' => $res, 'hinweis' => $fehlerRecht ? 'Der GitHub-Schlüssel (GH_TOKEN) braucht für das Aktualisieren zusätzlich die Rechte „Contents: Read and write“ und „Workflows: Read and write“ für ' . GH_REPO . '.' : '']);
   }
