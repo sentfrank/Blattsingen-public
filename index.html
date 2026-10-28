@@ -390,7 +390,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.2.3 · 27.10.2026 · Strato (Build 50)</span>
+  <span class="appver">App-Version S1.3.0 · 28.10.2026 · Strato (Build 51)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -577,6 +577,10 @@ body.regopen{overflow:hidden}
           <select id="rhBars"><option>2</option><option selected>4</option></select></div>
         <div class="field"><label class="label" for="rhLat">Kopfhörer-Ausgleich</label>
           <select id="rhLat"><option value="0">aus (Kabel, Lautsprecher)</option><option value="120">Bluetooth leicht (120 ms)</option><option value="200">Bluetooth (200 ms)</option><option value="280">Bluetooth stark (280 ms)</option></select></div>
+        <div class="field"><label class="label" for="rhInput">Eingabe</label>
+          <select id="rhInput"><option value="tap">tippen (nur Einsatz)</option><option value="hold" selected>tippen und halten (mit Tonlänge)</option><option value="sing">singen (Mikrofon, mit Tonlänge)</option></select></div>
+        <div class="field"><label class="label" for="rhMetro">Metronom</label>
+          <select id="rhMetro"><option value="on" selected>Takt mitspielen</option><option value="count">nur einzählen</option></select></div>
       </div>
       <div class="btnrow">
         <button id="rhNew" type="button">Neuer Rhythmus</button>
@@ -585,7 +589,9 @@ body.regopen{overflow:hidden}
         <button id="rhStop" type="button">Stopp</button>
       </div>
       <div class="staffbox"><svg id="rhSvg" role="img" aria-label="Rhythmus in Noten"></svg></div>
-      <button type="button" class="tapbtn" id="rhTap" aria-label="Hier tippen">Hier tippen <span>(oder Leertaste)</span></button>
+      <button type="button" class="tapbtn" id="rhTap" aria-label="Hier tippen">Hier tippen <span id="rhTapSub">(oder Leertaste)</span></button>
+      <div class="level" id="rhLevelBox" hidden aria-hidden="true"><span>Mikrofon</span><div class="lbar"><div id="rhMicLevel"></div></div></div>
+      <style>.tapbtn.hold{background:var(--accent);color:#fff}</style>
       <div class="stats" id="rhStats" hidden></div>
       <p class="hint" id="rhMsg" aria-live="polite">„Mitklopfen“: Erst zählt das Metronom einen Takt ein, dann klopfst du den Rhythmus auf die große Fläche, während das Metronom weiterläuft. Danach siehst du jede Note farbig: <b class="c-good">grün</b> genau (bis 50 ms), <b class="c-hl">gelb</b> knapp (bis 110 ms), <b class="c-bad">rot</b> daneben oder fehlt. Das Tempo kommt vom Regler oben.</p>
       <p class="hint">Tipp: Zähle laut oder innerlich mit („1 und 2 und“) und sprich den Rhythmus zuerst auf „ta“, bevor du klopfst. Lange Noten zählst du aus, auch wenn du nur am Anfang tippst.</p>
@@ -2182,7 +2188,7 @@ function rhDraw(){
   const svg=$("rhSvg"), W=staffAvail(svg), bars=RH.bars; if(!bars.length) return;
   const fine=bars.some(b=>b.ev.some(e=>e.d<.5-1e-6||e.tri)), minU=fine?54:36;
   let per=bars.length; while(per>1&&(W-70)/(bars.slice(0,per).reduce((s,b)=>s+b.barQ,0))<minU) per--;
-  const lines=Math.ceil(bars.length/per), LH=96, H=LH*lines+8;
+  const lines=Math.ceil(bars.length/per), LH=rhLenMode()?112:96, H=LH*lines+8;
   svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("width",W); svg.setAttribute("height",H); svg.innerHTML="";
   const pos=[]; let idx=0;
   for(let l=0;l<lines;l++){
@@ -2229,7 +2235,8 @@ function rhDraw(){
       if(!beamed.has(i)&&(kd.k==="e"||kd.k==="s")) glyph(svg,kd.k==="e"?"flags.u3":"flags.u4",sx-.6,top,c);
     }
     if(RH.res&&RH.res[i]){ const r=RH.res[i];
-      svg.appendChild(el("text",{x:x+6,y:y+30,"text-anchor":"middle","font-family":"var(--mono)","font-size":10,"font-weight":600,fill:c},r.miss?"fehlt":(r.dev>0?"+":"")+Math.round(r.dev*1000))); }
+      svg.appendChild(el("text",{x:x+6,y:y+30,"text-anchor":"middle","font-family":"var(--mono)","font-size":10,"font-weight":600,fill:c},r.miss?"fehlt":(r.dev>0?"+":"")+Math.round(r.dev*1000)));
+      if(r.len) svg.appendChild(el("text",{x:x+6,y:y+44,"text-anchor":"middle","font-family":"var(--body)","font-size":10,"font-weight":600,fill:r.len.col},r.len.txt)); }
     noteNo++;
   });
   groups.forEach(gr=>{
@@ -2262,42 +2269,59 @@ function rhRun(withNotes){
     const tl=rhTimeline(), b0=RH.bars[0], beat=(b0.den===8?1.5:1)*tl.spq, cnt=Math.round(b0.barQ/(b0.den===8?1.5:1));
     const T0=c.currentTime+.25, start=T0+cnt*beat;
     for(let i=0;i<cnt;i++) rhClick(T0+i*beat,i===0,.22);
-    tl.clicks.forEach(k=>rhClick(start+k.t,k.acc,withNotes?.08:(k.acc?.2:.13)));
-    if(withNotes) tl.notes.forEach(n=>{ if(!n.rest) tone(79,start+n.t,Math.min(.25,n.d*.8),.22); });
+    if($("rhMetro").value!=="count") tl.clicks.forEach(k=>rhClick(start+k.t,k.acc,withNotes?.08:(k.acc?.2:.13)));
+    if(withNotes) tl.notes.forEach(n=>{ if(!n.rest) tone(rhLenMode()?72:79,start+n.t,rhLenMode()?Math.max(.08,n.d*.88):Math.min(.25,n.d*.8),.22); });
+    RH.clickT=tl.clicks.map(k=>start+k.t);
     // Zuordnung Audio-Uhr → Bildschirm-Uhr; Latenz der Ausgabe und Kopfhörer-Ausgleich
     const lat=(c.outputLatency||c.baseLatency||0)+(+$("rhLat").value||0)/1000;
     RH.perf0=performance.now()/1000-c.currentTime+lat;
-    RH.exp=tl.notes.map((n,i)=>({i,t:start+n.t+RH.perf0,rest:n.rest}));
+    RH.exp=tl.notes.map((n,i)=>({i,t:start+n.t+RH.perf0,d:n.d,rest:n.rest}));
+    RH.clickP=(RH.clickT||[]).map(t=>t+RH.perf0); RH.lat=lat;
     RH.end=start+tl.len+RH.perf0;
     RH.taps=[];
     tl.notes.forEach((n,i)=>timers.push(setTimeout(()=>{ RH.cur=i; rhDraw(); },(start-c.currentTime+n.t+lat)*1000)));
-    if(!withNotes){ RH.tapping=true; $("rhMsg").textContent="Eins, zwei, drei, vier … und los: Rhythmus klopfen!"; }
+    if(!withNotes){ RH.tapping=true; $("rhMsg").textContent=$("rhInput").value==="sing"?"Eins, zwei, drei, vier … und los: Rhythmus auf „ta“ singen, lange Noten aushalten!":$("rhInput").value==="hold"?"Eins, zwei, drei, vier … und los: tippen und den Finger so lange liegen lassen, wie die Note dauert!":"Eins, zwei, drei, vier … und los: Rhythmus klopfen!"; }
     else $("rhMsg").textContent="Hör zu und lies mit. Danach „Mitklopfen“.";
-    timers.push(setTimeout(()=>{ RH.cur=-1; if(!withNotes){ RH.tapping=false; rhEval(); } else rhDraw(); },(start-c.currentTime+tl.len+lat+.6)*1000));
+    timers.push(setTimeout(()=>{ RH.cur=-1; if(!withNotes){ rhTapUp(); RH.tapping=false; rhMicStop(); rhEval(); } else rhDraw(); },(start-c.currentTime+tl.len+lat+.6)*1000));
   };
   if(c.state!=="running"){ const p=c.resume(); if(p&&p.then){ p.then(go,go); return; } }
   go();
 }
 function rhTap(){
-  if(!RH.tapping) return;
-  RH.taps.push(performance.now()/1000);
-  const b=$("rhTap"); b.classList.add("hit"); setTimeout(()=>b.classList.remove("hit"),90);
+  if(!RH.tapping||$("rhInput").value==="sing") return;
+  rhTapUp();
+  RH.taps.push({t:performance.now()/1000,e:null});
+  const b=$("rhTap");
+  if($("rhInput").value==="hold") b.classList.add("hold"); else { b.classList.add("hit"); setTimeout(()=>b.classList.remove("hit"),90); }
 }
+function rhTapUp(){
+  const b=$("rhTap"); b.classList.remove("hold");
+  const k=RH.taps&&RH.taps[RH.taps.length-1]; if(k&&k.e==null&&typeof k==="object") k.e=performance.now()/1000;
+}
+function rhLenMode(){ const v=$("rhInput")&&$("rhInput").value; return v==="hold"||v==="sing"; }
 function rhEval(){
-  const E=RH.exp.filter(e=>!e.rest), taps=RH.taps.slice(), used=new Set(), res=[];
+  const E=RH.exp.filter(e=>!e.rest), taps=RH.taps.map(x=>typeof x==="number"?x:x.t), used=new Set(), res=[], lens=RH.taps.map(x=>typeof x==="number"?null:(x.e!=null?x.e-x.t:null));
   E.forEach((e,j)=>{
     const prev=E[j-1], next=E[j+1], gap=Math.min(prev?e.t-prev.t:1,next?next.t-e.t:1), w=Math.min(.25,Math.max(.09,gap*.5));
     let best=-1; taps.forEach((t,k)=>{ if(used.has(k)) return; if(Math.abs(t-e.t)<=w&&(best<0||Math.abs(t-e.t)<Math.abs(taps[best]-e.t))) best=k; });
-    if(best>=0){ used.add(best); res[e.i]={dev:taps[best]-e.t}; } else res[e.i]={miss:true};
+    if(best>=0){ used.add(best); res[e.i]={dev:taps[best]-e.t};
+      if(rhLenMode()&&lens[best]!=null){   // gehaltene Dauer gegen Notenwert (bis zum nächsten Einsatz bzw. Notenende)
+        const want=e.d, held=lens[best], diff=held-want, tol=Math.max(.12,want*.22), tol2=Math.max(.2,want*.4);
+        const ok=Math.abs(diff)<=tol, near=Math.abs(diff)<=tol2;
+        res[e.i].len={diff,ok,near,col:ok?"var(--good)":near?"var(--hl)":"var(--bad)",txt:ok?"✓":diff<0?"kurz":"lang"};
+      } }
+    else res[e.i]={miss:true};
   });
   RH.res=res; rhDraw();
   const r=E.map(e=>res[e.i]), g=r.filter(x=>!x.miss&&Math.abs(x.dev)<=.05).length, y=r.filter(x=>!x.miss&&Math.abs(x.dev)>.05&&Math.abs(x.dev)<=.11).length;
   const bad=r.length-g-y, devs=r.filter(x=>!x.miss).map(x=>x.dev), extra=taps.length-used.size;
   const tend=devs.length?Math.round(devs.reduce((a,b)=>a+b,0)/devs.length*1000):0;
   const s=$("rhStats"); s.hidden=false;
-  s.innerHTML='<span class="c-good">genau <b>'+g+'</b></span><span class="c-hl">knapp <b>'+y+'</b></span><span class="c-bad">daneben/fehlt <b>'+bad+'</b></span><span>von <b>'+r.length+'</b></span>'+(devs.length>=3?'<span>Tendenz <b>'+(tend>0?"+":"")+tend+' ms</b></span>':'')+(extra>0?'<span>zusätzliche Tipper <b>'+extra+'</b></span>':'');
+  const L=r.filter(x=>x&&x.len), lOk=L.filter(x=>x.len.ok).length, lShort=L.filter(x=>!x.len.ok&&x.len.diff<0).length, lLong=L.length-lOk-lShort;
+  s.innerHTML=(L.length?'<span>Tonlänge: <b class="c-good">'+lOk+' passend</b> · <b class="c-bad">'+lShort+' zu kurz</b> · <b class="c-bad">'+lLong+' zu lang</b></span>':'')+'<span class="c-good">genau <b>'+g+'</b></span><span class="c-hl">knapp <b>'+y+'</b></span><span class="c-bad">daneben/fehlt <b>'+bad+'</b></span><span>von <b>'+r.length+'</b></span>'+(devs.length>=3?'<span>Tendenz <b>'+(tend>0?"+":"")+tend+' ms</b></span>':'')+(extra>0?'<span>zusätzliche Tipper <b>'+extra+'</b></span>':'');
   let m=g===r.length?"Perfekt! Alles im Takt. Hol dir einen neuen Rhythmus oder stell das Tempo höher.":g+y>=r.length*.75?"Gut! Schau dir die gelben und roten Noten an und klopf noch einmal.":"Noch unsicher. Hör ihn dir mit „Anhören“ an, sprich ihn auf „ta“ und klopf dann noch einmal.";
-  if(!taps.length) m="Keine Tipper erkannt. Tippe auf die große Fläche oder drück die Leertaste.";
+  if(L.length&&lShort+lLong>=Math.max(2,L.length*.3)) m=(g===r.length?"Die Einsätze stimmen alle. ":"")+(lShort>lLong?"Viele Töne waren zu kurz: halbe und ganze Noten bis zum nächsten Schlag aushalten und dabei mitzählen.":"Einige Töne waren zu lang: rechtzeitig vor dem nächsten Einsatz loslassen bzw. absetzen.");
+  if(!taps.length) m=$("rhInput").value==="sing"?"Nichts gehört. Sing lauter auf „ta“ oder geh näher ans Mikrofon.":"Keine Tipper erkannt. Tippe auf die große Fläche oder drück die Leertaste.";
   else if(devs.length>=4&&tend>80&&devs.filter(d=>d>.04).length>=devs.length*.8&&!+$("rhLat").value) m+=" Du liegst fast immer spürbar zu spät. Mit Bluetooth-Kopfhörern hörst du das Metronom verzögert: wähle oben einen Kopfhörer-Ausgleich.";
   else if(devs.length>=4&&Math.abs(tend)>=35) m+=tend>0?" Insgesamt etwas zu spät: Klopf bewusst auf den Schlag, nicht danach.":" Insgesamt etwas zu früh: nicht drängen, die Schläge abwarten.";
   $("rhMsg").textContent=m;
@@ -2307,14 +2331,74 @@ $("rhLevel").onchange=()=>{ store.set("rhLevel",$("rhLevel").value); rhNew(); };
 $("rhBars").onchange=()=>{ store.set("rhBars",$("rhBars").value); rhNew(); };
 $("rhLat").onchange=()=>store.set("rhLat",$("rhLat").value);
 $("rhListen").onclick=()=>rhRun(true);
-$("rhGo").onclick=()=>rhRun(false);
-$("rhStop").onclick=()=>{ stopAll(); RH.tapping=false; RH.cur=-1; rhDraw(); };
-$("rhTap").addEventListener("pointerdown",e=>{ e.preventDefault(); rhTap(); });
+$("rhGo").onclick=async()=>{ if($("rhInput").value==="sing"){ if(!(await rhMicStart())) return; } rhRun(false); };
+$("rhStop").onclick=()=>{ stopAll(); RH.tapping=false; RH.cur=-1; rhTapUp(); rhMicStop(); rhDraw(); };
+$("rhTap").addEventListener("pointerdown",e=>{ e.preventDefault(); try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(_){} rhTap(); });
+["pointerup","pointercancel","lostpointercapture"].forEach(ev=>$("rhTap").addEventListener(ev,()=>rhTapUp()));
+document.addEventListener("keyup",e=>{ if(!$("p-rh").hidden&&(e.code==="Space"||e.key===" ")) rhTapUp(); });
 document.addEventListener("keydown",e=>{
   if($("p-rh").hidden) return;
   if(e.code==="Space"||e.key===" "){ if(e.target&&/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; e.preventDefault(); if(!e.repeat) rhTap(); }
 });
 $("rhLevel").value=store.get("rhLevel","2"); $("rhBars").value=store.get("rhBars","4"); $("rhLat").value=store.get("rhLat","0");
+$("rhInput").value=store.get("rhInput","hold"); $("rhMetro").value=store.get("rhMetro","on");
+function rhInputUI(){ const v=$("rhInput").value; $("rhTap").hidden=v==="sing"; $("rhLevelBox").hidden=v!=="sing";
+  $("rhGo").textContent=v==="sing"?"Mitsingen":v==="hold"?"Mittippen":"Mitklopfen";
+  $("rhTapSub").textContent=v==="hold"?"(oder Leertaste) – so lange halten, wie die Note dauert":"(oder Leertaste)"; if(RH.bars.length) rhDraw(); }
+$("rhInput").onchange=()=>{ store.set("rhInput",$("rhInput").value); RH.res=null; rhInputUI(); };
+$("rhMetro").onchange=()=>store.set("rhMetro",$("rhMetro").value);
+rhInputUI();
+window.__rh=()=>RH;
+/* Singen: Einsätze und Tonlängen aus der Lautstärke des Mikrofons (Ton an/aus, Abstand mindestens 50 ms) */
+const RHM={stream:null,src:null,an:null,buf:null,timer:null,on:false,nf:null,open:null,lastOff:0};
+async function rhMicStart(){
+  rhMicStop();
+  if(!window.isSecureContext||!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ $("rhMsg").textContent="Das Mikrofon ist hier nicht verfügbar (nur über https in Safari/Chrome)."; return false; }
+  try{ if(live.stream) stopLive(false); }catch(e){} try{ if(FORK.stream) forkStop(); }catch(e){}
+  micMode=true; try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record"; }catch(e){}
+  try{ if(silentEl) silentEl.pause(); }catch(e){}
+  let s=null, err=null;
+  try{ s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }catch(e){ err=e; }
+  if(!s&&err&&(err.name==="OverconstrainedError"||err.name==="TypeError")){ err=null; try{ s=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ err=e; } }
+  if(!s){ micMode=false; $("rhMsg").textContent=micErrorText(err); return false; }
+  try{ stopAll(); }catch(e){} try{ if(ctx&&ctx.close) ctx.close(); }catch(e){} ctx=null;
+  const c=ac(); if(c.state!=="running"){ try{ await Promise.race([c.resume(),new Promise(r=>setTimeout(r,1500))]); }catch(e){} }
+  RHM.stream=s; RHM.src=c.createMediaStreamSource(s); RHM.an=c.createAnalyser(); RHM.an.fftSize=1024; RHM.src.connect(RHM.an);
+  try{ const z=c.createGain(); z.gain.value=0; RHM.an.connect(z); z.connect(c.destination); }catch(e){}
+  RHM.buf=new Float32Array(RHM.an.fftSize); RHM.nf=null; RHM.open=null; RHM.lastOff=0; RHM.on=true;
+  RHM.timer=setInterval(rhMicTick,12);
+  return true;
+}
+function rhMicTick(){
+  if(!RHM.on) return;
+  RHM.an.getFloatTimeDomainData(RHM.buf);
+  let r=0; for(let i=0;i<RHM.buf.length;i++) r+=RHM.buf[i]*RHM.buf[i]; r=Math.sqrt(r/RHM.buf.length);
+  const now=performance.now()/1000-.02;   // Pufferlänge ausgleichen
+  if(!RH.tapping||RHM.open==null) RHM.nf=RHM.nf==null?r:(r<RHM.nf?RHM.nf*.7+r*.3:RHM.nf*.995+r*.005);
+  const on=Math.max(.012,RHM.nf*4), off=on*.55;
+  $("rhMicLevel").style.width=Math.min(100,Math.round(Math.sqrt(r)*260))+"%";
+  if(!RH.tapping){ RHM.open=null; return; }
+  if(RHM.open==null){ if(r>on&&now-RHM.lastOff>.05){ RHM.open={t:now,e:null,peak:r}; } }
+  else { RHM.open.peak=Math.max(RHM.open.peak,r);
+    // Ende: deutlich leiser, oder neuer Einsatz (Lautstärke fällt ab und steigt wieder kräftig an)
+    if(r<Math.max(off,RHM.open.peak*.18)){ RHM.open.e=now; rhMicPush(RHM.open); RHM.lastOff=now; RHM.open=null; } }
+}
+function rhMicPush(seg){
+  const d=seg.e-seg.t; if(d<.05) return;
+  // gehörte Metronom-Klicks (kurz, genau auf einem Klick) nicht als Ton zählen
+  if(d<.11&&(RH.clickP||[]).some(t=>Math.abs(seg.t-t)<.06)) return;
+  RH.taps.push({t:seg.t,e:seg.e});
+}
+function rhMicStop(){
+  if(RHM.open&&RH.taps){ RHM.open.e=performance.now()/1000; rhMicPush(RHM.open); RHM.open=null; }
+  if(!RHM.stream) return;
+  RHM.on=false; clearInterval(RHM.timer);
+  try{ RHM.src.disconnect(); }catch(e){} try{ RHM.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  RHM.stream=null; micMode=false;
+  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  try{ if(ctx&&ctx.close) ctx.close(); }catch(e){} ctx=null;
+  try{ if(silentEl){ const p=silentEl.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){}
+}
 
 /* ---------- Notennamen-Drill ---------- */
 const NN={cur:null,acc:0,mode:null,ok:0,n:0,t0:0,end:0,timer:null,times:[],lock:false};
@@ -3609,7 +3693,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.2.3 · 27.10.2026 · Strato (Build 50)";
+const APP_VERSION="S1.3.0 · 28.10.2026 · Strato (Build 51)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4585,7 +4669,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=50;
+const APP_BUILD=51;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
