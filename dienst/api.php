@@ -4,7 +4,7 @@
    GitHub → pdf   : PDF abholen (nur mit Schlüssel)
    GitHub → status: Fortschritt und Ergebnis melden (nur mit Schlüssel)
    App  → status / file : Fortschritt und MusicXML abholen
-   App  → satz    : Aufnahme annehmen (nur mit Konto), A-cappella-Satz bei GitHub starten (satz.yml);
+   App  → satz / arrangement: Aufnahme (Melodie erkennen) bzw. Analyse (Arrangement) annehmen, nur mit Konto (satz.yml);
    GitHub → audio / satzpdf: Aufnahme abholen, Notenbild abliefern
    Konten (ZUGANG = 'konto'): registrieren, login, konto, passwort, abmelden – Zählung je Konto und Monat,
    fehlgeschlagene Umwandlungen werden wieder gutgeschrieben. Verwaltung: admin.php
@@ -265,11 +265,40 @@ function gh_fehler($code, $r, $email, $job, $titel, $wf) {
     . ($tipp ? ' Hinweis für den Betreiber: ' . $tipp . '.' : ' Bitte dem Betreiber Bescheid geben.')]);
 }
 
-if ($a === 'satz' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {   // Song → A-cappella-Satz (nur mit Konto)
+function satz_titel() {
+  $t = trim((string)preg_replace('/[\x00-\x1F"`$\\\\]/u', '', post('titel')));
+  return function_exists('mb_substr') ? mb_substr($t, 0, 80) : substr($t, 0, 80);
+}
+function satz_start($job, $email, $modus, $opt, $titel, $owner) {
+  global $DATA;
+  file_put_contents("$DATA/$job.json", json_encode(['status' => 'läuft', 'schritt' => 'Wartet, bis die Analyse startet', 'zeit' => time(), 'art' => $modus], JSON_UNESCAPED_UNICODE));
+  file_put_contents("$DATA/$job.owner", json_encode($owner, JSON_UNESCAPED_UNICODE));
+  return gh_dispatch($job, true, 'satz.yml', ['modus' => $modus, 'optionen' => json_encode($opt, JSON_UNESCAPED_UNICODE), 'titel' => $titel]);
+}
+if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {   // Song → A-cappella-Arrangement (nur mit Konto)
   cleanup($DATA);
   if (ZUGANG !== 'konto' || (defined('SATZ_AN') && !SATZ_AN)) out(403, ['fehler' => 'Diese Funktion ist auf diesem Dienst nicht eingeschaltet.']);
   $kto = konto_aus_token(); $email = $kto['email'];
   if (in_array($email, BLOCKED, true)) out(403, ['fehler' => 'Für diese E-Mail-Adresse ist die Funktion gesperrt.']);
+  $titel = satz_titel(); $mon = date('Y-m'); $job = bin2hex(random_bytes(12));
+  if ($a === 'arrangement') {   // Schritt 2: aus der Analyse ein Arrangement – zählt nicht aufs Kontingent, höchstens 40 am Tag
+    $ana = post('analyse');
+    if (strlen($ana) < 20 || strlen($ana) > 400000 || !is_array($aj = json_decode($ana, true)) || !isset($aj['notes'], $aj['chords'])) out(400, ['fehler' => 'Die Melodie-Analyse fehlt. Bitte zuerst „Melodie erkennen“.']);
+    $tag = date('Y-m-d');
+    $ok = konten_tx(function (&$K) use ($email, $tag) { $n = (int)($K[$email]['arr'][$tag] ?? 0); if ($n >= 40) return false; $K[$email]['arr'] = [$tag => $n + 1]; return true; });
+    if (!$ok) out(429, ['fehler' => 'Heute wurden schon 40 Arrangements erstellt. Morgen geht es weiter.']);
+    $erlaubt = ['Solo', 'S', 'A', 'T', 'Bar', 'B'];
+    $st = array_values(array_intersect($erlaubt, explode(',', post('stimmen'))));
+    if (!array_diff($st, ['Solo'])) $st = array_merge($st, ['S', 'A', 'T', 'B']);
+    $mel = in_array(post('melodie'), $st, true) ? post('melodie') : '';
+    $stil = in_array(post('stil'), ['ballade', 'pop', 'doowop', 'chorsatz'], true) ? post('stil') : 'ballade';
+    $opt = ['stimmen' => $st, 'melodie' => $mel, 'stil' => $stil, 'beatbox' => post('beatbox') === '1', 'transponieren' => max(-7, min(7, (int)post('transponieren')))];
+    file_put_contents("$DATA/$job.audio", $ana);
+    [$code, $r] = satz_start($job, $email, 'satz', $opt, $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Arrangement: ' . $titel, 'konto' => false, 'art' => 'satz']);
+    if ($code !== 204) { @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner"); gh_fehler($code, $r, $email, $job, 'Arrangement: ' . $titel, 'satz.yml'); }
+    protokoll($email, $job, 'Arrangement gestartet (' . $stil . ', ' . implode('', $st) . ($opt['beatbox'] ? '+BB' : '') . ')', 'Arrangement: ' . $titel);
+    out(200, ['job' => $job]);
+  }
   $mb = defined('SATZ_MB') ? (int)SATZ_MB : 40;
   if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(400, ['fehler' => 'Die Aufnahme ist nicht angekommen (zu groß oder Verbindung unterbrochen).']);
   if ($_FILES['audio']['size'] > $mb * 1048576) out(413, ['fehler' => 'Die Aufnahme ist größer als ' . $mb . ' MB.']);
@@ -278,13 +307,7 @@ if ($a === 'satz' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {   // Song 
   $ok = substr($head, 0, 4) === 'RIFF' || substr($head, 0, 3) === 'ID3' || (ord($head[0]) === 0xFF && (ord($head[1]) & 0xE0) === 0xE0)
      || substr($head, 4, 4) === 'ftyp' || substr($head, 0, 4) === 'OggS' || substr($head, 0, 4) === 'fLaC' || substr($head, 0, 4) === "\x1A\x45\xDF\xA3";
   if (!$ok) out(400, ['fehler' => 'Das Format wird nicht erkannt. Möglich sind MP3, M4A/AAC, WAV, OGG, FLAC oder WebM.']);
-  $bes = strtoupper(post('besetzung')); if (!in_array($bes, ['SATB', 'SSAA', 'TTBB', 'SAB', 'SSA', 'TTB', 'SSATB', 'SATBB'], true)) $bes = 'SATB';
-  $mel = preg_replace('/[^A-Z0-9]/', '', strtoupper(post('melodie'))); $mel = substr($mel, 0, 3);
-  $stil = post('stil') === 'rhythmisch' ? 'rhythmisch' : 'gehalten';
-  $quelle = in_array(post('quelle'), ['song', 'gesang'], true) ? post('quelle') : 'auto';
-  $titel = trim((string)preg_replace('/[\x00-\x1F"`$\\\\]/u', '', post('titel')));
-  $titel = function_exists('mb_substr') ? mb_substr($titel, 0, 80) : substr($titel, 0, 80);
-  $mon = date('Y-m');
+  $quelle = in_array(post('quelle'), ['song', 'gesang', 'mehrstimmig'], true) ? post('quelle') : 'auto';
   [$ok, $n1, $lim] = konten_tx(function (&$K) use ($email, $mon) {
     $k = &$K[$email]; $lim = limit_von($k); $n = (int)($k['monate'][$mon] ?? 0);
     if ($lim > 0 && $n >= $lim) return [false, $n, $lim];
@@ -292,17 +315,14 @@ if ($a === 'satz' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {   // Song 
     return [true, $n + 1, $lim];
   });
   if (!$ok) out(429, ['fehler' => 'Dein Kontingent von ' . $lim . ' Aufträgen in diesem Monat ist aufgebraucht.', 'kontingent' => true, 'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT]);
-  $job = bin2hex(random_bytes(12));
   move_uploaded_file($_FILES['audio']['tmp_name'], "$DATA/$job.audio");
-  file_put_contents("$DATA/$job.json", json_encode(['status' => 'läuft', 'schritt' => 'Wartet, bis die Analyse startet', 'zeit' => time(), 'art' => 'satz'], JSON_UNESCAPED_UNICODE));
-  file_put_contents("$DATA/$job.owner", json_encode(['email' => $email, 'monat' => $mon, 'titel' => 'Satz: ' . $titel, 'konto' => true, 'art' => 'satz'], JSON_UNESCAPED_UNICODE));
-  [$code, $r] = gh_dispatch($job, true, 'satz.yml', ['besetzung' => $bes, 'melodie' => $mel, 'stil' => $stil, 'quelle' => $quelle, 'titel' => $titel]);
+  [$code, $r] = satz_start($job, $email, 'melodie', ['quelle' => $quelle], $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Melodie: ' . $titel, 'konto' => true, 'art' => 'melodie']);
   if ($code !== 204) {
     @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
     zaehlen($email, -1, $mon);
-    gh_fehler($code, $r, $email, $job, 'Satz: ' . $titel, 'satz.yml');
+    gh_fehler($code, $r, $email, $job, 'Melodie: ' . $titel, 'satz.yml');
   }
-  protokoll($email, $job, 'Satz gestartet (' . $bes . ')', 'Satz: ' . $titel);
+  protokoll($email, $job, 'Melodie-Erkennung gestartet', 'Melodie: ' . $titel);
   out(200, ['job' => $job, 'genutzt' => $n1, 'limit' => $lim, 'konto' => konto_info(konten_lesen()[$email])]);
 }
 
