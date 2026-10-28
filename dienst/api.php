@@ -283,7 +283,7 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
   $titel = satz_titel(); $mon = date('Y-m'); $job = bin2hex(random_bytes(12));
   if ($a === 'arrangement') {   // Schritt 2: aus der Analyse ein Arrangement – zählt nicht aufs Kontingent, höchstens 40 am Tag
     $ana = post('analyse');
-    if (strlen($ana) < 20 || strlen($ana) > 400000 || !is_array($aj = json_decode($ana, true)) || !isset($aj['notes'], $aj['chords'])) out(400, ['fehler' => 'Die Melodie-Analyse fehlt. Bitte zuerst „Melodie erkennen“.']);
+    if (strlen($ana) < 20 || strlen($ana) > 2000000 || !is_array($aj = json_decode($ana, true)) || !isset($aj['notes'], $aj['chords'])) out(400, ['fehler' => 'Die Melodie-Analyse fehlt. Bitte zuerst „Melodie erkennen“.']);
     $tag = date('Y-m-d');
     $ok = konten_tx(function (&$K) use ($email, $tag) { $n = (int)($K[$email]['arr'][$tag] ?? 0); if ($n >= 40) return false; $K[$email]['arr'] = [$tag => $n + 1]; return true; });
     if (!$ok) out(429, ['fehler' => 'Heute wurden schon 40 Arrangements erstellt. Morgen geht es weiter.']);
@@ -292,7 +292,16 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
     if (!array_diff($st, ['Solo'])) $st = array_merge($st, ['S', 'A', 'T', 'B']);
     $mel = in_array(post('melodie'), $st, true) ? post('melodie') : '';
     $stil = in_array(post('stil'), ['ballade', 'pop', 'doowop', 'chorsatz'], true) ? post('stil') : 'ballade';
-    $opt = ['stimmen' => $st, 'melodie' => $mel, 'stil' => $stil, 'beatbox' => post('beatbox') === '1', 'transponieren' => max(-7, min(7, (int)post('transponieren')))];
+    $ein = [];   // Stimmen einzeln: Rhythmus, Silbe, Lage
+    $ej = json_decode(post('einzeln'), true);
+    if (is_array($ej)) foreach ($ej as $v => $o) {
+      if (!in_array($v, $erlaubt, true) || !is_array($o)) continue;
+      $sil = substr(preg_replace('/[^\p{L}\p{N} \'’-]/u', '', (string)($o['silbe'] ?? '')), 0, 24);
+      $ein[$v] = ['rhythmus' => in_array($o['rhythmus'] ?? '', ['stil', 'gehalten', 'rhythmisch', 'melodie', 'text', 'pause'], true) ? $o['rhythmus'] : 'stil',
+                  'silbe' => $sil, 'lage' => max(-1, min(1, (int)($o['lage'] ?? 0)))];
+    }
+    $opt = ['stimmen' => $st, 'melodie' => $mel, 'stil' => $stil, 'beatbox' => post('beatbox') === '1', 'transponieren' => max(-7, min(7, (int)post('transponieren'))),
+            'text' => post('text') !== '0', 'einzeln' => $ein];
     file_put_contents("$DATA/$job.audio", $ana);
     [$code, $r] = satz_start($job, $email, 'satz', $opt, $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Arrangement: ' . $titel, 'konto' => false, 'art' => 'satz']);
     if ($code !== 204) { @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner"); gh_fehler($code, $r, $email, $job, 'Arrangement: ' . $titel, 'satz.yml'); }
@@ -316,7 +325,7 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
   });
   if (!$ok) out(429, ['fehler' => 'Dein Kontingent von ' . $lim . ' Aufträgen in diesem Monat ist aufgebraucht.', 'kontingent' => true, 'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT]);
   move_uploaded_file($_FILES['audio']['tmp_name'], "$DATA/$job.audio");
-  [$code, $r] = satz_start($job, $email, 'melodie', ['quelle' => $quelle], $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Melodie: ' . $titel, 'konto' => true, 'art' => 'melodie']);
+  [$code, $r] = satz_start($job, $email, 'melodie', ['quelle' => $quelle, 'text' => post('text') !== '0'], $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Melodie: ' . $titel, 'konto' => true, 'art' => 'melodie']);
   if ($code !== 204) {
     @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
     zaehlen($email, -1, $mon);
