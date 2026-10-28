@@ -1,4 +1,4 @@
-# Branch „strato“ – Blattsingen-App auf www.w-esel.de/blattsingen (Version S1.3.3, Build 54)
+# Branch „strato“ – Blattsingen-App auf www.w-esel.de/blattsingen (Version S1.4.0, Build 55)
 
 Enthält die App **und** den Umwandlungsdienst in PHP (Ordner `dienst/`). Beides läuft auf deinem Strato-Webspace
 unter derselben Domain – keine zweite Domain nötig:

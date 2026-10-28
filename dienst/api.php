@@ -4,6 +4,8 @@
    GitHub → pdf   : PDF abholen (nur mit Schlüssel)
    GitHub → status: Fortschritt und Ergebnis melden (nur mit Schlüssel)
    App  → status / file : Fortschritt und MusicXML abholen
+   App  → satz    : Aufnahme annehmen (nur mit Konto), A-cappella-Satz bei GitHub starten (satz.yml);
+   GitHub → audio / satzpdf: Aufnahme abholen, Notenbild abliefern
    Konten (ZUGANG = 'konto'): registrieren, login, konto, passwort, abmelden – Zählung je Konto und Monat,
    fehlgeschlagene Umwandlungen werden wieder gutgeschrieben. Verwaltung: admin.php
    PDFs werden nach der Umwandlung gelöscht, alle Auftragsdaten nach 3 Tagen. */
@@ -23,14 +25,15 @@ function sig($j) { return hash_hmac('sha256', $j, SERVER_KEY); }
 function need_sig($j) { if (!hash_equals(sig($j), (string)($_GET['k'] ?? ''))) out(403, ['fehler' => 'Schlüssel falsch']); }
 function cleanup($DATA) {
   foreach (glob("$DATA/*.*") as $f) {
-    if (!preg_match('/^[a-f0-9]{24}\.(pdf|json|musicxml|owner|abgebrochen)$/', basename($f))) continue;   // nur Auftragsdateien
+    if (!preg_match('/^[a-f0-9]{24}\.(pdf|json|musicxml|owner|abgebrochen|audio|satzpdf)$/', basename($f))) continue;   // nur Auftragsdateien
     if (filemtime($f) < time() - 3 * 86400) @unlink($f);
   }
 }
-function gh_dispatch($job, $text = true) {
-  $url = (defined('GH_API') ? GH_API : 'https://api.github.com') . '/repos/' . GH_REPO . '/actions/workflows/server.yml/dispatches';
+function gh_dispatch($job, $text = true, $wf = 'server.yml', $extra = []) {
+  $url = (defined('GH_API') ? GH_API : 'https://api.github.com') . '/repos/' . GH_REPO . '/actions/workflows/' . $wf . '/dispatches';
   $self = 'https://' . ($_SERVER['HTTP_HOST'] ?? '') . strtok($_SERVER['REQUEST_URI'] ?? '/api.php', '?');
   $inputs = ['job' => $job, 'dienst' => $self]; if (!$text) $inputs['text'] = '0';   // dienst: Rückmeldungen an genau diesen Dienst
+  $inputs = array_merge($inputs, $extra);
   $body = json_encode(['ref' => 'main', 'inputs' => $inputs]);
   $h = ['Authorization: Bearer ' . GH_TOKEN, 'Accept: application/vnd.github+json', 'X-GitHub-Api-Version: 2022-11-28', 'User-Agent: blattsingen-server', 'Content-Type: application/json'];
   if (function_exists('curl_init')) {
@@ -51,7 +54,8 @@ $job = $_GET['job'] ?? '';
 if ($a === 'ping') out(200, ['ok' => true, 'dienst' => 'blattsingen', 'zugang' => ZUGANG, 'registrieren' => SELBST_REGISTRIEREN,
   'code' => EINLADUNGSCODE !== '', 'limit' => ZUGANG === 'konto' ? (TARIFE[TARIF_NEU]['limit'] ?? 0) : LIMIT_PER_MONTH,
   'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT,
-  'sync' => ZUGANG === 'konto' && (!defined('SYNC_AN') || SYNC_AN), 'sync_mb' => defined('SYNC_MB') ? (int)SYNC_MB : 300]);
+  'sync' => ZUGANG === 'konto' && (!defined('SYNC_AN') || SYNC_AN), 'sync_mb' => defined('SYNC_MB') ? (int)SYNC_MB : 300,
+  'satz' => ZUGANG === 'konto' && (!defined('SATZ_AN') || SATZ_AN), 'satz_mb' => defined('SATZ_MB') ? (int)SATZ_MB : 40]);
 
 function post($n) { return (string)($_POST[$n] ?? ''); }
 function nur_post() { if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') out(405, ['fehler' => 'Nur POST']); }
@@ -250,6 +254,58 @@ if ($a === 'tarif') {   // für spätere automatische Bezahlung (Zahlungsanbiete
   out(200, ['ok' => true]);
 }
 
+function gh_fehler($code, $r, $email, $job, $titel, $wf) {
+  $ghm = substr((string)(json_decode((string)$r, true)['message'] ?? ''), 0, 120);
+  $tipp = [401 => 'GH_TOKEN in config.php ungültig oder abgelaufen',
+           403 => 'GH_TOKEN hat keine Berechtigung „Actions: Read and write“ für ' . GH_REPO,
+           404 => 'GH_REPO falsch, Token hat keinen Zugriff auf dieses Repository oder ' . $wf . ' fehlt im Branch main (Admin → Konverter aktualisieren)',
+           422 => $wf . ' im Konverter-Repository ist veraltet (Admin → Konverter aktualisieren)'][$code] ?? '';
+  protokoll($email, $job, 'start fehlgeschlagen (GitHub ' . $code . ($ghm ? ': ' . $ghm : '') . ')', $titel);
+  out(502, ['fehler' => 'Der Auftrag konnte nicht gestartet werden (GitHub ' . $code . ($ghm ? ': ' . $ghm : '') . ').'
+    . ($tipp ? ' Hinweis für den Betreiber: ' . $tipp . '.' : ' Bitte dem Betreiber Bescheid geben.')]);
+}
+
+if ($a === 'satz' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {   // Song → A-cappella-Satz (nur mit Konto)
+  cleanup($DATA);
+  if (ZUGANG !== 'konto' || (defined('SATZ_AN') && !SATZ_AN)) out(403, ['fehler' => 'Diese Funktion ist auf diesem Dienst nicht eingeschaltet.']);
+  $kto = konto_aus_token(); $email = $kto['email'];
+  if (in_array($email, BLOCKED, true)) out(403, ['fehler' => 'Für diese E-Mail-Adresse ist die Funktion gesperrt.']);
+  $mb = defined('SATZ_MB') ? (int)SATZ_MB : 40;
+  if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(400, ['fehler' => 'Die Aufnahme ist nicht angekommen (zu groß oder Verbindung unterbrochen).']);
+  if ($_FILES['audio']['size'] > $mb * 1048576) out(413, ['fehler' => 'Die Aufnahme ist größer als ' . $mb . ' MB.']);
+  if ($_FILES['audio']['size'] < 2000) out(400, ['fehler' => 'Die Aufnahme ist zu kurz.']);
+  $head = file_get_contents($_FILES['audio']['tmp_name'], false, null, 0, 12);
+  $ok = substr($head, 0, 4) === 'RIFF' || substr($head, 0, 3) === 'ID3' || (ord($head[0]) === 0xFF && (ord($head[1]) & 0xE0) === 0xE0)
+     || substr($head, 4, 4) === 'ftyp' || substr($head, 0, 4) === 'OggS' || substr($head, 0, 4) === 'fLaC' || substr($head, 0, 4) === "\x1A\x45\xDF\xA3";
+  if (!$ok) out(400, ['fehler' => 'Das Format wird nicht erkannt. Möglich sind MP3, M4A/AAC, WAV, OGG, FLAC oder WebM.']);
+  $bes = strtoupper(post('besetzung')); if (!in_array($bes, ['SATB', 'SSAA', 'TTBB', 'SAB', 'SSA', 'TTB', 'SSATB', 'SATBB'], true)) $bes = 'SATB';
+  $mel = preg_replace('/[^A-Z0-9]/', '', strtoupper(post('melodie'))); $mel = substr($mel, 0, 3);
+  $stil = post('stil') === 'rhythmisch' ? 'rhythmisch' : 'gehalten';
+  $quelle = in_array(post('quelle'), ['song', 'gesang'], true) ? post('quelle') : 'auto';
+  $titel = trim((string)preg_replace('/[\x00-\x1F"`$\\\\]/u', '', post('titel')));
+  $titel = function_exists('mb_substr') ? mb_substr($titel, 0, 80) : substr($titel, 0, 80);
+  $mon = date('Y-m');
+  [$ok, $n1, $lim] = konten_tx(function (&$K) use ($email, $mon) {
+    $k = &$K[$email]; $lim = limit_von($k); $n = (int)($k['monate'][$mon] ?? 0);
+    if ($lim > 0 && $n >= $lim) return [false, $n, $lim];
+    $k['monate'][$mon] = $n + 1; $k['gesamt'] = (int)($k['gesamt'] ?? 0) + 1; $k['zuletzt'] = date('Y-m-d H:i');
+    return [true, $n + 1, $lim];
+  });
+  if (!$ok) out(429, ['fehler' => 'Dein Kontingent von ' . $lim . ' Aufträgen in diesem Monat ist aufgebraucht.', 'kontingent' => true, 'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT]);
+  $job = bin2hex(random_bytes(12));
+  move_uploaded_file($_FILES['audio']['tmp_name'], "$DATA/$job.audio");
+  file_put_contents("$DATA/$job.json", json_encode(['status' => 'läuft', 'schritt' => 'Wartet, bis die Analyse startet', 'zeit' => time(), 'art' => 'satz'], JSON_UNESCAPED_UNICODE));
+  file_put_contents("$DATA/$job.owner", json_encode(['email' => $email, 'monat' => $mon, 'titel' => 'Satz: ' . $titel, 'konto' => true, 'art' => 'satz'], JSON_UNESCAPED_UNICODE));
+  [$code, $r] = gh_dispatch($job, true, 'satz.yml', ['besetzung' => $bes, 'melodie' => $mel, 'stil' => $stil, 'quelle' => $quelle, 'titel' => $titel]);
+  if ($code !== 204) {
+    @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
+    zaehlen($email, -1, $mon);
+    gh_fehler($code, $r, $email, $job, 'Satz: ' . $titel, 'satz.yml');
+  }
+  protokoll($email, $job, 'Satz gestartet (' . $bes . ')', 'Satz: ' . $titel);
+  out(200, ['job' => $job, 'genutzt' => $n1, 'limit' => $lim, 'konto' => konto_info(konten_lesen()[$email])]);
+}
+
 if ($a === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
   cleanup($DATA);
   $kto = null;
@@ -311,14 +367,14 @@ if ($a === 'abbrechen' && $_SERVER['REQUEST_METHOD'] === 'POST') {   // App bric
   $of = "$DATA/$job.owner"; $o = is_file($of) ? json_decode((string)file_get_contents($of), true) : null;
   if (!$o && !is_file("$DATA/$job.json")) out(404, ['fehler' => 'Auftrag nicht gefunden (abgelaufen?)']);
   if ($o && !empty($o['konto'])) { $k = token_pruefen($_POST['tok'] ?? ''); if (!$k || $k['email'] !== $o['email']) out(403, ['fehler' => 'Nur wer die Umwandlung gestartet hat, kann sie abbrechen.']); }
-  touch("$DATA/$job.abgebrochen"); @unlink("$DATA/$job.pdf");
+  touch("$DATA/$job.abgebrochen"); @unlink("$DATA/$job.pdf"); @unlink("$DATA/$job.audio");
   file_put_contents("$DATA/$job.json", json_encode(['status' => 'fehler', 'meldung' => 'Umwandlung abgebrochen.', 'abgebrochen' => true], JSON_UNESCAPED_UNICODE));
   if ($o) { @unlink($of); if (!empty($o['konto'])) zaehlen($o['email'], -1, $o['monat']); protokoll($o['email'], $job, 'abgebrochen', $o['titel'] ?? ''); }
   // laufenden GitHub-Lauf abbrechen (run-name enthält die Auftragsnummer)
   $api = (defined('GH_API') ? GH_API : 'https://api.github.com') . '/repos/' . GH_REPO;
   $h = ['Authorization: Bearer ' . GH_TOKEN, 'Accept: application/vnd.github+json', 'X-GitHub-Api-Version: 2022-11-28', 'User-Agent: blattsingen-server'];
-  if (function_exists('curl_init')) {
-    $c = curl_init("$api/actions/workflows/server.yml/runs?per_page=30"); curl_setopt_array($c, [CURLOPT_HTTPHEADER => $h, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15]);
+  if (function_exists('curl_init')) foreach (['server.yml', 'satz.yml'] as $wf) {
+    $c = curl_init("$api/actions/workflows/$wf/runs?per_page=30"); curl_setopt_array($c, [CURLOPT_HTTPHEADER => $h, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15]);
     $runs = json_decode((string)curl_exec($c), true); curl_close($c);
     foreach (($runs['workflow_runs'] ?? []) as $r) {
       if (strpos((string)($r['display_title'] ?? ''), $job) !== false && ($r['status'] ?? '') !== 'completed') {
@@ -328,12 +384,27 @@ if ($a === 'abbrechen' && $_SERVER['REQUEST_METHOD'] === 'POST') {   // App bric
   }
   out(200, ['ok' => true]);
 }
-if (is_file("$DATA/$job.abgebrochen") && in_array($a, ['pdf', 'report', 'ergebnis'], true)) out(410, ['fehler' => 'abgebrochen']);
+if (is_file("$DATA/$job.abgebrochen") && in_array($a, ['pdf', 'audio', 'report', 'ergebnis'], true) && !($a === 'satzpdf')) out(410, ['fehler' => 'abgebrochen']);
 
 if ($a === 'pdf') {           // GitHub holt die PDF
   need_sig($job);
   if (!is_file("$DATA/$job.pdf")) out(404, ['fehler' => 'keine PDF']);
   header('Content-Type: application/pdf'); readfile("$DATA/$job.pdf"); exit;
+}
+if ($a === 'satzpdf') {       // Notenbild des Satzes: GitHub schickt es (POST mit Schlüssel), die App holt es ab
+  if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    need_sig($job);
+    $raw = file_get_contents('php://input');
+    if (substr($raw, 0, 5) !== '%PDF-') out(400, ['fehler' => 'keine PDF']);
+    file_put_contents("$DATA/$job.satzpdf", $raw); out(200, ['ok' => true]);
+  }
+  if (!is_file("$DATA/$job.satzpdf")) out(404, ['fehler' => 'kein Notenbild']);
+  header('Content-Type: application/pdf'); readfile("$DATA/$job.satzpdf"); exit;
+}
+if ($a === 'audio') {         // GitHub holt die Aufnahme für den Satz
+  need_sig($job);
+  if (!is_file("$DATA/$job.audio")) out(404, ['fehler' => 'keine Aufnahme']);
+  header('Content-Type: application/octet-stream'); readfile("$DATA/$job.audio"); exit;
 }
 if ($a === 'ergebnis' && $_SERVER['REQUEST_METHOD'] === 'POST') {   // GitHub schickt die MusicXML (eigene Sendung)
   need_sig($job);
@@ -347,7 +418,7 @@ if ($a === 'report' && $_SERVER['REQUEST_METHOD'] === 'POST') {   // GitHub meld
   if (isset($d['musicxml'])) { file_put_contents("$DATA/$job.musicxml", $d['musicxml']); unset($d['musicxml']); }
   file_put_contents("$DATA/$job.json", json_encode($d, JSON_UNESCAPED_UNICODE));
   if (in_array($d['status'] ?? '', ['fertig', 'fehler'], true)) {
-    @unlink("$DATA/$job.pdf");
+    @unlink("$DATA/$job.pdf"); @unlink("$DATA/$job.audio");
     $of = "$DATA/$job.owner";
     if (is_file($of) && ($o = json_decode((string)@file_get_contents($of), true))) {
       @unlink($of);   // nur einmal abrechnen
