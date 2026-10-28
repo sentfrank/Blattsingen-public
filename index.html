@@ -390,7 +390,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.3.2 · 28.10.2026 · Strato (Build 53)</span>
+  <span class="appver">App-Version S1.3.3 · 28.10.2026 · Strato (Build 54)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -501,7 +501,7 @@ body.regopen{overflow:hidden}
           <div class="gauge" aria-hidden="true"><div class="gzone"></div><div class="gmid"></div><div class="gneedle" id="tNeedle"></div></div>
           <div class="gscale"><span>−50 Cent</span><span>0</span><span>+50 Cent</span></div>
           <div class="level" aria-hidden="true"><span>Mikrofon</span><div class="lbar"><div id="tLevel"></div><i id="tGate"></i></div></div>
-          <div class="sens"><label class="label" for="micSens">Empfindlichkeit</label><select id="micSens"><option value="1">normal</option><option value="2">hoch (leises Singen)</option><option value="3">sehr hoch (iPad, Abstand)</option></select><span class="hint">Strich im Balken = ab hier hört die App zu</span></div>
+          <div class="sens"><label class="label" for="micSens">Empfindlichkeit</label><select id="micSens"><option value="1">normal</option><option value="2">hoch (leises Singen)</option><option value="3">sehr hoch (iPad, Abstand)</option></select><span class="hint">Strich im Balken = ab hier hört die App zu</span><label class="label" for="pitchSmooth">Glättung</label><select id="pitchSmooth" class="pitchSmooth"><option value="0">aus (sehr direkt)</option><option value="1">leicht</option><option value="2">mittel</option><option value="3">stark (ruhig, etwas träger)</option></select></div>
         </div>
         <p class="hint" id="liveStatus" aria-live="polite"></p></div>
         <p class="hint">Mit Kopfhörern: Grundton hören, dann die Tonleiter in der eingestellten Richtung singen, jeden Ton etwa eine Sekunde. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp daneben, <b class="c-bad">rot</b> daneben; ein ganz anderer Ton erscheint als rote Note neben der Zielnote.</p>
@@ -705,6 +705,8 @@ body.regopen{overflow:hidden}
           <select id="forkRef"><option value="415">415 Hz (Barock)</option><option value="430">430 Hz</option><option value="440" selected>440 Hz</option><option value="442">442 Hz</option><option value="443">443 Hz</option></select></div>
         <div class="field"><label class="label" for="forkClef">Notenbild</label>
           <select id="forkClef"><option value="auto">automatisch</option><option value="voice">wie Stimmlage</option></select></div>
+        <div class="field"><label class="label" for="forkSmooth">Glättung</label>
+          <select id="forkSmooth" class="pitchSmooth"><option value="0">aus (sehr direkt)</option><option value="1">leicht</option><option value="2">mittel</option><option value="3">stark (ruhig, etwas träger)</option></select></div>
       </div>
       <div class="btnrow">
         <button class="primary" type="button" id="forkStart">🎤 Ton erkennen</button>
@@ -2478,6 +2480,26 @@ nnDraw(); rhNew();
 
 /* ---------- Live-Modus mit Mikrofon ---------- */
 const live={mode:"scale",on:false,stream:null,src:null,an:null,buf:null,timer:null,seq:[],idx:0,match:[],oct:null,win:[],cur:null,frames:[],t0:0};
+/* Glättung der erkannten Tonhöhe (einstellbar): Median über mehrere Messungen, dann weich nachführen;
+   ein neuer Ton wird erst übernommen, wenn er einige Messungen lang anliegt (gegen Springen und Oktavfehler) */
+const PSM={0:{w:3,a:1,h:1},1:{w:5,a:.6,h:2},2:{w:9,a:.35,h:3},3:{w:15,a:.2,h:5}};
+function pitchLevel(){ return +(store.get("pitchSmooth","2")); }
+window.__ps=()=>({pitchSmoother,smoothPitch});
+function pitchSmoother(){ return {win:[],ema:null,cand:null,cn:0}; }
+function smoothPitch(S,m){
+  const L=PSM[pitchLevel()]||PSM[2];
+  S.win.push(m); while(S.win.length>L.w) S.win.shift();
+  const v=S.win.filter(x=>x!=null);
+  if(v.length<Math.max(2,Math.ceil(L.w*.5))){ if(!v.length) S.ema=null; S.cand=null; S.cn=0; return v.length&&S.ema!=null?S.ema:null; }
+  const md=median(v);
+  if(S.ema==null||L.a>=1){ S.ema=md; S.cand=null; S.cn=0; return md; }
+  if(Math.abs(md-S.ema)>0.7){
+    if(S.cand!=null&&Math.abs(md-S.cand)<0.5) S.cn++; else { S.cand=md; S.cn=1; }
+    if(S.cn>=L.h){ S.ema=md; S.cand=null; S.cn=0; }
+    return S.ema;
+  }
+  S.cand=null; S.cn=0; S.ema+=L.a*(md-S.ema); return S.ema;
+}
 function yinFrame(x,sr,gate){
   let r=0; for(let j=0;j<x.length;j++) r+=x[j]*x[j]; r=Math.sqrt(r/x.length);
   if(r<(gate==null?0.012:gate)) return null;
@@ -2596,8 +2618,7 @@ function liveTick(){
   const lv=$("tLevel"); if(lv) lv.style.width=Math.min(100,Math.round(Math.sqrt(rms)*260*((live.sens||2)>=2?1.6:1)))+"%";
   if(!live.warned&&t>4&&live.peak<((live.sens||2)>=2?0.0005:0.002)){ live.warned=true; $("liveStatus").textContent="Ich höre nichts vom Mikrofon (Audio: "+live.actx.state+"). Sing lauter oder näher am Gerät. Bleibt der Pegelbalken leer: App ganz schließen, neu öffnen und als Erstes „Live starten“ tippen."; }
   live.frames.push({t,m});
-  live.win.push(m); if(live.win.length>5) live.win.shift();
-  const vals=live.win.filter(v=>v!=null), sm=vals.length>=3?median(vals):null;
+  const sm=smoothPitch(live.sm||(live.sm=pitchSmoother()),m);
   setTuner(live.seq[live.idx],sm);
   if(sm==null){ if(live.cur&&t-live.cur.t1>0.12) finalizeNote(); return; }
   if(live.cur && Math.abs(sm-median(live.cur.ms.slice(-8)))<0.6){ live.cur.ms.push(sm); live.cur.t1=t; }
@@ -2650,7 +2671,7 @@ async function startLive(mode){
   live.src=c.createMediaStreamSource(live.stream); live.an=c.createAnalyser(); live.an.fftSize=4096; live.src.connect(live.an);
   try{ const z=c.createGain(); z.gain.value=0; live.an.connect(z); z.connect(c.destination); }catch(e){}
   live.buf=new Float32Array(live.an.fftSize); live.nf=null; live.dbg={n:0,v:0,rms:0,c:9,told:false};
-  live.seq=mode==="read"?melody:mode==="ivs"?IVS.seq:scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.cur=null; live.frames=[];
+  live.seq=mode==="read"?melody:mode==="ivs"?IVS.seq:scaleSeq(); live.idx=0; live.match=new Array(live.seq.length).fill(null); live.oct=null; live.win=[]; live.sm=null; live.cur=null; live.frames=[];
   if(mode==="scale"){ $("recOut").hidden=false; $("scaleStats").hidden=true; } else if(mode==="ivs") $("ivsStats").hidden=true; else $("readStats").hidden=true;
   liveRedraw();
   $("tuner").hidden=false; $(UI.stop).disabled=false;
@@ -2684,6 +2705,7 @@ function stopLive(done){
 }
 $("liveStart").onclick=()=>startLive("scale");
 $("micSens").value=String(store.get("micSens","2"));
+document.querySelectorAll(".pitchSmooth").forEach(s=>{ s.value=String(store.get("pitchSmooth","2")); s.onchange=e=>{ store.set("pitchSmooth",e.target.value); document.querySelectorAll(".pitchSmooth").forEach(o=>o.value=e.target.value); }; });
 $("micSens").onchange=e=>{ store.set("micSens",e.target.value); live.sens=+e.target.value; if(live.on&&live.sens>=3) $("liveStatus").textContent="„Sehr hoch“ schaltet die automatische Mikrofon-Verstärkung ein: wirkt ab dem nächsten „Live starten“."; };
 $("liveStop").onclick=()=>stopLive(false);
 $("readLiveStart").onclick=()=>startLive("read");
@@ -2784,7 +2806,7 @@ async function forkStart(){
   const c=ac(); if(c.state!=="running"){ try{ await Promise.race([c.resume(),new Promise(r=>setTimeout(r,1500))]); }catch(e){} }
   FORK.actx=c; FORK.src=c.createMediaStreamSource(FORK.stream); FORK.an=c.createAnalyser(); FORK.an.fftSize=4096; FORK.src.connect(FORK.an);
   try{ const z=c.createGain(); z.gain.value=0; FORK.an.connect(z); z.connect(c.destination); }catch(e){}
-  FORK.buf=new Float32Array(FORK.an.fftSize); FORK.nf=null; FORK.win=[]; FORK.trace=[]; FORK.hold=null; FORK.sens=sens;
+  FORK.buf=new Float32Array(FORK.an.fftSize); FORK.nf=null; FORK.win=[]; FORK.sm=null; FORK.trace=[]; FORK.hold=null; FORK.sens=sens;
   FORK.on=true; FORK.timer=setInterval(forkTick,40); $("forkStop").disabled=false;
   out.textContent="Ich höre zu – sing oder summe einen Ton.";
 }
@@ -2810,8 +2832,7 @@ function forkTick(){
   $("forkLevel").style.width=Math.min(100,Math.round(Math.sqrt(rms)*260*(S>=2?1.6:1)))+"%";
   let m=yinFrame(x,sr,gate);
   if(m!=null) m+=12*Math.log2(440/FORK.ref);     // auf den gewählten Kammerton beziehen
-  FORK.win.push(m); if(FORK.win.length>5) FORK.win.shift();
-  const vals=FORK.win.filter(v=>v!=null), sm=vals.length>=3?median(vals):null, now=performance.now();
+  const sm=smoothPitch(FORK.sm||(FORK.sm=pitchSmoother()),m), now=performance.now();
   FORK.trace.push(sm); if(FORK.trace.length>120) FORK.trace.shift();
   if(sm==null){ if(FORK.hold&&now-FORK.hold.t1>400) FORK.hold=null; forkTrace(); return; }
   const r=Math.round(sm), c=Math.round((sm-r)*100), cl=Math.max(-50,Math.min(50,c)), col=devColor(c);
@@ -3024,8 +3045,7 @@ async function chsLive(){
     M.nf=M.nf==null?rms:(rms<M.nf?M.nf*0.8+rms*0.2:M.nf*0.999+rms*0.001);
     const S=M.sens||2, gmin=[0,0.0015,0.0007,0.0003][S], gfac=[0,2.5,2.0,1.6][S], gmax=[0,0.012,0.008,0.005][S];
     const m=yinFrame(x,sr,Math.max(gmin,Math.min(gmax,M.nf*gfac)));
-    M.win.push(m); if(M.win.length>5) M.win.shift();
-    const v=M.win.filter(q=>q!=null), sm=v.length>=3?median(v):null;
+    const sm=smoothPitch(M.sm||(M.sm=pitchSmoother()),m);
     if(sm!=null&&(performance.now()-start)>500) M.frames.push(sm);
     if(sm!=null){ const d=Math.round((sm-t)*100); if(Math.abs(d)<150) $("nowChsSub").textContent=(d>0?"+":"")+d+" Cent zum Zielton"; }
     if(performance.now()-start>6600) chsEval();
@@ -3693,7 +3713,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.3.2 · 28.10.2026 · Strato (Build 53)";
+const APP_VERSION="S1.3.3 · 28.10.2026 · Strato (Build 54)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4675,7 +4695,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=53;
+const APP_BUILD=54;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
