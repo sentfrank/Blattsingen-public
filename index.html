@@ -390,7 +390,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.3.0 · 28.10.2026 · Strato (Build 51)</span>
+  <span class="appver">App-Version S1.3.1 · 28.10.2026 · Strato (Build 52)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -3149,11 +3149,11 @@ function parseMusicXML(text,DOMP){
         else if(nm==="forward"){ pos+=(+txt(E,"duration")||0)/div; maxPos=Math.max(maxPos,pos); }
         else if(nm==="direction"||nm==="sound"){
           const snd=nm==="sound"?E:kid(E,"sound");
-          if(snd&&snd.getAttribute("tempo")){ const bpm=+snd.getAttribute("tempo"); if(bpm>0) tempos.push({off:pos,bpm}); }
+          if(snd&&snd.getAttribute("tempo")){ const bpm=+snd.getAttribute("tempo"); if(bpm>=25&&bpm<=320) tempos.push({off:pos,bpm}); }
           else if(nm==="direction"){
             const met=firstDeep(E,"metronome");
             if(met){ const pm=+txt(met,"per-minute"), U={whole:4,half:2,quarter:1,eighth:.5,"16th":.25}[txt(met,"beat-unit")]||1, dots=kids(met,"beat-unit-dot").length;
-              if(pm>0) tempos.push({off:pos,bpm:pm*U*(dots?1.5:1)}); }
+              const bq=pm*U*(dots?1.5:1); if(bq>=25&&bq<=320) tempos.push({off:pos,bpm:bq}); }
           }
         }else if(nm==="note"){
           if(kid(E,"grace")) return;
@@ -3693,7 +3693,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.3.0 · 28.10.2026 · Strato (Build 51)";
+const APP_VERSION="S1.3.1 · 28.10.2026 · Strato (Build 52)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -3966,14 +3966,20 @@ function plTick(){
 }
 function plAnim(){
   if(!PL.on) return;
+  PL.raf=requestAnimationFrame(plAnim);   // zuerst: ein Fehler in der Anzeige darf die Anzeige nicht anhalten
+  try{ plAnimStep(); }catch(e){ if(!PL.animErr){ PL.animErr=1; console.error("Anzeige beim Abspielen:",e); try{ $("pPos").title=String(e&&e.message||e); }catch(_){} } }
+}
+function plAnimStep(){
   const s=ctx.currentTime-PL.base, q=PL.map.q(Math.max(s,PL.map.sec(PL.q0)));
   const sc=SC(), mi=measureAt(sc,q), ms=sc.measures[mi], ts=timeAt(sc,ms.q), beatQ=4/ts.den;
   const counting=s<PL.map.sec(PL.q0)-0.02;
   plPos(mi,Math.floor((q-ms.q)/beatQ+1e-6)+1, counting);
-  const nx=sc.measures[mi+1]; FL.q=counting?null:q; flShow(mi,counting?0:(nx?(q-ms.q)/Math.max(1e-6,nx.q-ms.q):0),!counting||FL.last!==mi);
-  nbDraw(counting?PL.q0:q);
-  lyShow(counting?PL.q0:q);
-  PL.raf=requestAnimationFrame(plAnim);
+  const nx=sc.measures[mi+1]; FL.q=counting?null:q;
+  try{ flShow(mi,counting?0:(nx?(q-ms.q)/Math.max(1e-6,nx.q-ms.q):0),!counting||FL.last!==mi); }catch(e){ if(!PL.e1){ PL.e1=1; console.error("Mitlesen:",e); } }
+  try{ nbDraw(counting?PL.q0:q); }catch(e){ if(!PL.e2){ PL.e2=1; console.error("Notenband:",e); } }
+  try{ lyShow(counting?PL.q0:q); }catch(e){ if(!PL.e3){ PL.e3=1; console.error("Liedtext:",e); } }
+  // Tonausgabe steht (z. B. nach Mikrofon-Nutzung auf dem iPhone): wieder anwerfen
+  if(ctx.state!=="running"&&!PL.resuming){ PL.resuming=1; try{ ctx.resume().finally(()=>{ PL.resuming=0; }); }catch(e){ PL.resuming=0; } }
 }
 /* Liedtext der markierten Stimme: aktuelle Zeile, gerade gesungene Silbe hervorgehoben */
 function lyShow(q){
@@ -4669,7 +4675,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=51;
+const APP_BUILD=52;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
