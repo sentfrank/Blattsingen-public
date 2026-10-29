@@ -25,7 +25,7 @@ function sig($j) { return hash_hmac('sha256', $j, SERVER_KEY); }
 function need_sig($j) { if (!hash_equals(sig($j), (string)($_GET['k'] ?? ''))) out(403, ['fehler' => 'Schlüssel falsch']); }
 function cleanup($DATA) {
   foreach (glob("$DATA/*.*") as $f) {
-    if (!preg_match('/^[a-f0-9]{24}\.(pdf|json|musicxml|owner|abgebrochen|audio|satzpdf)$/', basename($f))) continue;   // nur Auftragsdateien
+    if (!preg_match('/^[a-f0-9]{24}\.(pdf|json|musicxml|owner|abgebrochen|audio|satzpdf|ton[0-9])$/', basename($f))) continue;   // nur Auftragsdateien
     if (filemtime($f) < time() - 3 * 86400) @unlink($f);
   }
 }
@@ -301,7 +301,7 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
                   'silbe' => $sil, 'lage' => max(-1, min(1, (int)($o['lage'] ?? 0)))];
     }
     $opt = ['stimmen' => $st, 'melodie' => $mel, 'stil' => $stil, 'beatbox' => post('beatbox') === '1', 'transponieren' => max(-7, min(7, (int)post('transponieren'))),
-            'text' => post('text') !== '0', 'einzeln' => $ein];
+            'text' => post('text') !== '0', 'einzeln' => $ein, 'gesang' => post('gesang') === '1'];
     file_put_contents("$DATA/$job.audio", $ana);
     [$code, $r] = satz_start($job, $email, 'satz', $opt, $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Arrangement: ' . $titel, 'konto' => false, 'art' => 'satz']);
     if ($code !== 204) { @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner"); gh_fehler($code, $r, $email, $job, 'Arrangement: ' . $titel, 'satz.yml'); }
@@ -429,6 +429,18 @@ if ($a === 'satzpdf') {       // Notenbild des Satzes: GitHub schickt es (POST m
   }
   if (!is_file("$DATA/$job.satzpdf")) out(404, ['fehler' => 'kein Notenbild']);
   header('Content-Type: application/pdf'); readfile("$DATA/$job.satzpdf"); exit;
+}
+if ($a === 'satzton') {       // Gesangsspur einer Stimme: GitHub schickt sie (POST mit Schlüssel), die App holt sie ab
+  $teil = (int)($_GET['teil'] ?? -1); if ($teil < 0 || $teil > 9) out(400, ['fehler' => 'Stimme fehlt']);
+  $f = "$DATA/$job.ton$teil";
+  if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    need_sig($job);
+    $raw = file_get_contents('php://input');
+    if (strlen($raw) < 100 || strlen($raw) > 30 * 1048576) out(400, ['fehler' => 'keine Aufnahme']);
+    file_put_contents($f, $raw); out(200, ['ok' => true]);
+  }
+  if (!is_file($f)) out(404, ['fehler' => 'keine Gesangsspur']);
+  header('Content-Type: audio/mpeg'); header('Content-Length: ' . filesize($f)); readfile($f); exit;
 }
 if ($a === 'audio') {         // GitHub holt die Aufnahme für den Satz
   need_sig($job);
