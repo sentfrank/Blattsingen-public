@@ -407,7 +407,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.7.1 · 29.10.2026 · Strato (Build 59)</span>
+  <span class="appver">App-Version S1.7.2 · 29.10.2026 · Strato (Build 60)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -3586,6 +3586,9 @@ async function fileKind(file){
 /* --- Projekte (z. B. ein Konzertprogramm): Stücke lassen sich in ein oder mehrere Projekte legen --- */
 const PJ={sel:null,edit:null};   // sel: null = alle, "" = ohne Projekt, sonst Projektname; edit: null | "neu" | "umbenennen" | "stück"
 try{ const v=localStorage.getItem("blattsingen_projekt_sel"); PJ.sel=v==null?null:JSON.parse(v); }catch(e){}
+const PJ_ARR="\u0001arr";   // eigener Ordner für arrangierte Stücke (Song → A-cappella)
+const isArr=p=>!!(p&&p.satz);
+function pjProj(){ return PJ.sel&&PJ.sel!==PJ_ARR?PJ.sel:null; }   // ausgewähltes echtes Projekt
 function pjExtra(){ try{ return JSON.parse(localStorage.getItem("blattsingen_projekte")||"[]"); }catch(e){ return []; } }
 function pjSetExtra(a,fromSync){ try{ localStorage.setItem("blattsingen_projekte",JSON.stringify([...new Set(a)])); if(!fromSync) localStorage.setItem("blattsingen_projekte_u",String(Date.now())); }catch(e){} if(!fromSync&&typeof syncSoon==="function") syncSoon(); }
 function pjNames(){ const st=new Set(pjExtra()); NL.pieces.forEach(p=>{ if(!p.builtin) (p.projs||[]).forEach(n=>st.add(n)); }); return [...st].sort((a,b)=>a.localeCompare(b,"de",{numeric:true})); }
@@ -3641,19 +3644,21 @@ function pjMovePanel(p,sel,onClose){
 function pjChip(text,on,role){ const b=document.createElement("button"); b.type="button"; b.textContent=text; if(role==="tab"){ b.setAttribute("role","tab"); b.setAttribute("aria-selected",on?"true":"false"); } else b.setAttribute("aria-pressed",on?"true":"false"); return b; }
 function pjBar(own){
   const bar=$("projBar"); bar.innerHTML=""; const names=pjNames();
-  if(PJ.sel&&!names.includes(PJ.sel)) PJ.sel=null;
+  if(PJ.sel&&PJ.sel!==PJ_ARR&&!names.includes(PJ.sel)) PJ.sel=null;
+  const arrN=own.filter(isArr).length; if(PJ.sel===PJ_ARR&&!arrN) PJ.sel=null;
   if(PJ.sel===""&&!names.length) PJ.sel=null;
   const add=(label,val,cnt)=>{ const b=pjChip(label+(cnt!=null?" ("+cnt+")":""),PJ.sel===val,"tab"); b.onclick=()=>pjSelect(val); bar.appendChild(b); };
-  add("Alle",null,own.length);
+  add("Noten",null,own.filter(p=>!isArr(p)).length);
+  if(arrN) add("🎶 Arrangements",PJ_ARR,arrN);
   names.forEach(n=>add(n,n,own.filter(p=>(p.projs||[]).includes(n)).length));
-  const loose=own.filter(p=>!(p.projs||[]).length).length;
+  const loose=own.filter(p=>!isArr(p)&&!(p.projs||[]).length).length;
   if(names.length&&loose) add("Ohne Projekt","",loose);
   const nb=document.createElement("button"); nb.type="button"; nb.className="pnew"; nb.textContent="+ Projekt";
   nb.onclick=()=>{ PJ.edit="neu"; $("projName").value=""; pjTools(); $("projName").focus(); }; bar.appendChild(nb);
   pjTools();
 }
 function pjTools(){
-  const named=!!PJ.sel;
+  const named=!!pjProj();
   $("projTools").hidden=!named||PJ.edit==="umbenennen";
   if(named){ $("projInfo").textContent="Neue Dateien landen direkt in „"+PJ.sel+"“. Reihenfolge mit ↑ ↓."; const d=$("projDelete"); d.dataset.arm=""; d.textContent="Projekt auflösen"; }
   $("projNew").hidden=!(PJ.edit==="neu"||PJ.edit==="umbenennen");
@@ -3685,10 +3690,11 @@ async function nlRefresh(){
   const own=NL.pieces.filter(p=>!p.builtin);
   pjBar(own);
   if(!own.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent="Noch keine Stücke. Wähle oben eine PDF und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei."; ul.appendChild(li); return; }
-  const sel=PJ.sel;
-  let list=sel===null?own:(sel===""?own.filter(p=>!(p.projs||[]).length):own.filter(p=>(p.projs||[]).includes(sel)));
+  const arrView=PJ.sel===PJ_ARR, sel=arrView?null:PJ.sel;
+  let list=arrView?own.filter(isArr):sel===null?own.filter(p=>!isArr(p)):(sel===""?own.filter(p=>!isArr(p)&&!(p.projs||[]).length):own.filter(p=>(p.projs||[]).includes(sel)));
+  if(arrView&&!list.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent="Noch keine Arrangements. Erstelle oben unter „Song → A-cappella-Arrangement“ eins."; ul.appendChild(li); return; }
   if(sel) list=list.slice().sort((a,b)=>pjOrd(a,sel)-pjOrd(b,sel));
-  if(!list.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent=sel?"Noch keine Stücke in „"+sel+"“. Lade oben neue Dateien – sie landen direkt hier – oder öffne ein vorhandenes Stück und tippe unter dem Titel auf „"+sel+"“.":"Alle Stücke sind einem Projekt zugeordnet."; ul.appendChild(li); return; }
+  if(!list.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent=sel?"Noch keine Stücke in „"+sel+"“. Lade oben neue Dateien – sie landen direkt hier – oder öffne ein vorhandenes Stück und tippe unter dem Titel auf „"+sel+"“.":(sel===""?"Alle Noten sind einem Projekt zugeordnet.":"Noch keine Noten. Wähle oben eine PDF und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei."); ul.appendChild(li); return; }
   list.forEach((p,idx)=>{
     const li=document.createElement("li"); li.className="lib-item";
     const b=document.createElement("button"); b.type="button"; b.className="lib-open";
@@ -3706,7 +3712,7 @@ async function nlRefresh(){
     mvb.onclick=()=>{ const open=li.querySelector(".lib-mv"); if(open){ open.remove(); mvb.setAttribute("aria-expanded","false"); return; } li.appendChild(pjMovePanel(p,sel,()=>{ mvb.setAttribute("aria-expanded","false"); })); mvb.setAttribute("aria-expanded","true"); };
     const del=document.createElement("button"); del.type="button"; del.className="lib-del"; del.textContent=sel?"Aus Projekt":"Löschen";
     const bx=document.createElement("div"); bx.className="lib-btns";
-    if(sel){ del.title="Nur aus „"+sel+"“ nehmen – das Stück bleibt unter „Alle“."; del.onclick=async()=>{ p.projs=(p.projs||[]).filter(x=>x!==sel); if(p.ord) delete p.ord[sel]; await nlPut(p); nlRefresh(); }; bx.append(mvb,del); li.append(b,bx); ul.appendChild(li); return; }
+    if(sel){ del.title="Nur aus „"+sel+"“ nehmen – das Stück bleibt unter „"+(isArr(p)?"Arrangements":"Noten")+"“."; del.onclick=async()=>{ p.projs=(p.projs||[]).filter(x=>x!==sel); if(p.ord) delete p.ord[sel]; await nlPut(p); nlRefresh(); }; bx.append(mvb,del); li.append(b,bx); ul.appendChild(li); return; }
     del.onclick=async()=>{ if(del.dataset.arm!=="1"){ del.dataset.arm="1"; del.textContent="Wirklich löschen?"; setTimeout(()=>{ del.dataset.arm=""; del.textContent="Löschen"; },3500); return; } await nlDel(p.id); nlRefresh(); };
     bx.append(mvb,del); li.append(b,bx); ul.appendChild(li);
   });
@@ -3724,7 +3730,7 @@ async function nlAddFiles(files,target){
   }
   if(!piece.pdf&&!piece.score){ nlStatus(errs.join(" ")); return; }
   const tIn=$("pTitle");
-  if(!target){ piece.title=(tIn.value||"").trim()||(piece.score&&piece.score.title)||((piece.pdfName||piece.scoreName||"").replace(/\.[^.]+$/,"")); tIn.value=""; if(PJ.sel){ piece.projs=[PJ.sel]; piece.ord={[PJ.sel]:Date.now()}; } }
+  if(!target){ piece.title=(tIn.value||"").trim()||(piece.score&&piece.score.title)||((piece.pdfName||piece.scoreName||"").replace(/\.[^.]+$/,"")); tIn.value=""; if(pjProj()){ piece.projs=[PJ.sel]; piece.ord={[PJ.sel]:Date.now()}; } if(PJ.sel===PJ_ARR){ PJ.sel=null; try{ localStorage.setItem("blattsingen_projekt_sel","null"); }catch(e){} } }
   piece.updated=Date.now();
   try{ await nlPut(piece); }catch(e){ nlStatus("Speichern ist fehlgeschlagen. Ist der Speicher voll?"); return; }
   nlStatus((errs.length?errs.join(" ")+" ":"")+"Gespeichert: „"+piece.title+"“.");
@@ -3878,7 +3884,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.7.1 · 29.10.2026 · Strato (Build 59)";
+const APP_VERSION="S1.7.2 · 29.10.2026 · Strato (Build 60)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4581,7 +4587,8 @@ async function szRecToggle(){
 function szNewPiece(title,job,extra){
   const p=Object.assign({id:"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title,pdf:null,pdfName:"",score:null,scoreName:"",mix:null,created:Date.now(),
     job:{id:job,start:Date.now(),srv:SRV.url,satz:true}},extra||{});
-  if(PJ.sel){ p.projs=[PJ.sel]; p.ord={[PJ.sel]:Date.now()}; }
+  if(pjProj()){ p.projs=[PJ.sel]; p.ord={[PJ.sel]:Date.now()}; }
+  else { PJ.sel=PJ_ARR; try{ localStorage.setItem("blattsingen_projekt_sel",JSON.stringify(PJ_ARR)); }catch(e){} }
   return p;
 }
 async function szStart(){
@@ -5234,7 +5241,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=59;
+const APP_BUILD=60;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
