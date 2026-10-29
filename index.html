@@ -237,6 +237,8 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
 
 .lib-home{display:grid;gap:14px}
 .lib-add{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.lib-home.locked>*:not(#srvAcct):not(#libLockMsg){display:none!important}
+.lockmsg{background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;line-height:1.5}
 .satz{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
 .satz>summary{cursor:pointer;font-weight:600}
 .satzin{display:grid;gap:10px;margin-top:10px}
@@ -407,7 +409,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.7.2 · 29.10.2026 · Strato (Build 60)</span>
+  <span class="appver">App-Version S1.7.3 · 29.10.2026 · Strato (Build 61)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -3884,7 +3886,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.7.2 · 29.10.2026 · Strato (Build 60)";
+const APP_VERSION="S1.7.3 · 29.10.2026 · Strato (Build 61)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4353,12 +4355,24 @@ function accPlace(){
   else if(box.parentElement!==omr) omr.insertBefore(box,omr.firstChild);
   box.classList.toggle("acct-lib",inLib);
 }
+/* „Meine Noten“ nur mit Konto (wenn der Dienst Konten hat); Trainer und Übungsblätter bleiben frei */
+function nlLocked(){ return accNeeded()&&!(accTok()&&ACC.info); }
+function nlLockUI(){
+  const h=$("libHome"); if(!h) return; const lock=nlLocked();
+  h.classList.toggle("locked",lock);
+  let m=$("libLockMsg");
+  if(lock&&!m){ m=document.createElement("div"); m.id="libLockMsg"; m.className="lockmsg";
+    m.innerHTML="<b>Meine Noten gibt es mit Konto.</b> Melde dich an oder leg ein Konto an – deine Stücke und Projekte werden dann gesichert und sind auf jedem Gerät gleich. Trainer und Übungsblätter kannst du ohne Anmeldung nutzen.";
+    h.insertBefore(m,h.firstChild); }
+  if(m) m.hidden=!lock;
+  if(lock&&!$("viewer").hidden){ try{ $("vBack").click(); }catch(e){} }
+}
 function accUI(){
   const box=$("srvAcct"); if(!box) return;
   try{ szUI(); }catch(e){}
-  accPlace();
+  accPlace(); try{ nlLockUI(); }catch(e){}
   const inLib=$("viewer").hidden, sync=!!(ACC.ping&&ACC.ping.sync);
-  if(inLib&&!(accNeeded()&&sync)){ box.hidden=true; return; }
+  if(inLib&&!(accNeeded()&&(sync||nlLocked()))){ box.hidden=true; return; }
   if(!$("acctSync")){ const s=document.createElement("span"); s.id="acctSync"; s.className="hint acctsync"; const b=document.createElement("button"); b.type="button"; b.className="ghost sm"; b.id="acctSyncNow"; b.textContent="Jetzt abgleichen"; b.onclick=()=>syncRun(); $("acctIn").append(s,b); }
   $("acctSync").hidden=$("acctSyncNow").hidden=!sync; if(SY.info) $("acctSync").textContent=SY.info;
   if(sync&&accNeeded()&&$("libIntro")) $("libIntro").textContent="Lade die PDF eines Stücks zum Lesen und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei zum Abspielen einzelner Stimmen. Mit deinem Konto werden Stücke und Projekte auf dem Server gesichert und erscheinen auf jedem Gerät, auf dem du dich anmeldest.";
@@ -4867,6 +4881,13 @@ async function syncRun(){
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&Date.now()-SY.last>60000) syncSoon(500); });
 setInterval(()=>{ if(document.visibilityState==="visible") syncRun(); },180000);
 srvLoad().then(async()=>{ await accPing(); await accRefresh(); accUI(); syncSoon(800); if(NL.cur) omrRefreshUI(); });
+/* Anmeldung erst, wenn man „Meine Noten“ öffnet: mit Konto-Dienst das Konto, sonst die kurze Anmeldung (Formular) */
+(()=>{ const sec=$("noten"); if(!sec||!("IntersectionObserver" in window)) return; let done=false;
+  const io=new IntersectionObserver(async es=>{ if(done||!es.some(e=>e.isIntersecting)) return;
+    await srvLoad(); await accPing();
+    if(accNeeded()){ if(nlLocked()&&ACC.mode!=="reg") ACC.mode="login"; accUI(); done=true; io.disconnect(); return; }
+    done=true; io.disconnect(); if(window.regMaybe) window.regMaybe(); },{threshold:0.12});
+  io.observe(sec); })();
 
 /* --- Verwaltung in der App (nur Betreiber, mit Admin-Passwort) --- */
 const ADM={tok:"",data:null,tab:"stat",q:"",edit:null,cf:null};
@@ -5221,7 +5242,8 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
     put("VERSION",String(APP_BUILD)); put("GERAET",(navigator.userAgent||"").replace(/\s+/g," ").slice(0,180)); put("DATUM",new Date().toISOString().slice(0,10));
     await fetch(t.url,{method:"POST",mode:"no-cors",body:p});
   }
-  window.addEventListener("load",async()=>{
+  // nicht mehr beim Start: erst wenn „Meine Noten“ geöffnet wird und der Dienst keine eigenen Konten hat (noten.js ruft regMaybe auf)
+  window.regMaybe=async()=>{
     let cfg=null; try{ const r=await fetch("anmeldung.json?t="+Date.now(),{cache:"no-store"}); if(r.ok) cfg=await r.json(); }catch(e){}
     const t=cfg&&cfg.link?target(cfg):null; if(!t) return;          // Anmeldung nicht eingerichtet
     const reg=get();
@@ -5236,12 +5258,12 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
       try{ await send(t,r); r.sent=true; set(r); }catch(e){}
       w.hidden=true; document.body.classList.remove("regopen");
     };
-  });
+  };
 })();
 </script>
 
 <script>
-const APP_BUILD=60;
+const APP_BUILD=61;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
