@@ -269,6 +269,32 @@ function satz_titel() {
   $t = trim((string)preg_replace('/[\x00-\x1F"`$\\\\]/u', '', post('titel')));
   return function_exists('mb_substr') ? mb_substr($t, 0, 80) : substr($t, 0, 80);
 }
+function satz_url_laden($url, $mb) {
+  $url = trim($url);
+  if (!preg_match('#^https?://#i', $url)) out(400, ['fehler' => 'Bitte einen Link beginnend mit https:// angeben.']);
+  $host = strtolower((string)parse_url($url, PHP_URL_HOST));
+  if (preg_match('/(^|\.)(youtube\.com|youtu\.be|spotify\.com|music\.apple\.com|deezer\.com|soundcloud\.com|tiktok\.com|instagram\.com|facebook\.com)$/', $host))
+    out(400, ['fehler' => 'Von Streaming-Seiten wie YouTube oder Spotify kann die App nichts herunterladen. Nimm den Song stattdessen über „Aufnehmen“ auf oder lade eine eigene Audiodatei.']);
+  if (!function_exists('curl_init')) out(500, ['fehler' => 'Laden über Links ist auf diesem Server nicht möglich.']);
+  $tmp = tempnam(sys_get_temp_dir(), 'satz'); $max = $mb * 1048576;
+  for ($hop = 0; $hop < 4; $hop++) {
+    $h = strtolower((string)parse_url($url, PHP_URL_HOST)); $ip = gethostbyname($h);
+    if (!$h || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) { @unlink($tmp); out(400, ['fehler' => 'Diese Adresse kann nicht geladen werden.']); }
+    $fp = fopen($tmp, 'w'); $got = 0;
+    $c = curl_init($url);
+    curl_setopt_array($c, [CURLOPT_FILE => $fp, CURLOPT_FOLLOWLOCATION => false, CURLOPT_TIMEOUT => 60, CURLOPT_CONNECTTIMEOUT => 10,
+      CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_USERAGENT => 'Song-Arrangement',
+      CURLOPT_NOPROGRESS => false, CURLOPT_PROGRESSFUNCTION => function ($r, $dt, $d) use ($max) { return $d > $max ? 1 : 0; }]);
+    curl_exec($c); $code = curl_getinfo($c, CURLINFO_HTTP_CODE); $loc = curl_getinfo($c, CURLINFO_REDIRECT_URL); curl_close($c); fclose($fp);
+    if ($code >= 300 && $code < 400 && $loc) { $url = $loc; continue; }
+    if ($code !== 200) { @unlink($tmp); out(400, ['fehler' => 'Die Datei konnte nicht geladen werden (Antwort ' . $code . ').']); }
+    $sz = filesize($tmp);
+    if ($sz > $max) { @unlink($tmp); out(413, ['fehler' => 'Die Datei ist größer als ' . $mb . ' MB.']); }
+    if ($sz < 2000) { @unlink($tmp); out(400, ['fehler' => 'Unter dem Link liegt keine Audiodatei.']); }
+    return $tmp;
+  }
+  @unlink($tmp); out(400, ['fehler' => 'Zu viele Weiterleitungen.']);
+}
 function satz_start($job, $email, $modus, $opt, $titel, $owner) {
   global $DATA;
   file_put_contents("$DATA/$job.json", json_encode(['status' => 'läuft', 'schritt' => 'Wartet, bis die Analyse startet', 'zeit' => time(), 'art' => $modus], JSON_UNESCAPED_UNICODE));
@@ -302,7 +328,7 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
     }
     $opt = ['stimmen' => $st, 'melodie' => $mel, 'stil' => $stil, 'beatbox' => post('beatbox') === '1', 'transponieren' => max(-7, min(7, (int)post('transponieren'))),
             'text' => post('text') !== '0', 'einzeln' => $ein, 'gesang' => post('gesang') === '1',
-            'begleitung' => post('begleitung') === 'klavier' ? 'klavier' : 'chor'];
+            'begleitung' => in_array(post('begleitung'), ['klavier', 'klaviersolo'], true) ? post('begleitung') : 'chor'];
     file_put_contents("$DATA/$job.audio", $ana);
     [$code, $r] = satz_start($job, $email, 'satz', $opt, $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Arrangement: ' . $titel, 'konto' => false, 'art' => 'satz']);
     if ($code !== 204) { @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner"); gh_fehler($code, $r, $email, $job, 'Arrangement: ' . $titel, 'satz.yml'); }
@@ -310,13 +336,19 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
     out(200, ['job' => $job]);
   }
   $mb = defined('SATZ_MB') ? (int)SATZ_MB : 40;
-  if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(400, ['fehler' => 'Die Aufnahme ist nicht angekommen (zu groß oder Verbindung unterbrochen).']);
-  if ($_FILES['audio']['size'] > $mb * 1048576) out(413, ['fehler' => 'Die Aufnahme ist größer als ' . $mb . ' MB.']);
-  if ($_FILES['audio']['size'] < 2000) out(400, ['fehler' => 'Die Aufnahme ist zu kurz.']);
-  $head = file_get_contents($_FILES['audio']['tmp_name'], false, null, 0, 12);
+  $src = null;
+  if (post('url') !== '' && empty($_FILES['audio'])) {   // Audiodatei über einen direkten Link laden (keine Streaming-Seiten)
+    $src = satz_url_laden(post('url'), $mb);
+  } else {
+    if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(400, ['fehler' => 'Die Aufnahme ist nicht angekommen (zu groß oder Verbindung unterbrochen).']);
+    if ($_FILES['audio']['size'] > $mb * 1048576) out(413, ['fehler' => 'Die Aufnahme ist größer als ' . $mb . ' MB.']);
+    if ($_FILES['audio']['size'] < 2000) out(400, ['fehler' => 'Die Aufnahme ist zu kurz.']);
+    $src = $_FILES['audio']['tmp_name'];
+  }
+  $head = file_get_contents($src, false, null, 0, 12);
   $ok = substr($head, 0, 4) === 'RIFF' || substr($head, 0, 3) === 'ID3' || (ord($head[0]) === 0xFF && (ord($head[1]) & 0xE0) === 0xE0)
      || substr($head, 4, 4) === 'ftyp' || substr($head, 0, 4) === 'OggS' || substr($head, 0, 4) === 'fLaC' || substr($head, 0, 4) === "\x1A\x45\xDF\xA3";
-  if (!$ok) out(400, ['fehler' => 'Das Format wird nicht erkannt. Möglich sind MP3, M4A/AAC, WAV, OGG, FLAC oder WebM.']);
+  if (!$ok) { if (!is_uploaded_file($src)) @unlink($src); out(400, ['fehler' => 'Das Format wird nicht erkannt. Möglich sind MP3, M4A/AAC, WAV, OGG, FLAC oder WebM.']); }
   $quelle = in_array(post('quelle'), ['song', 'gesang', 'mehrstimmig'], true) ? post('quelle') : 'auto';
   [$ok, $n1, $lim] = konten_tx(function (&$K) use ($email, $mon) {
     $k = &$K[$email]; $lim = limit_von($k); $n = (int)($k['monate'][$mon] ?? 0);
@@ -325,7 +357,7 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
     return [true, $n + 1, $lim];
   });
   if (!$ok) out(429, ['fehler' => 'Dein Kontingent von ' . $lim . ' Aufträgen in diesem Monat ist aufgebraucht.', 'kontingent' => true, 'pro_link' => PRO_LINK, 'pro_text' => PRO_TEXT]);
-  move_uploaded_file($_FILES['audio']['tmp_name'], "$DATA/$job.audio");
+  if (is_uploaded_file($src)) move_uploaded_file($src, "$DATA/$job.audio"); else rename($src, "$DATA/$job.audio");
   [$code, $r] = satz_start($job, $email, 'melodie', ['quelle' => $quelle, 'text' => post('text') !== '0'], $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Melodie: ' . $titel, 'konto' => true, 'art' => 'melodie']);
   if ($code !== 204) {
     @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
