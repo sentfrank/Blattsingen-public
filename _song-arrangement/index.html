@@ -255,6 +255,10 @@ body.songapp #satzBox{border-color:var(--accent)}
 .arr select{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
 .arrvoices{display:flex;flex-wrap:wrap;gap:6px 14px}
 .arrvoices label{display:flex;align-items:center;gap:6px;min-height:32px}
+.begsel{display:grid;grid-template-columns:1fr 1fr;gap:8px}.begsel .label{grid-column:1/-1}
+.begbtn{display:grid;gap:2px;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font:600 .95rem var(--body);color:var(--fg)}
+.begbtn small{font-weight:400;font-size:.78rem;color:var(--muted)}
+.begbtn[aria-checked="true"]{border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
 .vdl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0}
 .arrone>summary{cursor:pointer;font-weight:600}
 .arrrow{display:grid;grid-template-columns:5.5em 1fr;gap:6px 8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
@@ -413,7 +417,7 @@ body.regopen{overflow:hidden}
   <span class="label">Song → A cappella oder Gesang mit Klavier</span>
   <h1>Song-Arrangement</h1>
   <p class="lead">Melodie aus einem Song erkennen und daraus ein Arrangement machen – zum Anhören, Mitsingen und Ausdrucken. Gehört zur <a href="../blattsingen/">Blattsingen-App</a> und nutzt dasselbe Konto.</p>
-  <span class="appver">App-Version S1.10.0 · 03.11.2026 · Song-Arrangement (Build 65)</span>
+  <span class="appver">App-Version S1.10.1 · 03.11.2026 · Song-Arrangement (Build 66)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1125,7 +1129,10 @@ body.regopen{overflow:hidden}
     <details class="satz" id="satzBox" hidden>
       <summary>Song → A-cappella-Arrangement <span class="hint">(mit Konto)</span></summary>
       <div class="satzin">
-        <p class="hint">In zwei Schritten: <b>1. Melodie erkennen</b> – aus einem Song, einer A-cappella-Aufnahme oder deiner eingesungenen Melodie entstehen Melodie, Tonart, Takt und Akkorde zum Anhören und Prüfen. <b>2. Arrangement erstellen</b> – im fertigen Stück wählst du Stimmen (auch Solo und Beatbox), Stil und Tonart.</p>
+        <p class="hint">In zwei Schritten: <b>1. Melodie erkennen</b> – aus einem Song, einer A-cappella-Aufnahme oder deiner eingesungenen Melodie entstehen Melodie, Tonart, Takt, Akkorde und Liedtext zum Anhören und Prüfen. <b>2. Arrangement erstellen</b> – im fertigen Melodie-Stück wählst du die Fassung (A cappella oder Gesang mit Klavier), Stil und Tonart.</p>
+        <div class="begsel" role="radiogroup" aria-label="Was soll entstehen?"><span class="label">Was soll entstehen?</span>
+          <button type="button" class="begbtn" data-beg="chor" role="radio">🎤 A cappella<small>Chor mit Stimmen, auch Solo und Beatbox</small></button>
+          <button type="button" class="begbtn" data-beg="klavier" role="radio">🎹 Gesang mit Klavier<small>Melodie mit Text, Klavier spielt die Akkorde</small></button></div>
         <p class="hint" id="satzLogin" hidden>Diese Funktion gibt es nur mit Konto. Bitte oben anmelden oder ein Konto anlegen.</p>
         <div id="satzForm">
           <div class="btnrow">
@@ -1219,7 +1226,10 @@ body.regopen{overflow:hidden}
     <div class="arr" id="arrBox" hidden>
       <h3>2. Arrangement erstellen</h3>
       <p class="hint" id="arrInfo"></p>
-      <div class="field"><label class="label" for="arrBeg">Fassung</label><select id="arrBeg"><option value="chor">A cappella – Chor mit Stimmen</option><option value="klavier">Gesang mit Klavier – Melodie mit Text, Klavier spielt die Akkorde</option></select></div>
+      <div class="begsel" role="radiogroup" aria-label="Fassung"><span class="label">Fassung</span>
+        <button type="button" class="begbtn" data-beg="chor" role="radio">🎤 A cappella<small>Chor mit Stimmen, auch Solo und Beatbox</small></button>
+        <button type="button" class="begbtn" data-beg="klavier" role="radio">🎹 Gesang mit Klavier<small>Melodie mit Text, Klavier spielt die Akkorde</small></button></div>
+      <div class="field" hidden><label class="label" for="arrBeg">Fassung</label><select id="arrBeg"><option value="chor">A cappella – Chor mit Stimmen</option><option value="klavier">Gesang mit Klavier – Melodie mit Text, Klavier spielt die Akkorde</option></select></div>
       <div class="arrvoices" id="arrVoices" role="group" aria-label="Stimmen">
         <label><input type="checkbox" value="Solo"> Solo (Lead)</label>
         <label><input type="checkbox" value="S" checked> Sopran</label>
@@ -3974,7 +3984,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.10.0 · 03.11.2026 · Song-Arrangement (Build 65)";
+const APP_VERSION="S1.10.1 · 03.11.2026 · Song-Arrangement (Build 66)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4905,10 +4915,13 @@ function dlUI(){ const p=NL.cur, b=$("vDl"); if(!b) return; const x=!!(p&&p.scor
 $("dlXml").onclick=()=>{ const p=NL.cur; if(p&&p.scoreXml) dlSave(new Blob([p.scoreXml],{type:"application/vnd.recordare.musicxml+xml"}),dlName(p,".musicxml")); };
 $("dlPdf").onclick=()=>{ const p=NL.cur; if(p&&p.pdf) dlSave(new Blob([p.pdf],{type:"application/pdf"}),dlName(p,".pdf")); };
 $("arrGo").onclick=arrStart;
-function arrBegUI(){ const kl=$("arrBeg").value==="klavier"; $("arrVoices").hidden=kl; $("arrMel").closest(".field").hidden=kl; $("arrOne").hidden=kl;
+function arrBegUI(){ const kl=$("arrBeg").value==="klavier"; try{ begSync(); }catch(e){} $("arrVoices").hidden=kl; $("arrMel").closest(".field").hidden=kl; $("arrOne").hidden=kl;
   if(kl) $("arrGo").disabled=!!arrUI.busy||!(accTok()&&ACC.info); else arrMelOpts(); try{ localStorage.setItem("blattsingen_arrbeg",$("arrBeg").value); }catch(e){} }
 try{ const v=localStorage.getItem("blattsingen_arrbeg"); if(v) $("arrBeg").value=v; }catch(e){}
 $("arrBeg").onchange=arrBegUI;
+function begSync(){ const v=$("arrBeg").value; document.querySelectorAll(".begbtn").forEach(b=>b.setAttribute("aria-checked",b.dataset.beg===v?"true":"false")); }
+document.querySelectorAll(".begbtn").forEach(b=>b.onclick=()=>{ $("arrBeg").value=b.dataset.beg; arrBegUI(); begSync(); });
+begSync();
 
 /* --- Bedienung verdrahten --- */
 $("pFiles").onchange=e=>{ const f=[...(e.target.files||[])]; e.target.value=""; nlAddFiles(f,null); };
@@ -5464,7 +5477,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=65;
+const APP_BUILD=66;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
