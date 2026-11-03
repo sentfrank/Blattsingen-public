@@ -409,7 +409,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.7.4 · 01.11.2026 · Strato (Build 62)</span>
+  <span class="appver">App-Version S1.8.0 · 03.11.2026 · Strato (Build 63)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1251,6 +1251,7 @@ body.regopen{overflow:hidden}
           <button type="button" id="pTUp" aria-label="schneller">+</button>
           <label class="donebox"><input type="checkbox" id="pClick"> Metronom</label>
           <label class="donebox" id="pVowBox" title="Die Stimmen singen den Liedtext mit Vokalen und Konsonanten statt eines gleichbleibenden Klangs."><input type="checkbox" id="pVow"> Text singen</label>
+          <label class="donebox" title="Das Stück wird vorab als Audio berechnet und wie Musik abgespielt: läuft über CarPlay, Bluetooth und bei gesperrtem Bildschirm ohne Aussetzer. Nach Änderungen an Tempo oder Stimmen dauert der Start einen Moment."><input type="checkbox" id="pCar"> 🚗 Auto / Sperrbildschirm</label>
           <label class="donebox" id="pSungBox" hidden title="Statt der eingebauten Stimme die erzeugte Gesangsaufnahme mit Text abspielen."><input type="checkbox" id="pSung" checked> Gesang mit Text (Aufnahme)</label>
         </div>
         <p class="plyr" id="pLyr" hidden aria-live="off"></p>
@@ -1455,6 +1456,7 @@ function silentWavURI(){
   return "data:audio/wav;base64,"+btoa(s);
 }
 function ac(){
+  if(typeof RENDER_CTX!=="undefined"&&RENDER_CTX) return RENDER_CTX;   // Vorab-Berechnung (Audio-Modus)
   try{ if(navigator.audioSession&&!micMode) navigator.audioSession.type="playback"; }catch(e){}
   if(!ctx){const C=window.AudioContext||window.webkitAudioContext; ctx=new C(); master=ctx.createGain(); master.gain.value=.9;
     const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=5000; master.connect(lp); lp.connect(ctx.destination);
@@ -2079,8 +2081,84 @@ function carSay(text,first){
 async function carAudio(){ const c=ac(); if(c.state!=="running"){ try{ await Promise.race([c.resume(),carWait(1200)]); }catch(e){} } }
 function carRun(ev){ return new Promise(async res=>{ await carAudio(); if(!CAR.on){ res(); return; } CAR.res=res; run(ev,e=>{ if(e.wu) wuDraw(e.wu); else if(e.lbl) wuDraw(null); if(e.lbl&&e.lbl.key) $("wuKey").textContent=e.lbl.key; },()=>{ CAR.res=null; res(); }); }); }
 const carWait=ms=>new Promise(r=>setTimeout(r,ms));
+/* Einsingen im Auto als EINE Audiodatei: Ansagen (vorab gesprochen) + Übungen, vorab berechnet.
+   Läuft wie Musik – über CarPlay/Bluetooth, bei gesperrtem Bildschirm und ohne Aussetzer. */
+const CAR_KEYS=["intro","u0","u1","u2","u3","u4","u5","u6","u7","u8","outro"];
+async function carClips(){
+  if(CAR.clips) return CAR.clips;
+  const c=ac(), out={};
+  await Promise.all(CAR_KEYS.map(async k=>{ const r=await fetch("ansagen/"+k+".mp3"); if(!r.ok) throw new Error("Ansage "+k+" fehlt"); out[k]=await c.decodeAudioData(await r.arrayBuffer()); }));
+  return CAR.clips=out;
+}
+async function carRenderStart(){
+  if(CAR.on) return true;
+  // direkt beim Antippen: Audio-Element freischalten (iPhone)
+  const el=CAR.el||(CAR.el=new Audio()); el.setAttribute("playsinline","");
+  try{ el.src=silentWavURI(); const pr=el.play(); if(pr&&pr.catch) pr.catch(()=>{}); }catch(e){}
+  wuStop(true); CAR.on=true; CAR.rendered=true; wuOn=true;
+  $("wuStop").disabled=false; $("wuAll").disabled=true; $("wuCar").disabled=true;
+  $("wuStep").textContent="Einsingen im Auto wird vorbereitet …"; $("wuKey").textContent="";
+  let clips; try{ clips=await carClips(); }catch(e){ CAR.on=false; CAR.rendered=false; return false; }
+  const voice=$("wuVoice").value, steps=WU_CAR.map(carEx);
+  // Ablauf: Ansage, kurze Pause, Übung …
+  const tl=[]; let t=0.6, segs=[];
+  const say=(k,txt,step)=>{ segs.push({t,clip:clips[k]}); tl.push({t,step,key:txt,draw:null}); t+=clips[k].duration+0.7; };
+  say("intro","Einsingen für unterwegs – etwa zehn Minuten",0);
+  const exStart=[];
+  for(let i=0;i<steps.length;i++){
+    say("u"+i,WU_CAR[i].say,i+1);
+    const w=wuEvents(steps[i],voice,0,i); exStart.push(t);
+    w.ev.forEach(e=>{ segs.push({t:t+e.t,ev:e}); tl.push({t:t+e.t,step:i+1,ev:e}); });
+    t+=w.end+0.8;
+  }
+  say("outro","Fertig eingesungen. Viel Freude in der Probe!",steps.length+1);
+  const total=t+0.5;
+  if(!CAR.on) return true;
+  let buf;
+  try{   // in Abschnitten berechnen (schnell), dann zusammensetzen
+    const SR=22050, CH=20, TAIL=3, nCh=Math.ceil(total/CH), out=new Float32Array(Math.ceil((total+TAIL)*SR));
+    for(let k=0;k<nCh&&CAR.on;k++){
+      $("wuStep").textContent="Einsingen im Auto wird vorbereitet … "+Math.round(k/nCh*100)+" %";
+      const t0=k*CH, t1=t0+CH;
+      const b=await renderOffline(CH+TAIL,off=>{ segs.forEach(s=>{
+        if(s.clip){ if(s.t+s.clip.duration<t0||s.t>=t1) return; const src=off.createBufferSource(); src.buffer=s.clip; const g=off.createGain(); g.gain.value=1.15; src.connect(g); g.connect(off.destination);
+          if(s.t>=t0) src.start(s.t-t0); else src.start(0,t0-s.t); return; }
+        if(s.t<t0||s.t>=t1) return;
+        if(s.ev.midi!=null) [].concat(s.ev.midi).forEach(m=>tone(m,s.t-t0,s.ev.d,s.ev.vol)); }); },SR,1);
+      const d=b.getChannelData(0), s0=t0*SR;
+      for(let i=0;i<d.length&&s0+i<out.length;i++){ if(s0+i<s0+CH*SR||true) out[s0+i]+=d[i]; }
+      await new Promise(r=>setTimeout(r,0));
+    }
+    buf={numberOfChannels:1,sampleRate:SR,length:out.length,getChannelData:()=>out};
+  }catch(e){ CAR.on=false; CAR.rendered=false; return false; }
+  if(!CAR.on) return true;
+  if(CAR.url) URL.revokeObjectURL(CAR.url);
+  CAR.url=URL.createObjectURL(wavBlob(buf)); CAR.tl=tl.sort((a,b)=>a.t-b.t); CAR.total=total; CAR.steps=steps;
+  el.src=CAR.url; el.currentTime=0;
+  try{ if(silentEl) silentEl.pause(); }catch(e){}
+  el.onended=()=>{ if(CAR.on){ $("wuStep").textContent="Fertig eingesungen"; $("wuProg").style.width="100%"; $("wuTime").textContent=""; wuDraw(null); carEnd(); } };
+  plMediaSession("Einsingen im Auto",{play:()=>el.play(),pause:()=>el.pause(),stop:()=>carStop(),seek:d=>{ el.currentTime=Math.max(0,el.currentTime+d); },restart:()=>{ el.currentTime=0; }});
+  try{ await el.play(); }catch(e){ $("wuStep").textContent="Zum Starten noch einmal „Im Auto“ antippen"; carEnd(); return true; }
+  try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(w=>{ CAR.wake=w; }).catch(()=>{}); }catch(e){}
+  document.querySelectorAll(".wu-item").forEach(e=>e.classList.remove("on","done"));
+  let li=-1, lastStep=-1;
+  clearInterval(wuTimer);
+  wuTimer=setInterval(()=>{ if(!CAR.on) return; const now=el.currentTime;
+    $("wuTime").textContent="noch etwa "+wuFmt(Math.max(0,CAR.total-now)); $("wuProg").style.width=Math.min(100,now/CAR.total*100)+"%";
+    while(li+1<CAR.tl.length&&CAR.tl[li+1].t<=now){ li++; const e=CAR.tl[li];
+      if(e.step!==lastStep){ lastStep=e.step; const i=e.step-1;
+        if(i>=0&&i<CAR.steps.length){ $("wuStep").textContent=(i+1)+" / "+CAR.steps.length+" · "+CAR.steps[i].name; const k=WU.findIndex(x=>x.id===CAR.steps[i].id); document.querySelectorAll(".wu-item").forEach((x,j)=>{ x.classList.toggle("on",j===k); }); }
+        if(i>0&&i-1<CAR.steps.length){ const k=WU.findIndex(x=>x.id===CAR.steps[i-1].id); if(k>=0&&$("wu"+k)) $("wu"+k).classList.add("done"); } }
+      if(e.key){ $("wuKey").textContent=e.key; wuDraw(null); }
+      if(e.ev){ if(e.ev.wu) wuDraw(e.ev.wu); else if(e.ev.lbl) wuDraw(null); if(e.ev.lbl&&e.ev.lbl.key) $("wuKey").textContent=e.ev.lbl.key; } }
+    if(now<(CAR.tl[li]?CAR.tl[li].t:0)) li=-1;
+  },150);
+  return true;
+}
 async function wuCarStart(){
   if(CAR.on) return;
+  try{ if(await carRenderStart()) return; }catch(e){ CAR.on=false; }
+  // Rückfall: live mit Sprachausgabe des Geräts
   wuStop(true); CAR.on=true; wuOn=true; CAR.voice=carVoice();
   $("wuStop").disabled=false; $("wuAll").disabled=true; $("wuCar").disabled=true; CAR.noSpeech=false;
   // Ton und Sprache MÜSSEN direkt beim Antippen freigeschaltet werden (iPhone) – also vor jedem await
@@ -2108,16 +2186,17 @@ async function wuCarStart(){
   carEnd();
 }
 function carEnd(){
-  CAR.on=false; wuOn=false; clearInterval(wuTimer);
+  CAR.on=false; wuOn=false; clearInterval(wuTimer); try{ if(CAR.rendered&&CAR.el&&!CAR.el.ended) CAR.el.pause(); }catch(e){} CAR.rendered=false;
   try{ speechSynthesis.cancel(); }catch(e){}
   try{ CAR.wake&&CAR.wake.release(); }catch(e){} CAR.wake=null;
   $("wuStop").disabled=true; $("wuAll").disabled=false; $("wuCar").disabled=false;
   document.querySelectorAll(".wu-item").forEach(e=>e.classList.remove("on"));
 }
-function carStop(){ if(!CAR.on) return; CAR.on=false; clearInterval(wuTimer); $("wuCar").disabled=false; $("wuAll").disabled=false; $("wuStop").disabled=true; $("wuProg").style.width="0%";
+function carStop(){ if(!CAR.on) return; CAR.on=false; try{ CAR.el&&CAR.el.pause(); }catch(e){} clearInterval(wuTimer); $("wuCar").disabled=false; $("wuAll").disabled=false; $("wuStop").disabled=true; $("wuProg").style.width="0%";
   if(CAR.sayRes){ const f=CAR.sayRes; CAR.sayRes=null; f(); }
   try{ CAR.wake&&CAR.wake.release(); }catch(e){} CAR.wake=null; try{ speechSynthesis.cancel(); }catch(e){} stopAll(); if(CAR.res){ const r=CAR.res; CAR.res=null; r(); } wuDraw(null); $("wuStep").textContent="Angehalten"; $("wuKey").textContent=""; $("wuTime").textContent=""; }
 $("wuCar").onclick=wuCarStart;
+window.__car={carClips:()=>carClips(),renderOffline:(a,b,c,d)=>renderOffline(a,b,c,d),wavBlob:x=>wavBlob(x),wuEvents:(a,b,c,d)=>wuEvents(a,b,c,d),WU_CAR,carEx:x=>carEx(x),tone:(a,b,c,d)=>tone(a,b,c,d)};
 $("wuStop").addEventListener("click",carStop);
 document.addEventListener("visibilitychange",()=>{ if(CAR.on&&document.visibilityState==="visible"&&!CAR.wake){ try{ navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>CAR.wake=w).catch(()=>{}); }catch(e){} } });
 try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{ CAR.voice=carVoice(); }; }catch(e){}
@@ -3886,7 +3965,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.7.4 · 01.11.2026 · Strato (Build 62)";
+const APP_VERSION="S1.8.0 · 03.11.2026 · Strato (Build 63)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4004,7 +4083,7 @@ function plSetup(p){
   const mx=plMix(p); plBuild(p); const sc=SC();
   const sel=$("pMine"); sel.innerHTML='<option value="-1">keine</option>'+mx.parts.map((pt,i)=>'<option value="'+i+'"></option>').join("");
   [...sel.options].slice(1).forEach((o,i)=>o.textContent=mx.parts[i].name);
-  sel.value=String(mx.mine); $("pMode").value=mx.mode; $("pTempo").value=mx.tempo; $("pCount").checked=mx.countIn; $("pLoop").checked=mx.loop;
+  sel.value=String(mx.mine); $("pMode").value=mx.mode; $("pTempo").value=mx.tempo; $("pCount").checked=mx.countIn; $("pLoop").checked=mx.loop; $("pCar").checked=!!mx.car;
   $("pFrom").value=mx.from; $("pTo").value=mx.to; $("pRep").checked=mx.repeats!==false; $("pVowBox").hidden=false; $("pVow").disabled=!sc.lyr; $("pVowBox").title=sc.lyr?"Die Stimmen singen den Liedtext mit Vokalen und Konsonanten.":"In diesem Stück ist kein Liedtext hinterlegt. „PDF erneut in Stimmen umwandeln“ mit „Liedtext mit erkennen“ holt ihn dazu."; $("pVow").checked=!!mx.vowels; $("pLyr").hidden=true; $("pOrder").value=mx.order||"";
   { const o=repOrder(p.score); $("pRepInfo").textContent=sc.unrolled?("Spielfolge: "+(sc.measures.length-1)+" Takte"+(mx.order?" (eigener Ablauf)":" mit Wiederholungen")):(o?"":"Keine Wiederholungszeichen erkannt."); }
   const real=sc.measures.filter(m=>!m.end);
@@ -4112,19 +4191,23 @@ function plClick(t,strong){
   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+0.07);
   o.connect(g); g.connect(PL.bus); o.start(t); o.stop(t+0.09); PL.oscs.push(o);
 }
+function plMakeGains(c,sc){
+  PL.bus=c.createGain(); PL.bus.gain.value=1; PL.bus.connect(master);
+  PL.gains=sc.parts.map((pt,i)=>{ const g=c.createGain(); g.gain.value=plGainFor(i);
+    try{ const pn=c.createStereoPanner(); const n=sc.parts.length; pn.pan.value=n>1?(-0.55+1.1*i/(n-1)):0; g.connect(pn); pn.connect(PL.bus); }catch(e){ g.connect(PL.bus); }
+    return g; });
+}
 function plStart(fromQ,noCount){
   const p=NL.cur; if(!p||!p.score) return;
+  if(!PL.rendering&&p.mix&&p.mix.car){ plAudioStart(fromQ); return; }
   const sc=SC(), mx=p.mix, c=ac();
-  if(c.state!=="running"){ const pr=c.resume(); if(pr&&pr.then){ pr.then(()=>{ if(ctx.state==="running") plStart(fromQ); }); return; } }
+  if(!PL.rendering&&c.state!=="running"){ const pr=c.resume(); if(pr&&pr.then){ pr.then(()=>{ if(ctx.state==="running") plStart(fromQ); }); return; } }
   plStop(true);
   const iFrom=plFindMeasure(sc,mx.from,false), iTo=plFindMeasure(sc,mx.to,true);
   PL.q0=fromQ!=null?fromQ:sc.measures[iFrom].q; PL.qEnd=Math.max(PL.q0+0.25,sc.measures[iTo].q);
   const f=mx.tempo/100, m=tempoMap(sc);
   PL.map={sec:q=>m.sec(q)/f,q:s=>m.q(s*f)};
-  PL.bus=c.createGain(); PL.bus.gain.value=1; PL.bus.connect(master);
-  PL.gains=sc.parts.map((pt,i)=>{ const g=c.createGain(); g.gain.value=plGainFor(i);
-    let node=g; try{ const pn=c.createStereoPanner(); const n=sc.parts.length; pn.pan.value=n>1?(-0.55+1.1*i/(n-1)):0; g.connect(pn); pn.connect(PL.bus); }catch(e){ g.connect(PL.bus); }
-    return g; });
+  plMakeGains(c,sc);
   let lead=0.15;
   if(mx.countIn&&!noCount){
     const ts=timeAt(sc,PL.q0), beatQ=4/ts.den, bpmQ=m.bpmAt(PL.q0)*f, beatS=beatQ*60/bpmQ;
@@ -4133,25 +4216,111 @@ function plStart(fromQ,noCount){
     lead+=nb*step;
   }
   PL.base=c.currentTime+lead-PL.map.sec(PL.q0); PL.wd={}; PL.pendCo={}; PL.lastV={};
-  PL.sungParts=null;
-  if(p.sung&&mx.sung!==false&&!(mx.order||"").trim()&&SG.buf[p.id]){
+  PL.sungParts=null; PL.sungSrc=[];
+  if(p.sung&&mx.sung!==false&&!(mx.order||"").trim()&&SG.buf[p.id]&&!(PL.rendering&&Math.abs(f-1)>1e-3)){
     PL.sungParts={}; const off=m.sec(PL.q0), when=c.currentTime+lead;
     Object.keys(SG.buf[p.id]).forEach(k=>{ const i=+k, ab=SG.buf[p.id][k]; if(!ab||!PL.gains[i]) return; PL.sungParts[i]=true;
-      if(Math.abs(f-1)<1e-3){ const s=c.createBufferSource(); s.buffer=ab; s.connect(PL.gains[i]); s.start(when,Math.max(0,off)); PL.oscs.push(s); }
+      if(Math.abs(f-1)<1e-3){ const s=c.createBufferSource(); s.buffer=ab; s.connect(PL.gains[i]); s.start(when,Math.max(0,off)); PL.oscs.push(s); if(PL.rendering) (PL.sungSrc||(PL.sungSrc=[])).push({i,ab,when,off}); }
       else { const el=sgElem(p,i); if(!el) { PL.sungParts[i]=false; return; } try{ el.g.disconnect(); }catch(e){} el.g.connect(PL.gains[i]);
         el.a.playbackRate=f; el.a.preservesPitch=true; el.a.webkitPreservesPitch=true; el.a.currentTime=Math.max(0,off);
         const ms=Math.max(0,(when-c.currentTime)*1000); el.timer=setTimeout(()=>{ el.a.play().catch(()=>{}); },ms); PL.els=(PL.els||[]); PL.els.push(el); } });
   }
   PL.idx=sc.parts.map(pt=>{ let lo=0,hi=pt.notes.length; while(lo<hi){ const md=(lo+hi)>>1; if(pt.notes[md].q<PL.q0-1e-6) lo=md+1; else hi=md; } return lo; });
   PL.beatQ=null;
+  if(PL.rendering) return;   // Aufnahme für den Audio-Modus: kein Takt-Timer, plTick plant alles auf einmal
   PL.on=true; $("pPlay").textContent="❚❚ Pause"; $("pPlay").setAttribute("aria-label","Pause");
   if(!$("pMix").hidden){ $("pMix").hidden=true; $("pMixT").setAttribute("aria-expanded","false"); $("pMixT").textContent="Stimmen ▾"; }
   FL.last=Math.max(0,measureAt(sc,PL.q0)); setTimeout(nlToPdf,30);
   plTick(); PL.timer=setInterval(plTick,60); plAnim();
 }
+/* ---- Audio-Modus (Auto/CarPlay, Sperrbildschirm): das Stück vorab als Audiodatei berechnen und wie Musik abspielen ---- */
+function wavBlob(buf){
+  const nc=buf.numberOfChannels, sr=buf.sampleRate, n=buf.length, out=new DataView(new ArrayBuffer(44+n*nc*2));
+  const w=(o,s)=>{ for(let i=0;i<s.length;i++) out.setUint8(o+i,s.charCodeAt(i)); };
+  w(0,"RIFF"); out.setUint32(4,36+n*nc*2,true); w(8,"WAVEfmt "); out.setUint32(16,16,true); out.setUint16(20,1,true); out.setUint16(22,nc,true);
+  out.setUint32(24,sr,true); out.setUint32(28,sr*nc*2,true); out.setUint16(32,nc*2,true); out.setUint16(34,16,true); w(36,"data"); out.setUint32(40,n*nc*2,true);
+  const ch=[]; for(let c=0;c<nc;c++) ch.push(buf.getChannelData(c));
+  let pk=0; for(let c=0;c<nc;c++){ const d=ch[c]; for(let i=0;i<n;i+=7){ const a=Math.abs(d[i]); if(a>pk) pk=a; } }
+  const g=pk>0.95?0.95/pk:1; let o=44;
+  for(let i=0;i<n;i++) for(let c=0;c<nc;c++){ const v=Math.max(-1,Math.min(1,ch[c][i]*g)); out.setInt16(o,v<0?v*0x8000:v*0x7fff,true); o+=2; }
+  return new Blob([out],{type:"audio/wav"});
+}
+/* fn(c) plant mit der globalen Tonausgabe – hier auf einen Offline-Kontext umgelenkt */
+async function renderOffline(seconds,fn,sr,chans){
+  sr=sr||22050; const C=window.OfflineAudioContext||window.webkitOfflineAudioContext; if(!C) throw new Error("Offline-Audio fehlt");
+  const off=new C(chans||2,Math.ceil((seconds+0.5)*sr),sr);
+  const keep={ctx,master,wave};
+  const n=10, re=new Float32Array(n+1), im=new Float32Array(n+1); for(let h=1;h<=n;h++) im[h]=1/Math.pow(h,1.15);
+  const mst=off.createGain(); mst.gain.value=.9; const lp=off.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=5000; mst.connect(lp); lp.connect(off.destination);
+  ctx=off; master=mst; wave=off.createPeriodicWave(re,im); RENDER_CTX=off;
+  try{ await fn(off); } finally { ctx=keep.ctx; master=keep.master; wave=keep.wave; RENDER_CTX=null; }
+  const buf=off.startRendering.length?await new Promise((res,rej)=>{ off.oncomplete=e=>res(e.renderedBuffer); off.startRendering(); }):await off.startRendering();
+  return buf;
+}
+var RENDER_CTX=null;
+function plMediaSession(title,on){
+  if(!("mediaSession" in navigator)) return;
+  try{ navigator.mediaSession.metadata=new MediaMetadata({title:title||"Blattsingen",artist:"Blattsingen-App",album:"Meine Noten",
+    artwork:[{src:"icon-512.png",sizes:"512x512",type:"image/png"}]}); }catch(e){}
+  const set=(a,f)=>{ try{ navigator.mediaSession.setActionHandler(a,f); }catch(e){} };
+  set("play",()=>on.play()); set("pause",()=>on.pause()); set("stop",()=>on.stop());
+  set("seekbackward",d=>on.seek(-(d&&d.seekOffset||10))); set("seekforward",d=>on.seek(d&&d.seekOffset||10));
+  set("previoustrack",()=>on.restart());
+}
+async function plAudioStart(fromQ){
+  const p=NL.cur; if(!p||!p.score) return;
+  const mx=p.mix, sc=SC();
+  const sig=p.id+"|"+(p.scoreXml?p.scoreXml.length:0)+"|"+JSON.stringify(Object.assign({},mx,{car:0}));
+  plStop(true);
+  // iPhone: das Audio-Element muss direkt beim Antippen einmal starten, sonst darf es später (nach dem Berechnen) nicht spielen
+  const a=PL.audioEl||(PL.audioEl=new Audio()); a.setAttribute("playsinline","");
+  if(!a.src){ try{ a.src=silentWavURI(); const pr=a.play(); if(pr&&pr.catch) pr.catch(()=>{}); }catch(e){} }
+  if(!PL.rcache||PL.rcache.sig!==sig){
+    $("pPos").textContent="Audio wird vorbereitet …"; $("pPlay").disabled=true;
+    try{
+      if(p.sung) await sgDecode(p);
+      const iFrom=plFindMeasure(sc,mx.from,false), iTo=plFindMeasure(sc,mx.to,true), m=tempoMap(sc), f=mx.tempo/100;
+      const q0=sc.measures[iFrom].q, qEnd=Math.max(q0+0.25,sc.measures[iTo].q), secs=(m.sec(qEnd)-m.sec(q0))/f+6;
+      // in Stücken von 15 s berechnen (ein großer Offline-Kontext mit Tausenden Knoten wird sehr langsam), dann zusammensetzen
+      const SR=22050, CH=15, TAIL=3, nCh=Math.ceil(secs/CH), out=[new Float32Array(Math.ceil((secs+TAIL)*SR)),new Float32Array(Math.ceil((secs+TAIL)*SR))];
+      let base0=null;
+      for(let k=0;k<nCh;k++){
+        $("pPos").textContent="Audio wird vorbereitet … "+Math.round(k/nCh*100)+" %";
+        const buf=await renderOffline(CH+TAIL,async off=>{ PL.rendering=true; PL.renderHorizon=CH;
+          try{
+            if(k===0){ plStart(q0); base0=PL.base; }
+            else { plMakeGains(off,sc); PL.base=base0-k*CH;
+              (PL.sungSrc||[]).forEach(s=>{ const st=s.when-k*CH; const src=off.createBufferSource(); src.buffer=s.ab; src.connect(PL.gains[s.i]);
+                if(st>=0) src.start(st,s.off); else src.start(0,s.off-st); }); }
+            plTick();
+          } finally { PL.rendering=false; } },SR,2);
+        for(let c=0;c<2;c++){ const d=buf.getChannelData(Math.min(c,buf.numberOfChannels-1)), o=out[c], s0=k*CH*SR; for(let i=0;i<d.length&&s0+i<o.length;i++) o[s0+i]+=d[i]; }
+        await new Promise(r=>setTimeout(r,0));
+      }
+      PL.base=base0;
+      const buf={numberOfChannels:2,sampleRate:SR,length:out[0].length,getChannelData:c=>out[c]};
+      const st={base:PL.base,map:PL.map,q0:PL.q0,qEnd:PL.qEnd};
+      try{ PL.bus&&PL.bus.disconnect(); }catch(e){} PL.oscs=[]; PL.gains=[];
+      if(PL.rcache&&PL.rcache.url) URL.revokeObjectURL(PL.rcache.url);
+      PL.rcache=Object.assign({sig,url:URL.createObjectURL(wavBlob(buf))},st);
+    }catch(e){ $("pPlay").disabled=false; $("pPos").textContent="Audio-Modus geht hier nicht ("+((e&&e.message)||e)+")"; return; }
+    $("pPlay").disabled=false;
+  }
+  const R=PL.rcache; PL.base=R.base; PL.map=R.map; PL.q0=R.q0; PL.qEnd=R.qEnd;
+  if(a.src!==R.url) a.src=R.url;
+  const startQ=fromQ!=null&&fromQ>R.q0?fromQ:null;
+  a.currentTime=startQ!=null?Math.max(0,R.base+R.map.sec(startQ)-0.3):0;
+  try{ if(silentEl) silentEl.pause(); }catch(e){}
+  a.onended=()=>{ if(NL.cur&&NL.cur.mix.loop&&PL.audio===a){ a.currentTime=0; a.play().catch(()=>{}); } else { plStop(); plPos(measureAt(SC(),PL.q0),0); } };
+  PL.audio=a; PL.on=true; $("pPlay").textContent="❚❚ Pause"; $("pPlay").setAttribute("aria-label","Pause");
+  plMediaSession(p.title,{play:()=>{ if(!PL.on) plStart(PL.paused!=null?PL.paused:undefined); else a.play(); },pause:()=>$("pPlay").click(),stop:()=>{ plStop(); },
+    seek:d=>{ a.currentTime=Math.max(0,a.currentTime+d); },restart:()=>{ a.currentTime=0; }});
+  try{ await a.play(); navigator.mediaSession&&(navigator.mediaSession.playbackState="playing"); }catch(e){ $("pPos").textContent="Zum Abspielen noch einmal tippen"; PL.on=false; PL.audio=null; return; }
+  FL.last=Math.max(0,measureAt(sc,PL.q0)); plAnim();
+}
 function plTick(){
-  if(!PL.on) return;
-  const sc=SC(), horizon=ctx.currentTime+0.35;
+  if(!PL.on&&!PL.rendering) return;
+  const sc=SC(), horizon=PL.rendering?PL.renderHorizon:ctx.currentTime+0.35;
   sc.parts.forEach((pt,i)=>{
     while(PL.idx[i]<pt.notes.length){
       const n=pt.notes[PL.idx[i]]; if(n.q>=PL.qEnd-1e-6){ PL.idx[i]=pt.notes.length; break; }
@@ -4175,13 +4344,14 @@ function plTick(){
   if(NL.cur.mix.click){
     if(PL.beatQ==null){ const mi=measureAt(sc,PL.q0), ms=sc.measures[mi], ts=timeAt(sc,ms.q), bq=(ts.den===8&&ts.num%3===0&&ts.num>=6)?1.5:4/ts.den; PL.beatQ=ms.q+Math.ceil((PL.q0-ms.q)/bq-1e-6)*bq; }
     let guard=0;
-    while(PL.beatQ<PL.qEnd-1e-6&&guard++<16){
+    while(PL.beatQ<PL.qEnd-1e-6&&(PL.rendering||guard++<16)){
       const t=PL.base+PL.map.sec(PL.beatQ); if(t>horizon) break;
       const mi=measureAt(sc,PL.beatQ), ms=sc.measures[mi], ts=timeAt(sc,ms.q), bq=(ts.den===8&&ts.num%3===0&&ts.num>=6)?1.5:4/ts.den;
       if(t>=ctx.currentTime-0.02) plClick(Math.max(t,ctx.currentTime),Math.abs(PL.beatQ-ms.q)<1e-6);
       const nx=PL.beatQ+bq, nm=sc.measures[mi+1]; PL.beatQ=(nm&&nx>nm.q-1e-6)?nm.q:nx;
     }
   }
+  if(PL.rendering) return;
   const endT=PL.base+PL.map.sec(PL.qEnd);
   if(ctx.currentTime>endT+0.25){
     if(NL.cur.mix.loop){ plStart(); } else { plStop(); plPos(measureAt(sc,PL.q0),0); }
@@ -4192,8 +4362,9 @@ function plAnim(){
   PL.raf=requestAnimationFrame(plAnim);   // zuerst: ein Fehler in der Anzeige darf die Anzeige nicht anhalten
   try{ plAnimStep(); }catch(e){ if(!PL.animErr){ PL.animErr=1; console.error("Anzeige beim Abspielen:",e); try{ $("pPos").title=String(e&&e.message||e); }catch(_){} } }
 }
+function plNow(){ return PL.audio?PL.audio.currentTime:ctx.currentTime; }
 function plAnimStep(){
-  const s=ctx.currentTime-PL.base, q=PL.map.q(Math.max(s,PL.map.sec(PL.q0)));
+  const s=plNow()-PL.base, q=PL.map.q(Math.max(s,PL.map.sec(PL.q0)));
   const sc=SC(), mi=measureAt(sc,q), ms=sc.measures[mi], ts=timeAt(sc,ms.q), beatQ=4/ts.den;
   const counting=s<PL.map.sec(PL.q0)-0.02;
   plPos(mi,Math.floor((q-ms.q)/beatQ+1e-6)+1, counting);
@@ -4202,7 +4373,7 @@ function plAnimStep(){
   try{ nbDraw(counting?PL.q0:q); }catch(e){ if(!PL.e2){ PL.e2=1; console.error("Notenband:",e); } }
   try{ lyShow(counting?PL.q0:q); }catch(e){ if(!PL.e3){ PL.e3=1; console.error("Liedtext:",e); } }
   // Tonausgabe steht (z. B. nach Mikrofon-Nutzung auf dem iPhone): wieder anwerfen
-  if(ctx.state!=="running"&&!PL.resuming){ PL.resuming=1; try{ ctx.resume().finally(()=>{ PL.resuming=0; }); }catch(e){ PL.resuming=0; } }
+  if(!PL.audio&&ctx.state!=="running"&&!PL.resuming){ PL.resuming=1; try{ ctx.resume().finally(()=>{ PL.resuming=0; }); }catch(e){ PL.resuming=0; } }
 }
 /* Liedtext der markierten Stimme: aktuelle Zeile, gerade gesungene Silbe hervorgehoben */
 function lyShow(q){
@@ -4225,13 +4396,14 @@ function plPos(mi,beat,counting){
 }
 function plStop(keep){
   PL.on=false; clearInterval(PL.timer); cancelAnimationFrame(PL.raf);
+  if(PL.audio){ try{ PL.audio.pause(); }catch(e){} PL.audio=null; try{ navigator.mediaSession.playbackState="paused"; }catch(e){} }
   (PL.els||[]).forEach(el=>{ clearTimeout(el.timer); try{ el.a.pause(); }catch(e){} }); PL.els=[];
   PL.oscs.forEach(o=>{ try{ o.stop(); }catch(e){} }); PL.oscs=[];
   try{ PL.bus&&PL.bus.disconnect(); }catch(e){}
   PL.gains=[];
   if(!keep&&$("pPlay")){ $("pPlay").textContent="▶ Abspielen"; $("pPlay").setAttribute("aria-label","Abspielen"); }
 }
-function plPauseQ(){ return PL.on?Math.max(PL.q0,PL.map.q(ctx.currentTime-PL.base)):null; }
+function plPauseQ(){ return PL.on?Math.max(PL.q0,PL.map.q(plNow()-PL.base)):null; }
 function plEntry(){
   const p=NL.cur, mx=p&&p.mix; if(!mx) return;
   const sc=SC(), mine=+mx.mine, c=ac();
@@ -4737,6 +4909,7 @@ $("pClick").onchange=e=>{ const mx=NL.cur&&NL.cur.mix; if(!mx) return; mx.click=
 $("pTempo").onchange=()=>{ if(PL.on){ const q=plPauseQ(); plStart(q); } };
 $("pCount").onchange=e=>{ NL.cur.mix.countIn=e.target.checked; plSave(); };
 $("pLoop").onchange=e=>{ NL.cur.mix.loop=e.target.checked; plSave(); };
+$("pCar").onchange=e=>{ const mx=NL.cur&&NL.cur.mix; if(!mx) return; const was=PL.on; const q=was?plPauseQ():null; if(was) plStop(); mx.car=e.target.checked; plSave(); if(was) plStart(q); };
 $("pFrom").onchange=e=>{ NL.cur.mix.from=e.target.value.trim(); PL.paused=null; plSave(); if(NL.cur.score) plPos(plFindMeasure(SC(),NL.cur.mix.from,false),0); };
 $("pTo").onchange=e=>{ NL.cur.mix.to=e.target.value.trim(); plSave(); };
 let nlResizeT=null; window.addEventListener("resize",()=>{ clearTimeout(nlResizeT); nlResizeT=setTimeout(()=>{ if(NL.pdfDoc&&!$("viewer").hidden) nlRender(); },300); });
@@ -5263,7 +5436,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=62;
+const APP_BUILD=63;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
