@@ -301,7 +301,8 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
                   'silbe' => $sil, 'lage' => max(-1, min(1, (int)($o['lage'] ?? 0)))];
     }
     $opt = ['stimmen' => $st, 'melodie' => $mel, 'stil' => $stil, 'beatbox' => post('beatbox') === '1', 'transponieren' => max(-7, min(7, (int)post('transponieren'))),
-            'text' => post('text') !== '0', 'einzeln' => $ein, 'gesang' => post('gesang') === '1'];
+            'text' => post('text') !== '0', 'einzeln' => $ein, 'gesang' => post('gesang') === '1',
+            'begleitung' => post('begleitung') === 'klavier' ? 'klavier' : 'chor'];
     file_put_contents("$DATA/$job.audio", $ana);
     [$code, $r] = satz_start($job, $email, 'satz', $opt, $titel, ['email' => $email, 'monat' => $mon, 'titel' => 'Arrangement: ' . $titel, 'konto' => false, 'art' => 'satz']);
     if ($code !== 204) { @unlink("$DATA/$job.audio"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner"); gh_fehler($code, $r, $email, $job, 'Arrangement: ' . $titel, 'satz.yml'); }
