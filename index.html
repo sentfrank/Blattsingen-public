@@ -239,6 +239,9 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
 .lib-add{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
 .lib-home.locked>*:not(#srvAcct):not(#libLockMsg){display:none!important}
 .lockmsg{background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;line-height:1.5}
+body.songapp .wrap>section:not(#noten){display:none!important}
+body.songapp header nav,body.songapp .lib-add,body.songapp #ghBox,body.songapp .howto:not(#satzBox){display:none!important}
+body.songapp #satzBox{border-color:var(--accent)}
 .satz{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
 .satz>summary{cursor:pointer;font-weight:600}
 .satzin{display:grid;gap:10px;margin-top:10px}
@@ -409,7 +412,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.9.0 · 03.11.2026 · Strato (Build 64)</span>
+  <span class="appver">App-Version S1.10.0 · 03.11.2026 · Strato (Build 65)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -3668,7 +3671,9 @@ async function fileKind(file){
 /* --- Projekte (z. B. ein Konzertprogramm): Stücke lassen sich in ein oder mehrere Projekte legen --- */
 const PJ={sel:null,edit:null};   // sel: null = alle, "" = ohne Projekt, sonst Projektname; edit: null | "neu" | "umbenennen" | "stück"
 try{ const v=localStorage.getItem("blattsingen_projekt_sel"); PJ.sel=v==null?null:JSON.parse(v); }catch(e){}
-const PJ_ARR="\u0001arr";   // eigener Ordner für arrangierte Stücke (Song → A-cappella)
+const PJ_ARR="\u0001arr";
+const SONG=window.APP_MODE==="song";   // eigene App „Song-Arrangement“ (w-esel.de/song-arrangement): nur Arrangements
+const SONG_URL="../song-arrangement/";   // eigener Ordner für arrangierte Stücke (Song → A-cappella)
 const isArr=p=>!!(p&&p.satz);
 function pjProj(){ return PJ.sel&&PJ.sel!==PJ_ARR?PJ.sel:null; }   // ausgewähltes echtes Projekt
 function pjExtra(){ try{ return JSON.parse(localStorage.getItem("blattsingen_projekte")||"[]"); }catch(e){ return []; } }
@@ -3726,12 +3731,13 @@ function pjMovePanel(p,sel,onClose){
 function pjChip(text,on,role){ const b=document.createElement("button"); b.type="button"; b.textContent=text; if(role==="tab"){ b.setAttribute("role","tab"); b.setAttribute("aria-selected",on?"true":"false"); } else b.setAttribute("aria-pressed",on?"true":"false"); return b; }
 function pjBar(own){
   const bar=$("projBar"); bar.innerHTML=""; const names=pjNames();
+  if(SONG){ PJ.sel=PJ_ARR; bar.hidden=true; $("projTools").hidden=true; return; }
   if(PJ.sel&&PJ.sel!==PJ_ARR&&!names.includes(PJ.sel)) PJ.sel=null;
   const arrN=own.filter(isArr).length; if(PJ.sel===PJ_ARR&&!arrN) PJ.sel=null;
   if(PJ.sel===""&&!names.length) PJ.sel=null;
   const add=(label,val,cnt)=>{ const b=pjChip(label+(cnt!=null?" ("+cnt+")":""),PJ.sel===val,"tab"); b.onclick=()=>pjSelect(val); bar.appendChild(b); };
   add("Noten",null,own.filter(p=>!isArr(p)).length);
-  if(arrN) add("🎶 Arrangements",PJ_ARR,arrN);
+  if(arrN||(ACC.ping&&ACC.ping.satz)){ const a=document.createElement("a"); a.className="pnew"; a.href=SONG_URL; a.textContent="🎶 Song-Arrangement ↗"; a.title="Arrangements gibt es jetzt als eigene App"; bar.appendChild(a); }
   names.forEach(n=>add(n,n,own.filter(p=>(p.projs||[]).includes(n)).length));
   const loose=own.filter(p=>!isArr(p)&&!(p.projs||[]).length).length;
   if(names.length&&loose) add("Ohne Projekt","",loose);
@@ -3772,6 +3778,7 @@ async function nlRefresh(){
   const own=NL.pieces.filter(p=>!p.builtin);
   pjBar(own);
   if(!own.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent="Noch keine Stücke. Wähle oben eine PDF und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei."; ul.appendChild(li); return; }
+  if(SONG) PJ.sel=PJ_ARR;
   const arrView=PJ.sel===PJ_ARR, sel=arrView?null:PJ.sel;
   let list=arrView?own.filter(isArr):sel===null?own.filter(p=>!isArr(p)):(sel===""?own.filter(p=>!isArr(p)&&!(p.projs||[]).length):own.filter(p=>(p.projs||[]).includes(sel)));
   if(arrView&&!list.length){ const li=document.createElement("li"); li.className="lib-empty"; li.textContent="Noch keine Arrangements. Erstelle oben unter „Song → A-cappella-Arrangement“ eins."; ul.appendChild(li); return; }
@@ -3966,7 +3973,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.9.0 · 03.11.2026 · Strato (Build 64)";
+const APP_VERSION="S1.10.0 · 03.11.2026 · Strato (Build 65)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4547,7 +4554,7 @@ function nlLockUI(){
   h.classList.toggle("locked",lock);
   let m=$("libLockMsg");
   if(lock&&!m){ m=document.createElement("div"); m.id="libLockMsg"; m.className="lockmsg";
-    m.innerHTML="<b>Meine Noten gibt es mit Konto.</b> Melde dich an oder leg ein Konto an – deine Stücke und Projekte werden dann gesichert und sind auf jedem Gerät gleich. Trainer und Übungsblätter kannst du ohne Anmeldung nutzen.";
+    m.innerHTML=SONG?"<b>Song-Arrangement gibt es mit Konto.</b> Melde dich mit deinem Blattsingen-Konto an oder leg ein Konto an. Deine Arrangements werden gesichert und sind auf jedem Gerät gleich.":"<b>Meine Noten gibt es mit Konto.</b> Melde dich an oder leg ein Konto an – deine Stücke und Projekte werden dann gesichert und sind auf jedem Gerät gleich. Trainer und Übungsblätter kannst du ohne Anmeldung nutzen.";
     h.insertBefore(m,h.firstChild); }
   if(m) m.hidden=!lock;
   if(lock&&!$("viewer").hidden){ try{ $("vBack").click(); }catch(e){} }
@@ -4560,7 +4567,7 @@ function accUI(){
   if(inLib&&!(accNeeded()&&(sync||nlLocked()))){ box.hidden=true; return; }
   if(!$("acctSync")){ const s=document.createElement("span"); s.id="acctSync"; s.className="hint acctsync"; const b=document.createElement("button"); b.type="button"; b.className="ghost sm"; b.id="acctSyncNow"; b.textContent="Jetzt abgleichen"; b.onclick=()=>syncRun(); $("acctIn").append(s,b); }
   $("acctSync").hidden=$("acctSyncNow").hidden=!sync; if(SY.info) $("acctSync").textContent=SY.info;
-  if(sync&&accNeeded()&&$("libIntro")) $("libIntro").textContent="Lade die PDF eines Stücks zum Lesen und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei zum Abspielen einzelner Stimmen. Mit deinem Konto werden Stücke und Projekte auf dem Server gesichert und erscheinen auf jedem Gerät, auf dem du dich anmeldest.";
+  if(!SONG&&sync&&accNeeded()&&$("libIntro")) $("libIntro").textContent="Lade die PDF eines Stücks zum Lesen und, wenn vorhanden, die passende MusicXML- oder MIDI-Datei zum Abspielen einzelner Stimmen. Mit deinem Konto werden Stücke und Projekte auf dem Server gesichert und erscheinen auf jedem Gerät, auf dem du dich anmeldest.";
   if(accMailMode()){   // Dienst ohne Passwort: Name und E-Mail genügen
     const reg=srvReg(), form=$("acctForm"), inn=$("acctIn");
     box.hidden=false;
@@ -4753,7 +4760,7 @@ const SZ_PCN=["C","Cis","D","Es","E","F","Fis","G","As","A","B","H"];
 function szOn(){ return !!(SRV.url&&ACC.ping&&ACC.ping.satz&&accNeeded()); }
 function szUI(){
   const box=$("satzBox"); if(!box) return;
-  const on=szOn(); box.hidden=!on; if(on){ const logged=!!(accTok()&&ACC.info);
+  const on=szOn()&&SONG; box.hidden=!on; if(on){ const logged=!!(accTok()&&ACC.info);
     $("satzLogin").hidden=logged; $("satzForm").hidden=!logged; $("satzGo").disabled=!SZ.blob||!!SZ.rec||!!SZ.busy; }
   try{ arrUI(); }catch(e){}
 }
@@ -4843,7 +4850,7 @@ function arrOneOpts(){ const o={}; $("arrOneList").querySelectorAll(".arrrow").f
 function arrUI(){
   const box=$("arrBox"); if(!box) return;
   const p=NL.cur, ana=p&&p.satzAna;
-  if(!ana||!szOn()||p.job){ box.hidden=true; return; }
+  if(!ana||!szOn()||p.job||!SONG){ box.hidden=true; return; }
   box.hidden=false;
   const logged=!!(accTok()&&ACC.info);
   const key=SZ_PCN[ana.tonic]+(ana.mode==="dur"?"-Dur":"-Moll");
@@ -5071,7 +5078,9 @@ async function syncRun(){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&Date.now()-SY.last>60000) syncSoon(500); });
 setInterval(()=>{ if(document.visibilityState==="visible") syncRun(); },180000);
-srvLoad().then(async()=>{ await accPing(); await accRefresh(); accUI(); syncSoon(800); if(NL.cur) omrRefreshUI(); });
+srvLoad().then(async()=>{ await accPing(); await accRefresh(); accUI(); syncSoon(800); if(NL.cur) omrRefreshUI(); else if(!SONG&&ACC.ping&&ACC.ping.satz) nlRefresh(); });
+if(SONG){ document.body.classList.add("songapp"); try{ $("satzBox").open=true; }catch(e){}
+  const li=$("libIntro"); if(li) li.textContent="Aus einem Song, einer A-cappella-Aufnahme oder deiner eingesungenen Melodie: erst die Melodie erkennen, dann ein Arrangement erstellen – als Chorsatz mit eigenen Stimmen und Beatbox oder als Gesang mit Klavier."; }
 /* Anmeldung erst, wenn man „Meine Noten“ öffnet: mit Konto-Dienst das Konto, sonst die kurze Anmeldung (Formular) */
 (()=>{ const sec=$("noten"); if(!sec||!("IntersectionObserver" in window)) return; let done=false;
   const io=new IntersectionObserver(async es=>{ if(done||!es.some(e=>e.isIntersecting)) return;
@@ -5454,7 +5463,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=64;
+const APP_BUILD=65;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{

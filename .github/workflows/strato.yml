@@ -66,5 +66,14 @@ jobs:
             mirror -R --verbose --no-perms \
               --exclude-glob .git* --exclude-glob .github/ --exclude-glob BRANCH.md \
               --exclude-glob dienst/config.php --exclude-glob dienst/daten/ --exclude-glob test.log \
+              --exclude-glob _song-arrangement/ --exclude-glob _song-arragment/ \
               ./ $ZIEL; bye"
+          # eigene App „Song-Arrangement“ neben der Blattsingen-App (gleiche Domain, eigener Ordner)
+          OBEN=$(dirname "$ZIEL")
+          if [ -d _song-arrangement ]; then
+            lftp --env-password -u "$USER" "$URL" -e "$OPT set net:max-retries 3; \
+              mkdir -p -f $OBEN/song-arrangement; mirror -R --verbose --no-perms ./_song-arrangement/ $OBEN/song-arrangement; \
+              mkdir -p -f $OBEN/song-arragment; mirror -R --verbose --no-perms ./_song-arragment/ $OBEN/song-arragment; bye"
+            echo "Fertig: https://www.w-esel.de/song-arrangement/"
+          fi
           echo "Fertig: https://www.w-esel.de/blattsingen/"
