@@ -417,7 +417,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.12.0 · 04.11.2026 · Strato (Build 69)</span>
+  <span class="appver">App-Version S1.12.1 · 04.11.2026 · Strato (Build 70)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -458,7 +458,7 @@ body.regopen{overflow:hidden}
     <div class="wu-bar">
       <div class="field"><label class="label" for="wuVoice">Stimmlage</label>
         <select id="wuVoice"><option value="S">Sopran</option><option value="A">Alt</option><option value="T">Tenor</option><option value="B">Bass</option></select></div>
-      <div class="btnrow"><button class="primary" type="button" id="wuAll">▶ Ganzes Einsingen (5 Min.)</button><button type="button" id="wuCar">🚗 Im Auto (10 Min., mit Ansagen)</button><button type="button" id="wuStop" disabled>Stopp</button></div>
+      <div class="btnrow"><button class="primary" type="button" id="wuAll">▶ Ganzes Einsingen (5 Min.)</button><button type="button" id="wuCar">🚗 Im Auto (10 Min., mit Ansagen)</button><button type="button" id="wuStop" disabled>Stopp</button><button type="button" id="wuSave" hidden>⤓ Als MP3 speichern</button></div>
       <p class="hint" id="wuCarHint">Im Auto: Die App sagt jede Übung an und spielt sie dann ab – du musst nicht auf den Bildschirm schauen. Handy vorher mit dem Autoradio verbinden (Bluetooth/CarPlay), Lautstärke einstellen, dann starten. Der Bildschirm bleibt dabei an.</p>
       <div class="wu-now" aria-live="polite"><span class="wu-step" id="wuStep">Bereit</span><span class="wu-key" id="wuKey"></span><span class="wu-time" id="wuTime"></span></div>
       <div class="wu-prog" aria-hidden="true"><div id="wuProg"></div></div>
@@ -489,7 +489,7 @@ body.regopen{overflow:hidden}
       <div class="field"><label class="label" for="gtLen">Dauer</label>
         <select id="gtLen"><option value="5">etwa 5 Minuten</option><option value="10" selected>etwa 10 Minuten</option><option value="20">etwa 20 Minuten</option></select></div>
     </div>
-    <div class="btnrow"><button type="button" class="primary" id="gtStart">▶ Im Auto starten</button><button type="button" id="gtStop" disabled>Stopp</button></div>
+    <div class="btnrow"><button type="button" class="primary" id="gtStart">▶ Im Auto starten</button><button type="button" id="gtStop" disabled>Stopp</button><button type="button" id="gtSave" hidden>⤓ Als MP3 speichern</button></div>
     <p class="hint" id="gtStep" aria-live="polite"></p>
     <div class="gtbar"><div id="gtProg"></div></div>
   </details>
@@ -1291,7 +1291,7 @@ body.regopen{overflow:hidden}
           <button type="button" id="pTUp" aria-label="schneller">+</button>
           <label class="donebox"><input type="checkbox" id="pClick"> Metronom</label>
           <label class="donebox" id="pVowBox" title="Die Stimmen singen den Liedtext mit Vokalen und Konsonanten statt eines gleichbleibenden Klangs."><input type="checkbox" id="pVow"> Text singen</label>
-          <label class="donebox" title="Das Stück wird vorab als Audio berechnet und wie Musik abgespielt: läuft über CarPlay, Bluetooth und bei gesperrtem Bildschirm ohne Aussetzer. Nach Änderungen an Tempo oder Stimmen dauert der Start einen Moment."><input type="checkbox" id="pCar"> 🚗 Auto / Sperrbildschirm</label>
+          <label class="donebox" title="Das Stück wird vorab als Audio berechnet und wie Musik abgespielt: läuft über CarPlay, Bluetooth und bei gesperrtem Bildschirm ohne Aussetzer. Nach Änderungen an Tempo oder Stimmen dauert der Start einen Moment."><input type="checkbox" id="pCar"> 🚗 Auto / Sperrbildschirm</label><button type="button" class="sm" id="pCarSave" hidden title="Das berechnete Stück als MP3 speichern und z. B. in VLC oder der Musik-App abspielen">⤓ Als MP3 speichern</button>
           <label class="donebox" id="pSungBox" hidden title="Statt der eingebauten Stimme die erzeugte Gesangsaufnahme mit Text abspielen."><input type="checkbox" id="pSung" checked> Gesang mit Text (Aufnahme)</label>
         </div>
         <p class="plyr" id="pLyr" hidden aria-live="off"></p>
@@ -2174,7 +2174,7 @@ async function carRenderStart(){
   if(!CAR.on) return true;
   if(CAR.url) URL.revokeObjectURL(CAR.url);
   $("wuStep").textContent="Einsingen im Auto wird vorbereitet … 95 %";
-  const blob=await carMp3(buf); if(!CAR.on) return true;
+  const blob=await carMp3(buf); if(!CAR.on) return true; CAR.blob=blob; try{ $("wuSave").hidden=false; }catch(e){}
   CAR.url=URL.createObjectURL(blob); CAR.tl=tl.sort((a,b)=>a.t-b.t); CAR.total=total; CAR.steps=steps;
   el.src=CAR.url; el.currentTime=0; carSolo(el,"Einsingen im Auto");
   el.onended=()=>{ if(CAR.on){ $("wuStep").textContent="Fertig eingesungen"; $("wuProg").style.width="100%"; $("wuTime").textContent=""; wuDraw(null); carEnd(); } };
@@ -2258,6 +2258,13 @@ async function carMp3(buf){
   }catch(e){ console.warn("MP3 nicht möglich, nehme WAV:",e); return wavBlob(buf); }
 }
 window.carMp3=carMp3;
+/* Berechnete Datei speichern/teilen – zum Abspielen in einer normalen Musik-App (z. B. VLC mit CarPlay) */
+async function carSaveFile(blob,name){
+  const f=new File([blob],name,{type:blob.type});
+  try{ if(navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:name}); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+  const u=URL.createObjectURL(blob), a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),60000);
+}
+window.carSaveFile=carSaveFile;
 /* Während eine vorab berechnete Datei läuft: eigene Tonausgabe anhalten (zwei gleichzeitige Tonquellen lassen iPhone/CarPlay stocken) */
 function carSolo(el,title){
   try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
@@ -2356,7 +2363,7 @@ async function gtStart(){
     const clips=await gtClips(); if(!GT.on) return;
     const plan=gtPlan(clips); const buf=await gtRender(plan); if(!GT.on) return;
     $("gtStep").textContent="Wird vorbereitet … 95 %";
-    const blob=await carMp3(buf); if(!GT.on) return;
+    const blob=await carMp3(buf); if(!GT.on) return; GT.blob=blob; $("gtSave").hidden=false;
     if(GT.url) URL.revokeObjectURL(GT.url); GT.url=URL.createObjectURL(blob);
     el.src=GT.url; el.currentTime=0; carSolo(el,"Gehörtraining im Auto");
     el.onended=()=>{ $("gtStep").textContent="Fertig – gut gemacht!"; $("gtProg").style.width="100%"; gtEnd(); };
@@ -2372,9 +2379,9 @@ async function gtStart(){
 }
 function gtEnd(){ GT.on=false; clearInterval(GT.timer); $("gtStart").disabled=false; $("gtStop").disabled=true; try{ GT.wake&&GT.wake.release(); }catch(e){} GT.wake=null; }
 function gtStop(){ if(GT.el) try{ GT.el.pause(); }catch(e){} if(GT.on) $("gtStep").textContent="Angehalten"; gtEnd(); }
-$("gtStart").onclick=gtStart; $("gtStop").onclick=gtStop;
+$("gtStart").onclick=gtStart; $("gtStop").onclick=gtStop; $("gtSave").onclick=()=>{ if(GT.blob) carSaveFile(GT.blob,"Gehoertraining.mp3"); };
 ["gtMode","gtLevel","gtDir","gtScales","gtLen"].forEach(id=>{ const e=$(id); const v=store.get(id,null); if(v!=null&&[...e.options].some(o=>o.value===v)) e.value=v; e.onchange=()=>store.set(id,e.value); });
-window.__gt={plan:()=>gtClips().then(c=>gtPlan(c)),GT};
+window.__gt={plan:()=>gtClips().then(c=>gtPlan(c)),GT}; $("wuSave").onclick=()=>{ if(CAR.blob) carSaveFile(CAR.blob,"Einsingen.mp3"); };
 window.__car={carClips:()=>carClips(),renderOffline:(a,b,c,d)=>renderOffline(a,b,c,d),wavBlob:x=>wavBlob(x),wuEvents:(a,b,c,d)=>wuEvents(a,b,c,d),WU_CAR,carEx:x=>carEx(x),tone:(a,b,c,d)=>tone(a,b,c,d)};
 $("wuStop").addEventListener("click",carStop);
 document.addEventListener("visibilitychange",()=>{ if(CAR.on&&document.visibilityState==="visible"&&!CAR.wake){ try{ navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>CAR.wake=w).catch(()=>{}); }catch(e){} } });
@@ -4148,7 +4155,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.12.0 · 04.11.2026 · Strato (Build 69)";
+const APP_VERSION="S1.12.1 · 04.11.2026 · Strato (Build 70)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4496,11 +4503,12 @@ async function plAudioStart(fromQ){
       if(PL.rcache&&PL.rcache.url) URL.revokeObjectURL(PL.rcache.url);
       $("pPos").textContent="Audio wird vorbereitet … 97 %";
       const blob=window.carMp3?await window.carMp3(buf):wavBlob(buf);
-      PL.rcache=Object.assign({sig,url:URL.createObjectURL(blob)},st);
+      PL.rcache=Object.assign({sig,url:URL.createObjectURL(blob),blob},st);
     }catch(e){ $("pPlay").disabled=false; $("pPos").textContent="Audio-Modus geht hier nicht ("+((e&&e.message)||e)+")"; return; }
     $("pPlay").disabled=false;
   }
   const R=PL.rcache; PL.base=R.base; PL.map=R.map; PL.q0=R.q0; PL.qEnd=R.qEnd;
+  try{ $("pCarSave").hidden=false; }catch(e){}
   if(a.src!==R.url) a.src=R.url;
   const startQ=fromQ!=null&&fromQ>R.q0?fromQ:null;
   a.currentTime=startQ!=null?Math.max(0,R.base+R.map.sec(startQ)-0.3):0;
@@ -5127,6 +5135,7 @@ $("pClick").onchange=e=>{ const mx=NL.cur&&NL.cur.mix; if(!mx) return; mx.click=
 $("pTempo").onchange=()=>{ if(PL.on){ const q=plPauseQ(); plStart(q); } };
 $("pCount").onchange=e=>{ NL.cur.mix.countIn=e.target.checked; plSave(); };
 $("pLoop").onchange=e=>{ NL.cur.mix.loop=e.target.checked; plSave(); };
+$("pCarSave").onclick=()=>{ const R=PL.rcache; if(!R||!R.blob) return; const p=NL.cur; carSaveFile(R.blob,((p&&p.title)||"Stueck").replace(/[\\/:*?"<>|–—]+/g,"-").trim()+(R.blob.type==="audio/mpeg"?".mp3":".wav")); };
 $("pCar").onchange=e=>{ const mx=NL.cur&&NL.cur.mix; if(!mx) return; const was=PL.on; const q=was?plPauseQ():null; if(was) plStop(); mx.car=e.target.checked; plSave(); if(was) plStart(q); };
 $("pFrom").onchange=e=>{ NL.cur.mix.from=e.target.value.trim(); PL.paused=null; plSave(); if(NL.cur.score) plPos(plFindMeasure(SC(),NL.cur.mix.from,false),0); };
 $("pTo").onchange=e=>{ NL.cur.mix.to=e.target.value.trim(); plSave(); };
@@ -5656,7 +5665,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=69;
+const APP_BUILD=70;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
