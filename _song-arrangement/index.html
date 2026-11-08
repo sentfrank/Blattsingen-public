@@ -418,7 +418,7 @@ body.regopen{overflow:hidden}
   <span class="label">Song → A cappella oder Gesang mit Klavier</span>
   <h1>Song-Arrangement</h1>
   <p class="lead">Melodie aus einem Song erkennen und daraus ein Arrangement machen – zum Anhören, Mitsingen und Ausdrucken. Gehört zur <a href="../blattsingen/">Blattsingen-App</a> und nutzt dasselbe Konto.</p>
-  <span class="appver">App-Version S1.12.1 · 04.11.2026 · Song-Arrangement (Build 70)</span>
+  <span class="appver">App-Version S1.13.0 · 08.11.2026 · Song-Arrangement (Build 71)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -4156,7 +4156,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.12.1 · 04.11.2026 · Song-Arrangement (Build 70)";
+const APP_VERSION="S1.13.0 · 08.11.2026 · Song-Arrangement (Build 71)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -5616,6 +5616,91 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 })();
 </script>
 
+<style>
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row dense;gap:10px;margin:18px 0 28px}
+@media (min-width:700px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1050px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile{all:unset;box-sizing:border-box;cursor:pointer;position:relative;display:flex;flex-direction:column;gap:4px;
+  padding:12px 30px 12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);min-height:96px;transition:border-color .15s,box-shadow .15s}
+.tile:hover{border-color:var(--accent)}
+.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tile .ti{font-size:1.5rem;line-height:1.1}
+.tile b{font:700 1rem/1.25 var(--body);color:var(--fg);hyphens:auto;overflow-wrap:anywhere}
+.tile small{font:400 .8rem/1.35 var(--body);color:var(--muted,#667);hyphens:auto}
+.tile .tc{position:absolute;top:12px;right:12px;font-size:.9rem;color:var(--muted,#667);transition:transform .2s}
+@media (min-width:700px){.tile{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:3px;padding:14px 32px 14px 14px;min-height:84px}.tile .ti{grid-row:1/3;font-size:1.7rem}}
+.tile[aria-expanded="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.tile[aria-expanded="true"] .tc{transform:rotate(180deg)}
+.tiles>section{grid-column:1/-1;margin:2px 0 10px;padding:4px 14px 14px;border:1px solid var(--accent);border-radius:14px;animation:tileOpen .22s ease-out}
+.tiles>section[hidden]{display:none!important}
+@keyframes tileOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tiles>section{animation:none}.tile,.tile .tc{transition:none}}
+.secclose{all:unset;cursor:pointer;display:block;width:max-content;margin:10px 0 0 auto;font:600 .8rem var(--body);color:var(--muted,#667);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.secclose:hover{color:var(--accent);border-color:var(--accent)}
+header nav{display:none}
+body.songapp .tile{display:none!important}
+body.songapp .tiles{display:block}
+body.songapp .tiles>section:not(#noten){display:none!important}
+body.songapp .tiles>section{border:0;padding:0;animation:none}
+body.songapp .secclose{display:none}
+</style>
+<script>
+(()=>{
+  const DEF=[
+    ["noten","📂","Meine Noten","Noten scannen, anhören, mitsingen, Arrangements"],
+    ["einsingen","🎤","Einsingen","5 Minuten Stimme aufwärmen, auch im Auto"],
+    ["trainer","🎯","Trainer","Tonleitern, Intervalle, Lesen, Rhythmus, Akkorde"],
+    ["routine","☀️","Tagesroutine","Die tägliche halbe Stunde"],
+    ["plan","🗓️","8‑Wochen‑Plan","Woche für Woche zum Blattsingen"],
+    ["uebung","📝","Übungsblätter","Blätter zum Ausdrucken und Üben"],
+    ["theorie","📚","Theorie","Musiktheorie kurz erklärt"],
+    ["material","🎼","Übematerial","Lieder und Stücke zum Üben"]];
+  const first=document.getElementById(DEF[0][0]); if(!first) return;
+  const grid=document.createElement("div"); grid.className="tiles"; grid.setAttribute("role","list");
+  const wrap=first.parentNode; wrap.insertBefore(grid,wrap.querySelector(":scope>section"));
+  const T={}, S={};
+  const red=matchMedia("(prefers-reduced-motion: reduce)");
+  DEF.forEach(([id,ic,title,sub])=>{
+    const sec=document.getElementById(id); if(!sec) return;
+    const t=document.createElement("button"); t.type="button"; t.className="tile"; t.id="tile-"+id;
+    t.setAttribute("aria-expanded","false"); t.setAttribute("aria-controls",id); t.setAttribute("role","listitem");
+    t.innerHTML='<span class="ti" aria-hidden="true">'+ic+'</span><b>'+title+'</b><small>'+sub+'</small><span class="tc" aria-hidden="true">▾</span>';
+    grid.appendChild(t); grid.appendChild(sec); sec.hidden=true;
+    const c=document.createElement("button"); c.type="button"; c.className="secclose"; c.textContent="▴ zuklappen"; c.onclick=()=>close(id,true);
+    sec.insertBefore(c,sec.firstChild);
+    t.onclick=()=>{ if(!sec.hidden) close(id,false); else open(id,true); };
+    // Sprünge aus dem Programm (scrollIntoView) öffnen erst den Bereich
+    const siv=sec.scrollIntoView.bind(sec); sec.scrollIntoView=function(o){ open(id,false); siv(o); };
+    T[id]=t; S[id]=sec;
+  });
+  // weitere Bereiche ohne Kachel (falls vorhanden) bleiben unter den Kacheln sichtbar
+  const store_=(k,v)=>{ try{ v===undefined?0:localStorage.setItem(k,v); return localStorage.getItem(k); }catch(e){ return null; } };
+  function after(){ try{ window.dispatchEvent(new Event("resize")); }catch(e){} try{ typeof redrawStaffs==="function"&&redrawStaffs(); }catch(e){} }
+  function open(id,scroll){
+    const sec=S[id]; if(!sec) return;
+    Object.keys(S).forEach(k=>{ if(k!==id&&!S[k].hidden){ S[k].hidden=true; T[k].setAttribute("aria-expanded","false"); } });
+    if(sec.hidden){ sec.hidden=false; T[id].setAttribute("aria-expanded","true"); after(); }
+    store_("blattsingen_tile",id);
+    if(location.hash!=="#"+id&&location.hash!=="#verwaltung") try{ history.replaceState(null,"","#"+id); }catch(e){}
+    if(scroll) requestAnimationFrame(()=>T[id].scrollIntoView({behavior:red.matches?"auto":"smooth",block:"start"}));
+  }
+  function close(id,scroll){
+    const sec=S[id]; if(!sec) return; sec.hidden=true; T[id].setAttribute("aria-expanded","false");
+    store_("blattsingen_tile","");
+    if(location.hash==="#"+id) try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+    if(scroll) T[id].scrollIntoView({behavior:red.matches?"auto":"smooth",block:"nearest"});
+  }
+  window.tileOpen=open; window.tileClose=close;
+  // Links auf Bereiche (#noten usw.) öffnen die Kachel
+  document.addEventListener("click",e=>{ const a=e.target.closest&&e.target.closest('a[href^="#"]'); if(!a) return; const id=a.getAttribute("href").slice(1); if(S[id]){ e.preventDefault(); open(id,true); } });
+  window.addEventListener("hashchange",()=>{ const id=location.hash.slice(1); if(S[id]) open(id,true); });
+  if(document.body.classList.contains("songapp")){ if(S.noten){ S.noten.hidden=false; } return; }
+  const h=location.hash.slice(1);
+  if(S[h]) open(h,true);
+  else { const last=store_("blattsingen_tile"); if(last&&S[last]) open(last,false); }
+})();
+</script>
+
 <div class="regwrap" id="regWrap" hidden>
   <form class="regbox" id="regForm" autocomplete="on">
     <h2>Willkommen bei der Blattsingen-App</h2>
@@ -5666,7 +5751,7 @@ syncInputs(); renderScale(-1); newMelody(); renderIvGrid(); showTab(st.tab||"sca
 </script>
 
 <script>
-const APP_BUILD=70;
+const APP_BUILD=71;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
