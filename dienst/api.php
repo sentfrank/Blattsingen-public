@@ -405,7 +405,8 @@ if ($a === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
   file_put_contents("$DATA/$job.json", json_encode(['status' => 'läuft', 'schritt' => 'Wartet, bis die Erkennung startet', 'zeit' => time()], JSON_UNESCAPED_UNICODE));
   $titel = (string)($_POST['titel'] ?? '');
   file_put_contents("$DATA/$job.owner", json_encode(['email' => $email, 'monat' => $mon, 'titel' => $titel, 'konto' => (bool)$kto], JSON_UNESCAPED_UNICODE));
-  [$code, $r] = gh_dispatch($job, ($_POST['text'] ?? '1') !== '0');
+  $mitText = ($_POST['text'] ?? '1') !== '0';
+  [$code, $r] = gh_dispatch($job, $mitText, 'server.yml', ($mitText && ($_POST['gesang'] ?? '0') === '1') ? ['gesang' => '1'] : []);
   if ($code !== 204) {
     @unlink("$DATA/$job.pdf"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
     if ($kto) zaehlen($email, -1, $mon);
