@@ -317,7 +317,7 @@ if (($a === 'satz' || $a === 'arrangement') && ($_SERVER['REQUEST_METHOD'] ?? ''
     $st = array_values(array_intersect($erlaubt, explode(',', post('stimmen'))));
     if (!array_diff($st, ['Solo'])) $st = array_merge($st, ['S', 'A', 'T', 'B']);
     $mel = in_array(post('melodie'), $st, true) ? post('melodie') : '';
-    $stil = in_array(post('stil'), ['ballade', 'pop', 'doowop', 'chorsatz'], true) ? post('stil') : 'ballade';
+    $stil = in_array(post('stil'), ['ballade', 'pop', 'doowop', 'chorsatz', 'vocalpop', 'deutschpop', 'comedy'], true) ? post('stil') : 'ballade';
     $ein = [];   // Stimmen einzeln: Rhythmus, Silbe, Lage
     $ej = json_decode(post('einzeln'), true);
     if (is_array($ej)) foreach ($ej as $v => $o) {
