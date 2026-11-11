@@ -406,7 +406,7 @@ if ($a === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
   $titel = (string)($_POST['titel'] ?? '');
   file_put_contents("$DATA/$job.owner", json_encode(['email' => $email, 'monat' => $mon, 'titel' => $titel, 'konto' => (bool)$kto], JSON_UNESCAPED_UNICODE));
   $mitText = ($_POST['text'] ?? '1') !== '0';
-  [$code, $r] = gh_dispatch($job, $mitText, 'server.yml', ($mitText && ($_POST['gesang'] ?? '0') === '1') ? ['gesang' => '1'] : []);
+  [$code, $r] = gh_dispatch($job, $mitText, 'server.yml', ($mitText && preg_match('/^(1|[SATB]{1,4})$/', $_POST['gesang'] ?? '')) ? ['gesang' => $_POST['gesang']] : []);
   if ($code !== 204) {
     @unlink("$DATA/$job.pdf"); @unlink("$DATA/$job.json"); @unlink("$DATA/$job.owner");
     if ($kto) zaehlen($email, -1, $mon);
