@@ -65,7 +65,8 @@ function konto_aus_token() {
   if (!empty($k['gesperrt'])) out(403, ['fehler' => 'Dein Konto ist gesperrt. Bitte wende dich an den Betreiber.']);
   return $k;
 }
-require __DIR__ . '/sync.php';   // Stücke und Projekte geräteübergreifend (sync_*)
+require __DIR__ . '/sync.php';
+require __DIR__ . '/teilen.php';   // Projekte mit anderen teilen (teilen_*)   // Stücke und Projekte geräteübergreifend (sync_*)
 
 if ($a === 'registrieren') {
   nur_post();

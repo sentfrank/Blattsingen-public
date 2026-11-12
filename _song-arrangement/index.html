@@ -12,7 +12,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}.shbox{margin:8px 0 12px;padding:10px 12px;border:1px solid var(--accent);border-radius:12px;background:color-mix(in srgb,var(--accent) 6%,var(--surface,#fff))}
+.shbox p{margin:0 0 8px}.shbox .shlink{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.shbox input{flex:1 1 220px;min-width:0;font-size:.85rem}
+.shbox .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+</style>
 <title>Song-Arrangement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -418,7 +421,7 @@ body.regopen{overflow:hidden}
   <span class="label">Song → A cappella oder Gesang mit Klavier</span>
   <h1>Song-Arrangement</h1>
   <p class="lead">Melodie aus einem Song erkennen und daraus ein Arrangement machen – zum Anhören, Mitsingen und Ausdrucken. Gehört zur <a href="../blattsingen/">Blattsingen-App</a> und nutzt dasselbe Konto.</p>
-  <span class="appver">App-Version S1.16.3 · 12.11.2026 · Song-Arrangement (Build 79)</span>
+  <span class="appver">App-Version S1.16.4 · 12.11.2026 · Song-Arrangement (Build 80)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1240,12 +1243,16 @@ body.regopen{overflow:hidden}
         </div>
       </div>
     </details>
+    <div class="shbox shin" id="shareIn" hidden></div>
     <div class="projbar" id="projBar" role="tablist" aria-label="Projekte"></div>
     <div class="projtools" id="projTools" hidden>
       <span class="hint" id="projInfo"></span>
       <button type="button" class="ghost sm" id="projRename">Umbenennen</button>
+      <button type="button" class="ghost sm" id="projShare">🔗 Mit dem Chor teilen</button>
+      <button type="button" class="ghost sm" id="projPull" hidden>⟳ Neueste Fassung holen</button>
       <button type="button" class="ghost sm" id="projDelete">Projekt auflösen</button>
     </div>
+    <div class="shbox" id="projShareBox" hidden></div>
     <div class="projnew" id="projNew" hidden><input type="text" id="projName" placeholder="z. B. Weihnachtskonzert 2026" maxlength="60"><button type="button" class="primary sm" id="projNewOk">Anlegen</button><button type="button" class="sm" id="projNewNo">Abbrechen</button></div>
     <ul class="lib-list" id="libList"></ul>
     <details class="howto" id="ghBox">
@@ -4062,6 +4069,10 @@ function pjTools(){
   const named=!!pjProj();
   $("projTools").hidden=!named||PJ.edit==="umbenennen";
   if(named){ $("projInfo").textContent="Neue Dateien landen direkt in „"+PJ.sel+"“. Reihenfolge mit ↑ ↓."; const d=$("projDelete"); d.dataset.arm=""; d.textContent="Projekt auflösen"; }
+  if(named){ const mine=lsJ("blattsingen_geteilt",{}), abo=lsJ("blattsingen_teilen_abos",{});
+    $("projShare").textContent=mine[PJ.sel]?"🔗 Teilen aktualisieren":"🔗 Mit dem Chor teilen";
+    $("projShare").hidden=!!abo[PJ.sel]&&!mine[PJ.sel]; $("projPull").hidden=!abo[PJ.sel]; }
+  if(!named||PJ.shFor!==PJ.sel){ const sb=$("projShareBox"); if(sb){ sb.hidden=true; sb.innerHTML=""; } PJ.shFor=PJ.sel; }
   $("projNew").hidden=!(PJ.edit==="neu"||PJ.edit==="umbenennen");
   $("projNewOk").textContent=PJ.edit==="umbenennen"?"Umbenennen":"Anlegen";
 }
@@ -4084,6 +4095,7 @@ function pjViewer(){
 /* --- Bibliothek --- */
 function nlStatus(t){ $("libStatus").textContent=t||""; }
 async function nlRefresh(){
+  try{ setTimeout(()=>shCheck(),0); }catch(e){}
   try{ NL.pieces=(await nlAll()).sort((a,b)=>(b.updated||0)-(a.updated||0)); }
   catch(e){ NL.pieces=[]; nlStatus("Der Speicher auf diesem Gerät ist nicht verfügbar (privates Surfen?). Stücke können nicht gesichert werden."); }
   NL.pieces.filter(p=>p.job).forEach(p=>omrPoll(p.id));
@@ -4286,7 +4298,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.16.3 · 12.11.2026 · Song-Arrangement (Build 79)";
+const APP_VERSION="S1.16.4 · 12.11.2026 · Song-Arrangement (Build 80)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -5600,6 +5612,8 @@ $("projNewOk").onclick=()=>{ const n=$("projName").value.trim(); const mode=PJ.e
 $("projName").onkeydown=e=>{ if(e.key==="Enter") $("projNewOk").click(); if(e.key==="Escape") $("projNewNo").click(); };
 $("projNewNo").onclick=()=>{ PJ.edit=null; pjTools(); };
 $("projRename").onclick=()=>{ PJ.edit="umbenennen"; $("projName").value=PJ.sel||""; pjTools(); $("projName").focus(); };
+$("projShare").onclick=()=>shShare();
+$("projPull").onclick=async()=>{ const n=pjProj(), t=lsJ("blattsingen_teilen_abos",{})[n]; if(!t) return; const b=shIn('<p class="hint shst">Neueste Fassung wird geholt …</p>'); await shImport(t,null,b.querySelector(".shst")); };
 $("projDelete").onclick=()=>{ const d=$("projDelete"); if(d.dataset.arm!=="1"){ d.dataset.arm="1"; d.textContent="Wirklich auflösen? (Stücke bleiben erhalten)"; setTimeout(()=>{ d.dataset.arm=""; d.textContent="Projekt auflösen"; },4000); return; } pjDissolve(PJ.sel); };
 $("acctSwitch").onclick=()=>{ ACC.mode=ACC.mode==="reg"?"login":"reg"; $("acctMsg").textContent=""; accUI(); };
 $("acctCancel").onclick=()=>{ ACC.mode="login"; $("acctMsg").textContent=""; accUI(); };
@@ -5608,6 +5622,96 @@ $("acctOut").onclick=()=>{ if(accMailMode()){ ACC.mode="mail"; accUI(); return; 
 
 nlRefresh();
 
+
+/* --- Projekte mit dem Chor teilen: Kopie der Stücke (Noten, PDF, Gesangsspuren) auf dem Server, Link für andere --- */
+const SH={busy:false,list:null};
+const shMine=()=>lsJ("blattsingen_geteilt",{}), shAbos=()=>lsJ("blattsingen_teilen_abos",{});
+function shLink(t){ return location.origin+location.pathname+"?teilen="+t+"#noten"; }
+function shBox(html){ const b=$("projShareBox"); b.hidden=!html; b.innerHTML=html||""; return b; }
+function shShowLink(n,t){
+  const b=shBox('<p><b>„'+esc(n)+'“ ist geteilt.</b> Schick diesen Link an die Chormitglieder. Wer ihn öffnet, kann die Stücke direkt übernehmen – mit Stimmen, Liedtext, Mitlesen und Gesangsspuren, ohne selbst umzuwandeln. Nach Änderungen einfach noch einmal auf „Teilen aktualisieren“ tippen; der Link bleibt gleich.</p><div class="shlink"><input type="text" readonly aria-label="Link zum Teilen"><button type="button" class="primary sm" data-k="copy">Link kopieren</button>'+(navigator.share?'<button type="button" class="sm" data-k="share">Senden …</button>':'')+'</div><div class="row"><button type="button" class="ghost sm" data-k="stop">Teilen beenden</button><button type="button" class="ghost sm" data-k="close">Schließen</button></div>');
+  const inp=b.querySelector("input"); inp.value=shLink(t);
+  b.querySelector('[data-k=copy]').onclick=async e=>{ try{ await navigator.clipboard.writeText(inp.value); e.target.textContent="Kopiert ✓"; }catch(_){ inp.select(); document.execCommand&&document.execCommand("copy"); e.target.textContent="Kopiert ✓"; } };
+  const sb=b.querySelector('[data-k=share]'); if(sb) sb.onclick=()=>navigator.share({title:"Noten: "+n,text:"Unsere Noten für „"+n+"“ in der Blattsingen-App:",url:inp.value}).catch(()=>{});
+  b.querySelector('[data-k=close]').onclick=()=>shBox("");
+  const st=b.querySelector('[data-k=stop]'); st.onclick=async()=>{ if(st.dataset.arm!=="1"){ st.dataset.arm="1"; st.textContent="Wirklich beenden? Der Link funktioniert dann nicht mehr."; return; }
+    try{ await srvPost("teilen_beenden",{tok:accTok(),t}); }catch(e){} const m=shMine(); delete m[n]; lsS("blattsingen_geteilt",m); shBox(""); pjTools(); };
+}
+async function shShare(){
+  const n=pjProj(); if(!n||SH.busy) return;
+  if(!SRV.url||!accTok()){ shBox("<p>Zum Teilen musst du mit deinem Konto angemeldet sein.</p>"); return; }
+  const list=NL.pieces.filter(p=>!p.builtin&&(p.projs||[]).includes(n)).sort((a,b)=>pjOrd(a,n)-pjOrd(b,n));
+  if(!list.length){ shBox("<p>In „"+esc(n)+"“ sind noch keine Stücke.</p>"); return; }
+  const open=list.filter(p=>p.job&&!p.scoreXml&&!p.score); 
+  SH.busy=true; const b=shBox('<p class="shst">Wird vorbereitet …</p>'), stx=t=>{ const e=b.querySelector(".shst"); if(e) e.textContent=t; };
+  try{
+    const mine=shMine(); const r=await srvPost("teilen_neu",{tok:accTok(),t:mine[n]||"",projekt:n,von:(ACC.info&&ACC.info.name)||""});
+    const t=r.t; mine[n]=t; lsS("blattsingen_geteilt",mine);
+    const hat=(await srvPost("teilen_hat",{tok:accTok(),t})).stuecke||{};
+    for(let i=0;i<list.length;i++){ const p=list[i];
+      stx("Lade „"+(p.title||"Stück")+"“ hoch ("+(i+1)+" von "+list.length+") …");
+      if(p.pdf&&!p.pdfHash){ p.pdfHash=await syncHash(p.pdf); await nlPutRaw(p); }
+      const h=hat[p.id];
+      if(h&&h.u===(p.updated||0)&&h.ph===(p.pdf?p.pdfHash:"")){ await srvPost("teilen_behalte",{tok:accTok(),t,id:p.id}); continue; }
+      const meta=Object.assign({},p); ["pdf","acct","sung","job","projs","ord","mix","share","pdfHash","updated"].forEach(k=>delete meta[k]); if(meta.scoreXml) delete meta.score;
+      const fd=new FormData(); fd.append("tok",accTok()); fd.append("t",t); fd.append("id",p.id); fd.append("u",String(p.updated||0));
+      fd.append("meta",JSON.stringify(meta)); fd.append("ph",p.pdf?p.pdfHash:"");
+      if(p.pdf&&!(h&&h.ph===p.pdfHash)) fd.append("pdf",new Blob([p.pdf],{type:"application/pdf"}),"stueck.pdf");
+      if(p.sung) Object.keys(p.sung).forEach(k=>fd.append("ton"+k,new Blob([p.sung[k]],{type:"audio/mpeg"}),"ton"+k+".mp3"));
+      await srvJSON(SRV.url+"?a=teilen_stueck",{method:"POST",body:fd});
+    }
+    await srvPost("teilen_fertig",{tok:accTok(),t,ids:JSON.stringify(list.map(p=>p.id))});
+    shShowLink(n,t); pjTools();
+    if(open.length) b.insertAdjacentHTML("afterbegin","<p class=\"hint\">Hinweis: "+open.length+" Stück(e) sind noch in Umwandlung und wurden nur als PDF geteilt – nach der Umwandlung „Teilen aktualisieren“ tippen.</p>");
+  }catch(e){ stx("Teilen hat nicht geklappt: "+e.message); }
+  finally{ SH.busy=false; }
+}
+/* Empfänger: Link öffnen → Stücke übernehmen */
+(()=>{ try{ const q=new URLSearchParams(location.search), t=q.get("teilen"); if(t&&/^[a-f0-9]{20}$/.test(t)){ lsS("blattsingen_teilen_offen",t); q.delete("teilen"); history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+(location.hash||"#noten")); } }catch(e){} })();
+function shIn(html){ const b=$("shareIn"); if(!b) return null; b.hidden=!html; b.innerHTML=html||"";
+  if(html&&!b.dataset.top){ b.dataset.top="1"; try{ const h=document.querySelector("#noten h2"); if(h){ const ref=h.nextElementSibling&&h.nextElementSibling.tagName==="P"?h.nextElementSibling.nextElementSibling:h.nextElementSibling; h.parentNode.insertBefore(b,ref); } }catch(e){} }
+  if(html&&!shIn.seen){ shIn.seen=1; setTimeout(()=>{ try{ b.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){} },300); }
+  return b; }
+async function shCheck(){
+  const t=lsJ("blattsingen_teilen_offen",""); if(!t||SH.busy||SH.asked===t) return;
+  await srvLoad(); if(!SRV.url) return; await accPing();
+  if(nlLocked()){ shIn("<p><b>Dir wurden Noten geteilt.</b> Melde dich unten an oder leg ein Konto an – danach kannst du sie mit einem Tipp übernehmen.</p>"); return; }
+  SH.asked=t;
+  let L; try{ L=await srvJSON(SRV.url+"?a=teilen_liste&t="+t,{cache:"no-store"}); }catch(e){ shIn("<p>"+esc(e.message)+"</p>"); lsS("blattsingen_teilen_offen",null); return; }
+  const n=L.stuecke.length;
+  const b=shIn('<p><b>„'+esc(L.projekt)+'“'+(L.von?" von "+esc(L.von):"")+'</b> – '+n+(n===1?" Stück":" Stücke")+' mit Stimmen, Liedtext und Mitlesen. Übernehmen, ohne selbst umzuwandeln?</p><p class="hint shst"></p><div class="row"><button type="button" class="primary sm" data-k="ok">Übernehmen</button><button type="button" class="ghost sm" data-k="no">Nein danke</button></div>');
+  b.querySelector('[data-k=no]').onclick=()=>{ lsS("blattsingen_teilen_offen",null); shIn(""); };
+  b.querySelector('[data-k=ok]').onclick=async e=>{ e.target.disabled=true; await shImport(t,L,b.querySelector(".shst")); };
+}
+async function shImport(t,L,st){
+  if(SH.busy) return; SH.busy=true; const say=x=>{ if(st) st.textContent=x; };
+  let done=0, skip=0;
+  try{
+    if(!L) L=await srvJSON(SRV.url+"?a=teilen_liste&t="+t,{cache:"no-store"});
+    const proj=L.projekt, all=await nlAll(), by={}; all.forEach(p=>by[p.id]=p);
+    const base=SRV.url+"?t="+t+"&a=";
+    for(let i=0;i<L.stuecke.length;i++){ const s=L.stuecke[i], id=("g"+t.slice(0,8)+"_"+s.id).slice(0,48), old=by[id];
+      if(old&&old.share&&old.share.u===s.u){ skip++; continue; }
+      say("Lade „"+(s.title||"Stück")+"“ ("+(i+1)+" von "+L.stuecke.length+") …");
+      const meta=await srvJSON(base+"teilen_hole&id="+encodeURIComponent(s.id),{cache:"no-store"});
+      let pdf=null; if(s.ph){ if(old&&old.pdf&&old.pdfHash===s.ph) pdf=old.pdf; else { const r=await fetch(base+"teilen_pdf&id="+encodeURIComponent(s.id)); if(!r.ok) throw new Error("PDF konnte nicht geladen werden ("+r.status+")."); pdf=await r.arrayBuffer(); } }
+      let sung=null; for(const k of (s.ton||[])){ const r=await fetch(base+"teilen_ton&id="+encodeURIComponent(s.id)+"&k="+k); if(r.ok){ (sung||(sung={}))[k]=await r.arrayBuffer(); } }
+      const p=Object.assign({},meta,{id,pdf,pdfHash:s.ph||"",share:{t,id:s.id,u:s.u}});
+      p.projs=[...new Set([...((old&&old.projs)||[]),proj])]; p.ord=Object.assign({},(old&&old.ord)||{}); if(p.ord[proj]==null) p.ord[proj]=i;
+      if(old&&old.mix) p.mix=old.mix;   // eigene Einstellungen („Meine Stimme“ usw.) bleiben
+      if(sung) p.sung=sung; if(typeof SG!=="undefined") delete SG.buf[id];
+      if(p.scoreXml&&!p.score){ try{ p.score=parseMusicXML(p.scoreXml); }catch(e){} }
+      await nlPut(p); done++;
+    }
+    const ex=pjExtra(); if(!ex.includes(proj)) pjSetExtra([...ex,proj]);
+    const ab=shAbos(); ab[proj]=t; lsS("blattsingen_teilen_abos",ab);
+    lsS("blattsingen_teilen_offen",null);
+    shIn("<p><b>Fertig:</b> „"+esc(proj)+"“ – "+done+" Stück(e) übernommen"+(skip?", "+skip+" schon aktuell":"")+". Viel Spaß beim Üben!</p>");
+    setTimeout(()=>shIn(""),12000);
+    pjSelect(proj);
+  }catch(e){ say("Übernehmen hat nicht geklappt: "+e.message+" – bitte noch einmal versuchen."); SH.asked=""; }
+  finally{ SH.busy=false; }
+}
 window.__nl={get NL(){return NL;},get PL(){return PL;},tempo:v=>plSetTempo(v),flState:()=>flState(),setVoice:v=>{st.voice=v;},put:x=>nlPut(x),all:()=>nlAll(),sync:()=>syncRun(),get SY(){return SY;},setExtra:a=>pjSetExtra(a),extra:()=>pjExtra()};
 
 /* --- Gesungene Silben mit Konsonanten (Formantsynthese): Silbe → Laute → Klang --- */
@@ -5946,7 +6050,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=79;
+const APP_BUILD=80;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
