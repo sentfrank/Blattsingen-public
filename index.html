@@ -420,7 +420,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.16.4 · 12.11.2026 · Strato (Build 80)</span>
+  <span class="appver">App-Version S1.16.5 · 16.11.2026 · Strato (Build 81)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -3119,7 +3119,8 @@ function drawScaleLive(seq,match,arrow){
   const k=matchCounts(seq,match), s=$("scaleStats"); s.hidden=!k.n; if(k.n) s.innerHTML=statsHTML(k,seq.length);
 }
 function finalizeNote(){
-  const cur=live.cur; live.cur=null; if(!cur||cur.ms.length<6) return;
+  const pv=live.match[live.idx]; if(pv&&pv.prov) live.match[live.idx]=null;   // vorläufige Anzeige ersetzen
+  const cur=live.cur; live.cur=null; if(!cur||cur.ms.length<6){ if(pv&&pv.prov) liveRedraw(); return; }
   const k=cur.ms.length, m=median(cur.ms.slice(Math.floor(k*0.2),Math.ceil(k*0.8)));
   if(live.oct==null){ live.oct=Math.round((live.seq[0].midi-m)/12); }
   const adj=m+12*live.oct;
@@ -3154,6 +3155,12 @@ function liveTick(){
   if(sm==null){ if(live.cur&&t-live.cur.t1>0.12) finalizeNote(); return; }
   if(live.cur && Math.abs(sm-median(live.cur.ms.slice(-8)))<0.6){ live.cur.ms.push(sm); live.cur.t1=t; }
   else { finalizeNote(); if(live.on) live.cur={t0:t,t1:t,ms:[sm]}; }
+  // schon während des Singens anzeigen (nach ~0,15 s ruhigem Ton), am Tonende wird der Wert festgelegt
+  const cu=live.cur;
+  if(live.on&&cu&&cu.ms.length>=4&&live.idx<live.seq.length&&(cu.ms.length===4||cu.ms.length%3===0)){
+    const m0=median(cu.ms.slice(-6)), oc=live.oct!=null?live.oct:Math.round((live.seq[0].midi-m0)/12), pm=live.match[live.idx];
+    if(!pm||pm.prov){ live.match[live.idx]={seg:{t0:cu.t0,t1:t},m:m0+12*oc,prov:true}; liveRedraw(); }
+  }
   if(live.mode==="scale"&&live.frames.length%12===0) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
 }
 function micErrorText(e){
@@ -3232,7 +3239,13 @@ function stopLive(done){
   if(live.mode==="ivs") drawIvsLive();
   else if(live.mode==="read") drawReadLive();
   else if(live.frames.length) drawCurve(live.frames,live.seq,{match:live.match,octave:live.oct||0});
-  if(!done) $("liveStatus").textContent="Beendet. "+(live.match.some(Boolean)?(live.mode==="ivs"?ivsSummary():live.mode==="read"?readSummary():$("recStatus").textContent):"");
+  if(!done){
+    $("liveStatus").textContent="Beendet. "+(live.match.some(Boolean)?(live.mode==="ivs"?ivsSummary():live.mode==="read"?readSummary():$("recStatus").textContent):"");
+    // gesungene Noten wieder ausblenden – das Notenbild steht frisch für den nächsten Versuch
+    if(live.seq){ live.match=new Array(live.seq.length).fill(null); live.frames=[]; live.idx=0; live.cur=null;
+      try{ liveRedraw(); }catch(e){}
+      ["scaleStats","readStats","ivsStats"].forEach(id=>{ const e=$(id); if(e) e.hidden=true; }); }
+  }
 }
 $("liveStart").onclick=()=>startLive("scale");
 $("micSens").value=String(store.get("micSens","2"));
@@ -4297,7 +4310,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.16.4 · 12.11.2026 · Strato (Build 80)";
+const APP_VERSION="S1.16.5 · 16.11.2026 · Strato (Build 81)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -6049,7 +6062,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=80;
+const APP_BUILD=81;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
