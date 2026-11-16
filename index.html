@@ -420,7 +420,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.16.5 · 16.11.2026 · Strato (Build 81)</span>
+  <span class="appver">App-Version S1.16.6 · 16.11.2026 · Strato (Build 82)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -3047,6 +3047,40 @@ function yinFrame(x,sr,gate){
   const a=c[best-1],b=c[best],cc=c[best+1]||b,den=a-2*b+cc, tf=best+(den!==0?(a-cc)/(2*den):0);
   return 69+12*Math.log2((sr/tf)/440);
 }
+/* Kleine Tastatur beim Live-Mitsingen: Zielton umrandet, gesungener Ton farbig (wie weit daneben) */
+function liveKbEnsure(slot){
+  let w=$("liveKbWrap");
+  if(!w){ w=document.createElement("div"); w.id="liveKbWrap"; w.className="livekb";
+    w.innerHTML='<label class="donebox" style="margin:6px 0"><input type="checkbox" id="liveKbOn"> 🎹 Tastatur mit gesungenen Tönen zeigen</label><svg id="liveKb" role="img" aria-label="Tastatur mit gesungenem Ton" style="display:none"></svg>';
+    const cb=w.querySelector("#liveKbOn"); cb.checked=!!store.get("liveKb",false);
+    cb.onchange=()=>{ store.set("liveKb",cb.checked); liveKbDraw(null); }; }
+  if(slot) slot.appendChild(w);
+  return w;
+}
+function liveKbDraw(sung){
+  const svg=$("liveKb"), on=$("liveKbOn"); if(!svg||!on) return;
+  svg.style.display=on.checked?"block":"none"; if(!on.checked) return;
+  const seq=live.seq||[]; if(!seq.length){ svg.innerHTML=""; return; }
+  const ms=seq.map(n=>n.midi); let lo=Math.min(...ms)-3, hi=Math.max(...ms)+3;
+  if(sung!=null){ lo=Math.min(lo,Math.round(sung)-1); hi=Math.max(hi,Math.round(sung)+1); }
+  while([1,3,6,8,10].includes(((lo%12)+12)%12)) lo--; while([1,3,6,8,10].includes(((hi%12)+12)%12)) hi++;
+  const BL=[1,3,6,8,10], whites=[]; for(let m=lo;m<=hi;m++) if(!BL.includes(((m%12)+12)%12)) whites.push(m);
+  const W=26, H=86, BW=16, BH=52, tgt=live.on&&seq[live.idx]?seq[live.idx].midi:null;
+  svg.setAttribute("viewBox","0 0 "+(whites.length*W+2)+" "+(H+16)); svg.style.width="100%"; svg.style.maxWidth=(whites.length*W*1.5)+"px";
+  const sr=sung!=null?Math.round(sung):null, c=sung!=null&&tgt!=null?Math.round((sung-tgt)*100):null, col=c==null?"var(--accent)":devColor(c);
+  // bisher gesungene Töne dieses Versuchs (kleine Punkte)
+  const done={}; (live.match||[]).forEach(mt=>{ if(mt&&!mt.prov) done[Math.round(mt.m)]=1; });
+  let h="", xs={};
+  whites.forEach((m,i)=>{ const x=1+i*W; xs[m]=x+W/2;
+    const fill=m===sr?col:"#fff";
+    h+='<rect x="'+x+'" y="1" width="'+(W-1)+'" height="'+H+'" rx="3" fill="'+fill+'" fill-opacity="'+(m===sr?0.75:1)+'" stroke="'+(m===tgt?"var(--accent)":"#999")+'" stroke-width="'+(m===tgt?3:1)+'"/>';
+    if(((m%12)+12)%12===0) h+='<text x="'+(x+W/2)+'" y="'+(H+13)+'" text-anchor="middle" font-size="10" fill="var(--muted)">c'+(Math.floor(m/12)-4>=0?"\u2019".repeat(Math.floor(m/12)-4):"")+'</text>'; });
+  for(let m=lo;m<=hi;m++){ if(!BL.includes(((m%12)+12)%12)) continue; const x=xs[m-1]+W/2-BW/2; xs[m]=x+BW/2;
+    h+='<rect x="'+x+'" y="1" width="'+BW+'" height="'+BH+'" rx="2" fill="'+(m===sr?col:"#333")+'" stroke="'+(m===tgt?"var(--accent)":"#333")+'" stroke-width="'+(m===tgt?3:1)+'"/>'; }
+  Object.keys(done).forEach(m=>{ if(xs[m]!=null) h+='<circle cx="'+xs[m]+'" cy="'+(BL.includes(((m%12)+12)%12)?BH-8:H-10)+'" r="4" fill="var(--good)" opacity=".8"/>'; });
+  if(sung!=null&&xs[sr]!=null){ const d=(sung-sr); h+='<line x1="'+(xs[sr]+d*W)+'" x2="'+(xs[sr]+d*W)+'" y1="'+(H-30)+'" y2="'+(H-4)+'" stroke="#000" stroke-width="2"/>'; }
+  svg.innerHTML=h;
+}
 function setTuner(target,m){
   $("tTarget").textContent=target?target.name:"–";
   if(m==null){ $("tSung").textContent="…"; $("tCents").textContent=""; $("tNeedle").style.background="var(--muted)"; return; }
@@ -3152,6 +3186,7 @@ function liveTick(){
   live.frames.push({t,m});
   const sm=smoothPitch(live.sm||(live.sm=pitchSmoother()),m);
   setTuner(live.seq[live.idx],sm);
+  if(live.frames.length%2===0||sm==null) liveKbDraw(sm==null?null:sm+12*(live.oct!=null?live.oct:Math.round((live.seq[0].midi-sm)/12)));
   if(sm==null){ if(live.cur&&t-live.cur.t1>0.12) finalizeNote(); return; }
   if(live.cur && Math.abs(sm-median(live.cur.ms.slice(-8)))<0.6){ live.cur.ms.push(sm); live.cur.t1=t; }
   else { finalizeNote(); if(live.on) live.cur={t0:t,t1:t,ms:[sm]}; }
@@ -3176,7 +3211,7 @@ async function startLive(mode){
   mode=(mode==="read"||mode==="ivs")?mode:"scale"; try{ forkStop(); }catch(e){}
   if(live.stream) stopLive(false);
   live.mode=mode; const UI=LIVE_UI[mode];
-  $(UI.slot).appendChild($("tuner")); $(UI.slot).appendChild($("liveStatus"));
+  $(UI.slot).appendChild($("tuner")); liveKbEnsure($(UI.slot)); $(UI.slot).appendChild($("liveStatus"));
   const out=$("liveStatus");
   if(!window.isSecureContext){ out.textContent="Das Mikrofon funktioniert nur, wenn die App über eine https-Adresse geöffnet ist. Aktuell: "+location.href; return; }
   if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ out.textContent="Dieser Browser bietet keinen Mikrofonzugriff an. Öffne die Adresse bitte direkt in Safari."; return; }
@@ -3245,9 +3280,11 @@ function stopLive(done){
     if(live.seq){ live.match=new Array(live.seq.length).fill(null); live.frames=[]; live.idx=0; live.cur=null;
       try{ liveRedraw(); }catch(e){}
       ["scaleStats","readStats","ivsStats"].forEach(id=>{ const e=$(id); if(e) e.hidden=true; }); }
+    try{ liveKbDraw(null); }catch(e){}
   }
 }
 $("liveStart").onclick=()=>startLive("scale");
+try{ liveKbEnsure($("scaleTunerSlot")); }catch(e){}
 $("micSens").value=String(store.get("micSens","2"));
 document.querySelectorAll(".pitchSmooth").forEach(s=>{ s.value=String(store.get("pitchSmooth","2")); s.onchange=e=>{ store.set("pitchSmooth",e.target.value); document.querySelectorAll(".pitchSmooth").forEach(o=>o.value=e.target.value); }; });
 $("micSens").onchange=e=>{ store.set("micSens",e.target.value); live.sens=+e.target.value; if(live.on&&live.sens>=3) $("liveStatus").textContent="„Sehr hoch“ schaltet die automatische Mikrofon-Verstärkung ein: wirkt ab dem nächsten „Live starten“."; };
@@ -4310,7 +4347,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.16.5 · 16.11.2026 · Strato (Build 81)";
+const APP_VERSION="S1.16.6 · 16.11.2026 · Strato (Build 82)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -6062,7 +6099,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=81;
+const APP_BUILD=82;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
