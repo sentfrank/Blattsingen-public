@@ -14,6 +14,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}.shbox{margin:8px 0 12px;padding:10px 12px;border:1px solid var(--accent);border-radius:12px;background:color-mix(in srgb,var(--accent) 6%,var(--surface,#fff))}
 .shbox p{margin:0 0 8px}.shbox .shlink{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.shbox input{flex:1 1 220px;min-width:0;font-size:.85rem}
 .shbox .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.holdtop{display:flex;gap:28px;align-items:baseline;flex-wrap:wrap;margin:10px 0 6px}
 </style>
 <title>Vom Blatt in acht Wochen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -420,7 +421,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.16.7 · 16.11.2026 · Strato (Build 83)</span>
+  <span class="appver">App-Version S1.17.0 · 17.11.2026 · Strato (Build 84)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -526,6 +527,7 @@ body.regopen{overflow:hidden}
     <div class="tabs" role="tablist">
       <button role="tab" id="tab-scale" aria-selected="true" aria-controls="p-scale">Tonleitern</button>
       <button role="tab" id="tab-read" aria-selected="false" aria-controls="p-read">Treffübung</button>
+      <button role="tab" id="tab-hold" aria-selected="false" aria-controls="p-hold">Ton halten</button>
       <button role="tab" id="tab-rh" aria-selected="false" aria-controls="p-rh">Rhythmus</button>
       <button role="tab" id="tab-nn" aria-selected="false" aria-controls="p-nn">Notennamen</button>
       <button role="tab" id="tab-iv" aria-selected="false" aria-controls="p-iv">Intervall-Quiz</button>
@@ -765,6 +767,28 @@ body.regopen{overflow:hidden}
       <div class="now" aria-live="polite"><span class="big" id="nowChs">–</span><span class="small" id="nowChsSub"></span></div>
       <p class="hint">So läuft es: <b>Leicht</b> – der Grundton klingt und bleibt liegen, du singst nacheinander Terz und Quinte darüber. <b>Normal</b> – zwei Töne eines Dreiklangs erklingen und bleiben liegen, du singst den fehlenden dritten dazu. Beim Auflösen klingen die drei Töne erst nacheinander, dann zusammen. Das „?“ im Notenbild zeigt, wo er steht. Beim Prüfen hört das Mikrofon etwa sechs Sekunden zu; mit Kopfhörern klappt die Erkennung am besten, weil die gespielten Töne dann nicht mitgehört werden. <b class="c-good">Grün</b> getroffen, <b class="c-hl">gelb</b> knapp, <b class="c-bad">rot</b> daneben.</p>
     </div>
+    <div class="panel" id="p-hold" role="tabpanel" hidden>
+      <p class="hint" style="margin-top:0">Gegen das „zu tief singen“: Die App spielt einen Ton vor, du singst ihn nach und hältst ihn. Der Verlauf zeigt live, ob du tief ansetzt oder während des Haltens absackst. Ziel: die Linie bleibt im grünen Band.</p>
+      <div class="controls">
+        <div class="field"><label class="label" for="holdDur">Halten</label>
+          <select id="holdDur"><option value="3">3 Sekunden</option><option value="5" selected>5 Sekunden</option><option value="8">8 Sekunden</option></select></div>
+        <div class="field"><label class="label" for="holdRange">Töne</label>
+          <select id="holdRange"><option value="mid" selected>Mittellage</option><option value="low">eher tief</option><option value="high">eher hoch</option></select></div>
+        <div class="field"><label class="label" for="holdVowel">Silbe</label>
+          <select id="holdVowel"><option value="a">„a“</option><option value="mm">erst „mm“ summen, dann „a“</option><option value="frei" selected>frei</option></select></div>
+      </div>
+      <div class="btnrow">
+        <button class="primary" type="button" id="holdStart">🎤 Start</button>
+        <button type="button" id="holdAgain" disabled>↻ Gleicher Ton</button>
+        <button type="button" id="holdNext" disabled>Neuer Ton</button>
+        <button type="button" id="holdStop" disabled>Beenden</button>
+      </div>
+      <div class="holdtop"><div><span class="label">Zielton</span> <b id="holdTarget" style="font-size:1.6rem">–</b></div><div><span class="label">Du singst</span> <b id="holdCents" style="font-size:1.6rem">–</b></div></div>
+      <div class="staffbox" style="padding:6px"><canvas id="holdCv" width="800" height="220" style="width:100%;height:220px;display:block" role="img" aria-label="Verlauf der Tonhöhe beim Halten"></canvas></div>
+      <p id="holdStatus" class="hint" aria-live="polite">Tippe auf „Start“. Kopfhörer sind nicht nötig.</p>
+      <div id="holdResult" class="stats" hidden></div>
+    </div>
+
     <div class="panel" id="p-fork" role="tabpanel" hidden>
       <div class="controls">
         <div class="field"><label class="label" for="forkRef">Kammerton a′</label>
@@ -1984,7 +2008,7 @@ function showTab(name){
   TABS.forEach(n=>{$("tab-"+n).setAttribute("aria-selected",n===name?"true":"false"); $("p-"+n).hidden=n!==name});
   redrawStaffs();
 }
-const TABS=["scale","read","rh","nn","iv","ivs","chs","fork","kb"];
+const TABS=["scale","read","hold","rh","nn","iv","ivs","chs","fork","kb"];
 function redrawStaffs(){ try{ renderScale(-1); renderRead(-1); if(RH.bars.length) rhDraw(); }catch(e){} try{ ivsDraw(); kbLayout(); kbDraw(); forkDrawStaff(); }catch(e){} try{ chsDraw(); }catch(e){} }
 let _rsz=null, _rw=window.innerWidth; window.addEventListener("resize",()=>{ clearTimeout(_rsz); _rsz=setTimeout(()=>{ if(Math.abs(window.innerWidth-_rw)>20){ _rw=window.innerWidth; redrawStaffs(); } },200); });
 TABS.forEach(n=>$("tab-"+n).onclick=()=>showTab(n));
@@ -3545,6 +3569,116 @@ $("kbClear").onclick=()=>{ KB.seq=[]; kbDraw(); };
 $("tab-kb").addEventListener("click",()=>setTimeout(()=>{ kbLayout(); if(!KB.scrolled){ KB.scrolled=true; kbScrollToMidi(VOICES[st.voice].lo+7); } kbDraw(); },30));
 $("tab-ivs").addEventListener("click",()=>setTimeout(()=>ivsDraw(),30));
 $("tab-fork").addEventListener("click",()=>setTimeout(()=>forkDrawStaff(),30));
+/* --- Ton halten: vorgespielten Ton nachsingen und halten, Verlauf in Cent --- */
+const HOLD={on:false,stream:null,phase:"idle",target:null,pts:[],trials:[]};
+function holdPick(){
+  const V=VOICES[st.voice], lo=V.lo, rg=$("holdRange").value, a=rg==="low"?lo:rg==="high"?lo+7:lo+3, b=a+7;
+  let m; do{ m=a+Math.floor(Math.random()*(b-a+1)); }while(m===HOLD.target&&b>a);
+  return m;
+}
+function holdName(m){ try{ return midiName(m); }catch(e){ return String(m); } }
+async function holdStart(){
+  if(HOLD.on) return;
+  try{ if(live.stream) stopLive(false); }catch(e){} try{ if(FORK.stream) forkStop(); }catch(e){}
+  const out=$("holdStatus");
+  if(!window.isSecureContext||!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ out.textContent="Das Mikrofon ist hier nicht verfügbar (nur über https in Safari/Chrome)."; return; }
+  $("holdStart").disabled=true; out.textContent="Frage das Mikrofon an …"; micMode=true;
+  try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record"; }catch(e){}
+  try{ if(silentEl) silentEl.pause(); }catch(e){}
+  const sens=+(store.get("micSens","2")); let err=null;
+  try{ HOLD.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:sens>=3}}); }catch(e){ err=e; }
+  if(!HOLD.stream&&err&&(err.name==="OverconstrainedError"||err.name==="TypeError")){ err=null; try{ HOLD.stream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ err=e; } }
+  if(!HOLD.stream){ micMode=false; $("holdStart").disabled=false; out.textContent=micErrorText(err); return; }
+  try{ stopAll(); }catch(e){} try{ if(ctx&&ctx.close) ctx.close(); }catch(e){} ctx=null;
+  const c=ac(); if(c.state!=="running"){ try{ await Promise.race([c.resume(),new Promise(r=>setTimeout(r,1500))]); }catch(e){} }
+  HOLD.actx=c; HOLD.src=c.createMediaStreamSource(HOLD.stream); HOLD.an=c.createAnalyser(); HOLD.an.fftSize=4096; HOLD.src.connect(HOLD.an);
+  try{ const z=c.createGain(); z.gain.value=0; HOLD.an.connect(z); z.connect(c.destination); }catch(e){}
+  HOLD.buf=new Float32Array(HOLD.an.fftSize); HOLD.nf=null; HOLD.sens=sens; HOLD.on=true; HOLD.trials=[];
+  HOLD.timer=setInterval(holdTick,40);
+  ["holdStop","holdAgain","holdNext"].forEach(id=>$(id).disabled=false);
+  holdTrial(true);
+}
+function holdStop(){
+  if(!HOLD.on) return; HOLD.on=false; clearInterval(HOLD.timer); clearTimeout(HOLD.t1);
+  try{ HOLD.src&&HOLD.src.disconnect(); }catch(e){} try{ HOLD.stream&&HOLD.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  HOLD.stream=null; micMode=false; HOLD.phase="idle";
+  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  try{ stopAll(); }catch(e){} try{ if(ctx&&ctx.close) ctx.close(); }catch(e){} ctx=null;
+  $("holdStart").disabled=false; ["holdStop","holdAgain","holdNext"].forEach(id=>$(id).disabled=true);
+  const n=HOLD.trials.length;
+  if(n){ const av=Math.round(HOLD.trials.reduce((a,t)=>a+t.mean,0)/n), dr=Math.round(HOLD.trials.reduce((a,t)=>a+t.drift,0)/n);
+    $("holdStatus").textContent="Beendet. "+n+" Ton"+(n>1?"e":"")+": im Mittel "+(av>0?"+":"")+av+" Cent, beim Halten "+(dr>0?"+":"")+dr+" Cent."; }
+  else $("holdStatus").textContent="Beendet.";
+}
+function holdTrial(newTone){
+  if(!HOLD.on) return;
+  if(newTone||HOLD.target==null) HOLD.target=holdPick();
+  HOLD.pts=[]; HOLD.sm=pitchSmoother(); HOLD.t0=null; HOLD.phase="listen"; $("holdResult").hidden=true;
+  $("holdTarget").textContent=holdName(HOLD.target); $("holdCents").textContent="–"; $("holdCents").style.color="";
+  const c=ac(), t=c.currentTime+0.1; tone(HOLD.target,t,1.4,0.22);
+  const v=$("holdVowel").value;
+  $("holdStatus").textContent="Hör zu …";
+  clearTimeout(HOLD.t1);
+  HOLD.t1=setTimeout(()=>{ if(!HOLD.on) return; HOLD.phase="wait"; HOLD.waitAt=performance.now();
+    $("holdStatus").textContent=v==="mm"?"Jetzt: erst summen („mm“), dann auf „a“ öffnen – und halten.":v==="a"?"Jetzt auf „a“ singen und halten.":"Jetzt singen und halten."; },1800);
+  holdDraw();
+}
+function holdTick(){
+  if(!HOLD.on) return;
+  HOLD.an.getFloatTimeDomainData(HOLD.buf);
+  const SR=HOLD.actx.sampleRate, f=Math.max(1,Math.round(SR/11025)), x=decimate(HOLD.buf,f), sr=SR/f;
+  let rms=0; for(let j=0;j<HOLD.buf.length;j+=4) rms+=HOLD.buf[j]*HOLD.buf[j]; rms=Math.sqrt(rms/(HOLD.buf.length/4));
+  HOLD.nf=HOLD.nf==null?rms:(rms<HOLD.nf?HOLD.nf*0.8+rms*0.2:HOLD.nf*0.999+rms*0.001);
+  if(HOLD.phase!=="wait"&&HOLD.phase!=="sing") return;
+  const S=HOLD.sens||2, gmin=[0,0.0015,0.0007,0.0003][S], gfac=[0,2.5,2.0,1.6][S], gmax=[0,0.012,0.008,0.005][S];
+  const m0=yinFrame(x,sr,Math.max(gmin,Math.min(gmax,HOLD.nf*gfac))), sm=smoothPitch(HOLD.sm,m0), now=performance.now();
+  if(HOLD.phase==="wait"){ if(sm==null){ if(now-HOLD.waitAt>12000){ $("holdStatus").textContent="Ich höre nichts – sing etwas lauter oder näher am Handy."; HOLD.waitAt=now; } return; } HOLD.phase="sing"; HOLD.t0=now; }
+  const t=(now-HOLD.t0)/1000, dur=+$("holdDur").value;
+  if(sm!=null){ const d=sm-HOLD.target, c=Math.round((((d+6)%12+12)%12-6)*100); HOLD.pts.push([t,c]);
+    $("holdCents").textContent=(c>0?"+":"")+c+" ct"; $("holdCents").style.color=devColor(c); }
+  holdDraw();
+  if(t>=dur) holdEval();
+}
+function holdEval(){
+  HOLD.phase="done"; const P=HOLD.pts; if(P.length<8){ $("holdStatus").textContent="Zu kurz erkannt – noch einmal mit „Gleicher Ton“."; return; }
+  const dur=+$("holdDur").value, med=a=>{ const b=a.slice().sort((x,y)=>x-y); return b.length?b[Math.floor(b.length/2)]:0; };
+  const all=P.map(p=>p[1]), head=P.slice(0,4).map(p=>p[1]), body=P.filter(p=>p[0]>=0.35).map(p=>p[1]);
+  const a1=P.filter(p=>p[0]>=0.35&&p[0]<0.35+(dur-0.35)/3).map(p=>p[1]), a3=P.filter(p=>p[0]>=dur-(dur-0.35)/3).map(p=>p[1]);
+  const mean=Math.round(med(body.length?body:all)), drift=Math.round(med(a3)-med(a1)), sb=P.filter(p=>p[0]>=0.4&&p[0]<1.4).map(p=>p[1]), scoop=head.length&&sb.length?Math.round(med(sb)-Math.min(...head)):0;
+  const inb=Math.round(100*all.filter(c=>Math.abs(c)<=20).length/all.length);
+  HOLD.trials.push({mean,drift,scoop});
+  const tips=[];
+  if(mean<-20) tips.push("Insgesamt zu tief: denk den Ton heller und „von oben“, etwas mehr Luft und Spannung.");
+  else if(mean>20) tips.push("Insgesamt etwas zu hoch – lockerer werden.");
+  else tips.push("Tonhöhe getroffen 👍");
+  if(scoop>25) tips.push("Du setzt von unten an und rutschst hoch: Einsatz direkt auf dem Ton – vorher kurz innerlich hören.");
+  if(drift<-15) tips.push("Beim Halten sackst du ab: Atem bis zum Schluss mitgeben, Ton nach vorne denken.");
+  else if(drift>15) tips.push("Beim Halten wirst du höher – Druck herausnehmen.");
+  const r=$("holdResult"); r.hidden=false;
+  r.innerHTML="<b>Mittel "+(mean>0?"+":"")+mean+" ct</b> · im grünen Band "+inb+" % · Einsatz "+(scoop>25?"von unten":"sauber")+" · Halten "+(drift>0?"+":"")+drift+" ct<br>"+tips.join(" ");
+  $("holdStatus").textContent="Gleicher Ton nochmal oder neuer Ton?";
+}
+function holdDraw(){
+  const cv=$("holdCv"); if(!cv) return; const dpr=window.devicePixelRatio||1, W=cv.clientWidth||800, H=cv.clientHeight||220;
+  if(cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const cs=getComputedStyle(document.documentElement), col=v=>cs.getPropertyValue(v).trim()||"#888";
+  const dur=+$("holdDur").value, L=40, R=W-8, y=c=>H/2-Math.max(-100,Math.min(100,c))*(H/2-12)/100, x=t=>L+(R-L)*Math.min(1,t/dur);
+  g.fillStyle=col("--good"); g.globalAlpha=.15; g.fillRect(L,y(20),R-L,y(-20)-y(20)); g.globalAlpha=1;
+  g.strokeStyle=col("--muted"); g.lineWidth=1; g.setLineDash([4,4]); g.beginPath(); g.moveTo(L,y(0)); g.lineTo(R,y(0)); g.stroke(); g.setLineDash([]);
+  g.fillStyle=col("--muted"); g.font="11px sans-serif"; g.textAlign="right";
+  [[100,"+½ Ton"],[50,"+50"],[0,"Ziel"],[-50,"−50"],[-100,"−½ Ton"]].forEach(([c,l])=>g.fillText(l,L-4,y(c)+4));
+  const P=HOLD.pts; if(P.length<2) return;
+  g.lineWidth=3; g.lineJoin="round";
+  for(let i=1;i<P.length;i++){ g.strokeStyle=devColor(P[i][1]).startsWith("var(")?col(devColor(P[i][1]).slice(4,-1)):devColor(P[i][1]); g.beginPath(); g.moveTo(x(P[i-1][0]),y(P[i-1][1])); g.lineTo(x(P[i][0]),y(P[i][1])); g.stroke(); }
+}
+$("holdStart").onclick=()=>holdStart();
+$("holdStop").onclick=()=>holdStop();
+$("holdAgain").onclick=()=>holdTrial(false);
+$("holdNext").onclick=()=>holdTrial(true);
+TABS.filter(n=>n!=="hold").forEach(n=>$("tab-"+n).addEventListener("click",()=>{ if(HOLD.on) holdStop(); }));
+setTimeout(()=>{ try{ holdDraw(); }catch(e){} },300);
+
 /* ---------- Akkorde singen: zwei Töne klingen, den dritten singt man ---------- */
 const CHORDS={dur:{n:"Dur",t:[4,7],d:[2,4]},moll:{n:"Moll",t:[3,7],d:[2,4]},verm:{n:"vermindert",t:[3,6],d:[2,4]},ueb:{n:"übermäßig",t:[4,8],d:[2,4]}};
 const CHS_ROLE=["Grundton","Terz","Quinte"];
@@ -4358,7 +4492,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.16.7 · 16.11.2026 · Strato (Build 83)";
+const APP_VERSION="S1.17.0 · 17.11.2026 · Strato (Build 84)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -6110,7 +6244,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=83;
+const APP_BUILD=84;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
