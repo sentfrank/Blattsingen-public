@@ -421,7 +421,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.18.2 · 18.11.2026 · Strato (Build 87)</span>
+  <span class="appver">App-Version S1.18.3 · 18.11.2026 · Strato (Build 88)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -4496,7 +4496,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.18.2 · 18.11.2026 · Strato (Build 87)";
+const APP_VERSION="S1.18.3 · 18.11.2026 · Strato (Build 88)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4602,6 +4602,39 @@ async function sgDecode(p){
   if(!p.sung||SG.buf[p.id]) return; const out={};
   for(const k of Object.keys(p.sung)){ try{ out[k]=await ac().decodeAudioData(p.sung[k].slice(0)); }catch(e){} }
   SG.buf[p.id]=out;
+  try{ (p.mix&&p.mix.parts||[]).forEach((pt,i)=>{ if(pt.oct&&out[i]) sgShifted(p,i,pt.oct); }); }catch(e){}
+}
+/* Gesangsspur eine Oktave tiefer/höher bei gleichem Tempo (WSOLA: Tempo ×2 bzw. ×½ ohne Tonhöhe zu ändern,
+   dann mit halber bzw. doppelter Abtastrate abspielen). Einmal berechnet, danach zwischengespeichert. */
+function sgWsola(x,speed){
+  const N=2048, Hs=N/2, D=384, out=new Float32Array(Math.ceil(x.length/speed)+N), win=new Float32Array(N), norm=new Float32Array(out.length);
+  for(let i=0;i<N;i++) win[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
+  let prev=0;
+  for(let k=0;k*Hs+N<out.length;k++){
+    const nominal=Math.round(k*Hs*speed); let best=nominal;
+    if(k>0){ const nat=prev+Hs; let bc=-Infinity;   // Ausschnitt suchen, der am besten an den vorigen anschließt
+      for(let d=-D;d<=D;d+=4){ const st=nominal+d; if(st<0||st+N>x.length) continue; let c=0;
+        for(let j=0;j<N/2;j+=4){ const a=nat+j; if(a+0>=x.length) break; c+=x[a]*x[st+j]; }
+        if(c>bc){ bc=c; best=st; } } }
+    if(best<0||best+N>x.length) best=Math.max(0,Math.min(x.length-N,nominal)); if(best<0) break;
+    const o=k*Hs; for(let i=0;i<N;i++){ out[o+i]+=x[best+i]*win[i]; norm[o+i]+=win[i]; }
+    prev=best;
+  }
+  for(let i=0;i<out.length;i++) if(norm[i]>1e-3) out[i]/=norm[i];
+  return out.subarray(0,Math.ceil(x.length/speed));
+}
+function sgShifted(p,i,oct){
+  const base=SG.buf[p.id]&&SG.buf[p.id][i]; if(!base||!oct) return base||null;
+  const key=p.id+":"+i+":"+oct, C=SG.shift||(SG.shift={});
+  if(C[key]&&C[key]!=="busy") return C[key];
+  if(C[key]!=="busy"){ C[key]="busy";
+    setTimeout(()=>{ try{
+      const sp=oct<0?2:0.5, sr=base.sampleRate*(oct<0?0.5:2), ch=[];
+      for(let c=0;c<base.numberOfChannels;c++) ch.push(sgWsola(base.getChannelData(c),sp));
+      const ab=ac().createBuffer(ch.length,ch[0].length,sr); ch.forEach((d,c)=>ab.copyToChannel(d,c)); C[key]=ab;
+      if(PL.on&&NL.cur&&NL.cur.id===p.id){ const q=plPauseQ(); plStart(q,true); }   // gleich mit Gesang weiterspielen
+    }catch(e){ C[key]=null; } },30); }
+  return null;
 }
 function sgElem(p,i){
   const key=p.id+":"+i; if(SG.els[key]) return SG.els[key]; if(!p.sung||!p.sung[i]) return null;
@@ -4638,7 +4671,7 @@ function plSetup(p){
     const showR=()=>{ info.textContent=sc.parts[i].drum?"Schlagzeug":midiName(rng[0]+12*pt.oct)+"–"+midiName(rng[1]+12*pt.oct); };
     const oc=document.createElement("select"); oc.id="pOct"+i; oc.className="poct"; oc.setAttribute("aria-label","Oktave "+pt.name);
     oc.innerHTML='<option value="-1">8va tiefer</option><option value="0">Oktave normal</option><option value="1">8va höher</option>';
-    oc.value=String(pt.oct); oc.onchange=()=>{ pt.oct=+oc.value; showR(); plSave(); if(PL.on){ const q=plPauseQ(); plStart(q); } };
+    oc.value=String(pt.oct); oc.onchange=()=>{ pt.oct=+oc.value; showR(); plSave(); if(pt.oct&&p.sung) sgShifted(p,i,pt.oct); if(PL.on){ const q=plPauseQ(); plStart(q); } };
     showR(); if(sc.parts[i].drum) oc.style.visibility="hidden";
     row.append(nm,info,so,mu,vol,oc); box.appendChild(row);
   });
@@ -4795,8 +4828,9 @@ function plStart(fromQ,noCount){
     PL.sungParts={}; const off=m.sec(PL.q0), when=c.currentTime+lead;
     // Wiederholungen: die Gesangsspur liegt in notierter Reihenfolge vor – abschnittsweise in Spielfolge einsetzen
     const segs=sc.unrolled?sgSegments(p,sc,PL.q0,PL.qEnd,m):null;
-    Object.keys(SG.buf[p.id]).forEach(k=>{ const i=+k, ab=SG.buf[p.id][k]; if(!ab||!PL.gains[i]) return;
-      if(mx.parts[i]&&(mx.parts[i].oct||0)!==0) return;   // Lage verschoben: Spur passt nicht – eingebaute Stimme übernimmt
+    Object.keys(SG.buf[p.id]).forEach(k=>{ let i=+k, ab=SG.buf[p.id][k]; if(!ab||!PL.gains[i]) return;
+      const oc=(mx.parts[i]&&mx.parts[i].oct)||0;
+      if(oc){ const sh=sgShifted(p,i,oc); if(!sh) return; ab=sh; }   // Lage verschoben: Gesang eine Oktave versetzt (sonst bis fertig berechnet: eingebaute Stimme)
       PL.sungParts[i]=true;
       if(segs){
         if(Math.abs(f-1)>1e-3){ PL.sungParts[i]=false; return; }   // anderes Tempo: bei Wiederholungen singt die eingebaute Stimme
@@ -6313,7 +6347,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=87;
+const APP_BUILD=88;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
