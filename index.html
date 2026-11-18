@@ -421,7 +421,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.17.0 · 17.11.2026 · Strato (Build 84)</span>
+  <span class="appver">App-Version S1.18.0 · 18.11.2026 · Strato (Build 85)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -4290,6 +4290,7 @@ function pjViewer(){
 function nlStatus(t){ $("libStatus").textContent=t||""; }
 async function nlRefresh(){
   try{ setTimeout(()=>shCheck(),0); }catch(e){}
+  try{ if(!SH.grpDone&&grpList().length){ SH.grpDone=1; setTimeout(()=>grpRefreshAll(),800); } }catch(e){}
   try{ NL.pieces=(await nlAll()).sort((a,b)=>(b.updated||0)-(a.updated||0)); }
   catch(e){ NL.pieces=[]; nlStatus("Der Speicher auf diesem Gerät ist nicht verfügbar (privates Surfen?). Stücke können nicht gesichert werden."); }
   NL.pieces.filter(p=>p.job).forEach(p=>omrPoll(p.id));
@@ -4492,7 +4493,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.17.0 · 17.11.2026 · Strato (Build 84)";
+const APP_VERSION="S1.18.0 · 18.11.2026 · Strato (Build 85)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -5114,13 +5115,16 @@ function accPlace(){
   box.classList.toggle("acct-lib",inLib);
 }
 /* „Meine Noten“ nur mit Konto (wenn der Dienst Konten hat); Trainer und Übungsblätter bleiben frei */
-function nlLocked(){ return accNeeded()&&!(accTok()&&ACC.info); }
+function grpList(){ try{ return JSON.parse(localStorage.getItem("blattsingen_gruppen")||"[]")||[]; }catch(e){ return []; } }
+function grpSave(l){ try{ localStorage.setItem("blattsingen_gruppen",JSON.stringify(l)); }catch(e){} }
+function nlLocked(){ return accNeeded()&&!(accTok()&&ACC.info)&&!grpList().length; }
 function nlLockUI(){
   const h=$("libHome"); if(!h) return; const lock=nlLocked();
   h.classList.toggle("locked",lock);
   let m=$("libLockMsg");
   if(lock&&!m){ m=document.createElement("div"); m.id="libLockMsg"; m.className="lockmsg";
     m.innerHTML=SONG?"<b>Song-Arrangement gibt es mit Konto.</b> Melde dich mit deinem Blattsingen-Konto an oder leg ein Konto an. Deine Arrangements werden gesichert und sind auf jedem Gerät gleich.":"<b>Meine Noten gibt es mit Konto.</b> Melde dich an oder leg ein Konto an – deine Stücke und Projekte werden dann gesichert und sind auf jedem Gerät gleich. Trainer und Übungsblätter kannst du ohne Anmeldung nutzen.";
+    if(!SONG) m.appendChild(grpForm());
     h.insertBefore(m,h.firstChild); }
   if(m) m.hidden=!lock;
   if(lock&&!$("viewer").hidden){ try{ $("vBack").click(); }catch(e){} }
@@ -5823,11 +5827,18 @@ const shMine=()=>lsJ("blattsingen_geteilt",{}), shAbos=()=>lsJ("blattsingen_teil
 function shLink(t){ return location.origin+location.pathname+"?teilen="+t+"#noten"; }
 function shBox(html){ const b=$("projShareBox"); b.hidden=!html; b.innerHTML=html||""; return b; }
 function shShowLink(n,t){
-  const b=shBox('<p><b>„'+esc(n)+'“ ist geteilt.</b> Schick diesen Link an die Chormitglieder. Wer ihn öffnet, kann die Stücke direkt übernehmen – mit Stimmen, Liedtext, Mitlesen und Gesangsspuren, ohne selbst umzuwandeln. Nach Änderungen einfach noch einmal auf „Teilen aktualisieren“ tippen; der Link bleibt gleich.</p><div class="shlink"><input type="text" readonly aria-label="Link zum Teilen"><button type="button" class="primary sm" data-k="copy">Link kopieren</button>'+(navigator.share?'<button type="button" class="sm" data-k="share">Senden …</button>':'')+'</div><div class="row"><button type="button" class="ghost sm" data-k="stop">Teilen beenden</button><button type="button" class="ghost sm" data-k="close">Schließen</button></div>');
+  const b=shBox('<p><b>„'+esc(n)+'“ ist geteilt.</b> Schick diesen Link an die Chormitglieder. Wer ihn öffnet, kann die Stücke direkt übernehmen – mit Stimmen, Liedtext, Mitlesen und Gesangsspuren, ohne selbst umzuwandeln. Nach Änderungen einfach noch einmal auf „Teilen aktualisieren“ tippen; der Link bleibt gleich.</p><div class="shlink"><input type="text" readonly aria-label="Link zum Teilen"><button type="button" class="primary sm" data-k="copy">Link kopieren</button>'+(navigator.share?'<button type="button" class="sm" data-k="share">Senden …</button>':'')+'</div><p style="margin:12px 0 4px"><b>🔑 Gruppenschlüssel</b> – Mitsänger ohne eigenes Konto melden sich unter „Meine Noten“ nur mit diesem Schlüssel an und bekommen „'+esc(n)+'“.</p><div class="shlink"><input type="text" data-k="key" autocomplete="off" spellcheck="false" placeholder="z. B. '+esc(n)+'" aria-label="Gruppenschlüssel"><button type="button" class="sm" data-k="setkey">Schlüssel speichern</button></div><p class="hint" data-k="keymsg"></p><div class="row"><button type="button" class="ghost sm" data-k="stop">Teilen beenden</button><button type="button" class="ghost sm" data-k="close">Schließen</button></div>');
   const inp=b.querySelector("input"); inp.value=shLink(t);
   b.querySelector('[data-k=copy]').onclick=async e=>{ try{ await navigator.clipboard.writeText(inp.value); e.target.textContent="Kopiert ✓"; }catch(_){ inp.select(); document.execCommand&&document.execCommand("copy"); e.target.textContent="Kopiert ✓"; } };
   const sb=b.querySelector('[data-k=share]'); if(sb) sb.onclick=()=>navigator.share({title:"Noten: "+n,text:"Unsere Noten für „"+n+"“ in der Blattsingen-App:",url:inp.value}).catch(()=>{});
   b.querySelector('[data-k=close]').onclick=()=>shBox("");
+  const ki=b.querySelector('[data-k=key]'), km=b.querySelector('[data-k=keymsg]'), keys=lsJ("blattsingen_schluessel",{});
+  ki.value=(SH.key&&SH.key[n]!=null?SH.key[n]:keys[n])||"";
+  const kh=()=>{ const v=ki.value.trim(); km.textContent=v?(v.replace(/\s/g,"").length<6?"Hinweis: Kurze Schlüssel wie „"+v+"“ sind leicht zu erraten – wer ihn errät, sieht die Noten dieser Gruppe. Etwas Längeres (z. B. „"+v+"-Lucia26“) ist sicherer.":"Mitsänger tippen unter „Meine Noten“ → „Mit Gruppenschlüssel anmelden“ diesen Schlüssel ein."):""; };
+  kh(); ki.oninput=kh;
+  b.querySelector('[data-k=setkey]').onclick=async e=>{ e.target.disabled=true;
+    try{ const r=await srvPost("teilen_schluessel",{tok:accTok(),t,schluessel:ki.value}); const k2=lsJ("blattsingen_schluessel",{}); k2[n]=r.schluessel; lsS("blattsingen_schluessel",k2); km.textContent=r.schluessel?"Gespeichert ✓ – Schlüssel: „"+ki.value.trim()+"“.":"Schlüssel entfernt."; }
+    catch(err){ km.textContent=err.message; } finally{ e.target.disabled=false; } };
   const st=b.querySelector('[data-k=stop]'); st.onclick=async()=>{ if(st.dataset.arm!=="1"){ st.dataset.arm="1"; st.textContent="Wirklich beenden? Der Link funktioniert dann nicht mehr."; return; }
     try{ await srvPost("teilen_beenden",{tok:accTok(),t}); }catch(e){} const m=shMine(); delete m[n]; lsS("blattsingen_geteilt",m); shBox(""); pjTools(); };
 }
@@ -5840,7 +5851,7 @@ async function shShare(){
   SH.busy=true; const b=shBox('<p class="shst">Wird vorbereitet …</p>'), stx=t=>{ const e=b.querySelector(".shst"); if(e) e.textContent=t; };
   try{
     const mine=shMine(); const r=await srvPost("teilen_neu",{tok:accTok(),t:mine[n]||"",projekt:n,von:(ACC.info&&ACC.info.name)||""});
-    const t=r.t; mine[n]=t; lsS("blattsingen_geteilt",mine);
+    const t=r.t; mine[n]=t; lsS("blattsingen_geteilt",mine); (SH.key||(SH.key={}))[n]=r.schluessel||"";
     const hat=(await srvPost("teilen_hat",{tok:accTok(),t})).stuecke||{};
     for(let i=0;i<list.length;i++){ const p=list[i];
       stx("Lade „"+(p.title||"Stück")+"“ hoch ("+(i+1)+" von "+list.length+") …");
@@ -5905,6 +5916,34 @@ async function shImport(t,L,st){
     pjSelect(proj);
   }catch(e){ say("Übernehmen hat nicht geklappt: "+e.message+" – bitte noch einmal versuchen."); SH.asked=""; }
   finally{ SH.busy=false; }
+}
+
+/* --- Gruppenschlüssel: Mitsänger melden sich mit dem Schlüssel ihrer Gruppe an und bekommen deren Projekt --- */
+function grpForm(){
+  const d=document.createElement("div"); d.className="grpform";
+  d.innerHTML='<p style="margin:12px 0 6px"><b>🔑 Mit Gruppenschlüssel anmelden</b> – du singst in einer Gruppe, die ihre Noten hier teilt? Dann reicht der Schlüssel, den du von der Gruppe bekommen hast.</p><div class="shlink"><input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Gruppenschlüssel" aria-label="Gruppenschlüssel"><button type="button" class="primary sm">Anmelden</button></div><p class="hint grpmsg" aria-live="polite"></p>';
+  const inp=d.querySelector("input"), btn=d.querySelector("button"), msg=d.querySelector(".grpmsg");
+  const go=async()=>{ const k=inp.value.trim(); if(!k){ inp.focus(); return; } btn.disabled=true; msg.textContent="Prüfe den Schlüssel …";
+    try{ await grpJoin(k,msg); inp.value=""; }catch(e){ msg.textContent=e.message; } finally{ btn.disabled=false; } };
+  btn.onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); };
+  return d;
+}
+async function grpJoin(k,msg){
+  await srvLoad(); if(!SRV.url) throw new Error("Der Notendienst ist gerade nicht erreichbar.");
+  const r=await srvPost("teilen_mit_schluessel",{schluessel:k});
+  const l=grpList().filter(g=>g.t!==r.t); l.push({t:r.t,projekt:r.projekt}); grpSave(l);
+  const ab=lsJ("blattsingen_teilen_abos",{}); ab[r.projekt]=r.t; lsS("blattsingen_teilen_abos",ab);
+  if(msg) msg.textContent="Willkommen bei „"+r.projekt+"“ – die Stücke werden geladen …";
+  try{ nlLockUI(); accUI(); }catch(e){}
+  const b=shIn('<p class="hint shst">„'+esc(r.projekt)+'“ wird geladen …</p>');
+  await shImport(r.t,null,b&&b.querySelector(".shst"));
+}
+async function grpRefreshAll(){   // beim Öffnen: Gruppen-Projekte still auf neuesten Stand bringen
+  if(SH.busy) return; const l=grpList(); if(!l.length) return;
+  for(const g of l){ try{ const L=await srvJSON(SRV.url+"?a=teilen_liste&t="+g.t,{cache:"no-store"}); const all=await nlAll();
+      const have={}; all.forEach(p=>{ if(p.share&&p.share.t===g.t) have[p.share.id]=p.share.u; });
+      if(L.stuecke.some(s=>have[s.id]!==s.u)) await shImport(g.t,L,null);
+    }catch(e){ if(/gilt nicht mehr/.test(e.message||"")){ grpSave(grpList().filter(x=>x.t!==g.t)); } } }
 }
 window.__nl={get NL(){return NL;},get PL(){return PL;},tempo:v=>plSetTempo(v),flState:()=>flState(),setVoice:v=>{st.voice=v;},put:x=>nlPut(x),all:()=>nlAll(),sync:()=>syncRun(),get SY(){return SY;},setExtra:a=>pjSetExtra(a),extra:()=>pjExtra()};
 
@@ -6244,7 +6283,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=84;
+const APP_BUILD=85;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{

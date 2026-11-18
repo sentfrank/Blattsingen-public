@@ -13,6 +13,11 @@ function teilen_save($t, $i) { file_put_contents(teilen_dir($t) . '/info.json', 
 function teilen_owner($k) { return substr(hash_hmac('sha256', 'teilen|' . $k['email'], SERVER_KEY), 0, 24); }
 function teilen_groesse($d) { $n = 0; foreach (glob("$d/*") ?: [] as $f) $n += filesize($f); return $n; }
 
+function teilen_schluessel_norm($k) { return mb_strtolower(preg_replace('/\s+/u', '', (string)$k)); }
+function teilen_schluessel_hash($k) { return substr(hash_hmac('sha256', 'gruppe|' . teilen_schluessel_norm($k), SERVER_KEY), 0, 32); }
+function teilen_schluessel_map() { $f = $GLOBALS['DATA'] . '/teilen/_schluessel.json'; return is_file($f) ? (json_decode(file_get_contents($f), true) ?: []) : []; }
+function teilen_schluessel_save($m) { @mkdir($GLOBALS['DATA'] . '/teilen', 0700, true); file_put_contents($GLOBALS['DATA'] . '/teilen/_schluessel.json', json_encode($m)); }
+
 if (strpos($a, 'teilen_') === 0) {
   $t = $_GET['t'] ?? post('t');
   // --- öffentlich (nur mit Link): Liste und Dateien abholen ---
@@ -28,6 +33,19 @@ if (strpos($a, 'teilen_') === 0) {
     if (!is_file("$d/$id.ton$k.mp3")) out(404, ['fehler' => 'keine Spur']);
     header('Content-Type: audio/mpeg'); header('Content-Length: ' . filesize("$d/$id.ton$k.mp3")); readfile("$d/$id.ton$k.mp3"); exit;
   }
+  // --- Gruppenschlüssel: Mitsänger melden sich nur mit dem Schlüssel an und bekommen das Projekt ---
+  if ($a === 'teilen_mit_schluessel') {
+    nur_post();
+    $ip = substr(hash_hmac('sha256', 'ip|' . ($_SERVER['REMOTE_ADDR'] ?? ''), SERVER_KEY), 0, 20);
+    $vd = $GLOBALS['DATA'] . '/teilen/_versuche'; @mkdir($vd, 0700, true);
+    $vf = "$vd/$ip.json"; $v = is_file($vf) ? (json_decode(file_get_contents($vf), true) ?: []) : [];
+    $v = array_values(array_filter($v, function ($x) { return $x > time() - 3600; }));
+    if (count($v) >= 10) out(429, ['fehler' => 'Zu viele Versuche – bitte in einer Stunde noch einmal.']);
+    $map = teilen_schluessel_map(); $h = teilen_schluessel_hash(post('schluessel'));
+    $tt = $map[$h] ?? null;
+    if (!$tt || !($i = teilen_info($tt)) || empty($i['fertig'])) { $v[] = time(); file_put_contents($vf, json_encode($v)); out(404, ['fehler' => 'Diesen Gruppenschlüssel kenne ich nicht. Groß-/Kleinschreibung ist egal, Leerzeichen auch.']); }
+    out(200, ['t' => $tt, 'projekt' => $i['projekt']]);
+  }
   // --- nur Besitzer (angemeldet) ---
   nur_post();
   if (ZUGANG !== 'konto') out(400, ['fehler' => 'Teilen gibt es nur mit Benutzerkonto.']);
@@ -36,7 +54,7 @@ if (strpos($a, 'teilen_') === 0) {
     $proj = mb_substr(trim(post('projekt')), 0, 80);
     if ($proj === '') out(400, ['fehler' => 'Projektname fehlt']);
     if ($t !== '' && teilen_t_ok($t) && ($i = teilen_info($t)) && $i['owner'] === $own) {
-      $i['projekt'] = $proj; $i['neu'] = []; teilen_save($t, $i); out(200, ['t' => $t]);
+      $i['projekt'] = $proj; $i['neu'] = []; teilen_save($t, $i); out(200, ['t' => $t, 'schluessel' => $i['schluessel'] ?? '']);
     }
     $t = bin2hex(random_bytes(10)); @mkdir(teilen_dir($t), 0700, true);
     teilen_save($t, ['owner' => $own, 'projekt' => $proj, 'von' => mb_substr(trim(post('von')), 0, 60), 'u' => 0, 'fertig' => false, 'stuecke' => [], 'neu' => []]);
@@ -76,7 +94,21 @@ if (strpos($a, 'teilen_') === 0) {
     $i['stuecke'] = $st; $i['neu'] = []; $i['fertig'] = true; $i['u'] = time(); teilen_save($t, $i);
     out(200, ['ok' => true, 'n' => count($st)]);
   }
+  if ($a === 'teilen_schluessel') {   // Gruppenschlüssel festlegen oder ändern (leer = keiner)
+    $k = teilen_schluessel_norm(post('schluessel'));
+    if ($k !== '' && mb_strlen($k) < 2) out(400, ['fehler' => 'Der Schlüssel ist zu kurz.']);
+    $map = teilen_schluessel_map();
+    foreach ($map as $h => $tt) if ($tt === $t) unset($map[$h]);
+    if ($k !== '') {
+      $h = teilen_schluessel_hash($k);
+      if (isset($map[$h]) && $map[$h] !== $t) out(409, ['fehler' => 'Dieser Schlüssel ist schon für ein anderes Projekt vergeben.']);
+      $map[$h] = $t;
+    }
+    teilen_schluessel_save($map); $i['schluessel'] = $k; teilen_save($t, $i);
+    out(200, ['ok' => true, 'schluessel' => $k]);
+  }
   if ($a === 'teilen_beenden') {
+    $map = teilen_schluessel_map(); foreach ($map as $h => $tt) if ($tt === $t) unset($map[$h]); teilen_schluessel_save($map);
     foreach (glob("$d/*") ?: [] as $f) @unlink($f); @rmdir($d);
     out(200, ['ok' => true]);
   }
