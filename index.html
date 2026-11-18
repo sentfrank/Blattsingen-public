@@ -421,7 +421,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.18.1 · 18.11.2026 · Strato (Build 86)</span>
+  <span class="appver">App-Version S1.18.2 · 18.11.2026 · Strato (Build 87)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -4496,7 +4496,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.18.1 · 18.11.2026 · Strato (Build 86)";
+const APP_VERSION="S1.18.2 · 18.11.2026 · Strato (Build 87)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -4591,6 +4591,8 @@ function plMix(p){
   const n=p.score.parts.length;
   if(!p.mix||!p.mix.parts||p.mix.parts.length!==n) p.mix={mine:flGuessMine(p.score.parts.map(pt=>pt.name)),mineAuto:true,mode:"all",tempo:100,countIn:true,loop:false,from:"",to:"",parts:p.score.parts.map(pt=>({name:pt.name,vol:80,mute:!p.satz&&/^(klavier|piano|pianoforte|orgel|organ|begleitung)/i.test(pt.name||""),solo:false,oct:0}))};
   p.mix.parts.forEach(pt=>{ if(pt.oct==null) pt.oct=0; });
+  if(p.octs&&p.octs.length===n){ const sig=JSON.stringify([p.octs,p.pnames||null]);
+    if(p.mix.octsFrom!==sig){ p.mix.parts.forEach((pt,i)=>{ pt.oct=p.octs[i]||0; if(p.pnames&&p.pnames[i]) pt.name=p.pnames[i]; }); p.mix.octsFrom=sig; } }
   if(+p.mix.mine<0&&p.mix.mineAuto===undefined){ p.mix.mine=flGuessMine(p.score.parts.map(pt=>pt.name)); p.mix.mineAuto=true; }
   return p.mix;
 }
@@ -4793,7 +4795,9 @@ function plStart(fromQ,noCount){
     PL.sungParts={}; const off=m.sec(PL.q0), when=c.currentTime+lead;
     // Wiederholungen: die Gesangsspur liegt in notierter Reihenfolge vor – abschnittsweise in Spielfolge einsetzen
     const segs=sc.unrolled?sgSegments(p,sc,PL.q0,PL.qEnd,m):null;
-    Object.keys(SG.buf[p.id]).forEach(k=>{ const i=+k, ab=SG.buf[p.id][k]; if(!ab||!PL.gains[i]) return; PL.sungParts[i]=true;
+    Object.keys(SG.buf[p.id]).forEach(k=>{ const i=+k, ab=SG.buf[p.id][k]; if(!ab||!PL.gains[i]) return;
+      if(mx.parts[i]&&(mx.parts[i].oct||0)!==0) return;   // Lage verschoben: Spur passt nicht – eingebaute Stimme übernimmt
+      PL.sungParts[i]=true;
       if(segs){
         if(Math.abs(f-1)>1e-3){ PL.sungParts[i]=false; return; }   // anderes Tempo: bei Wiederholungen singt die eingebaute Stimme
         segs.forEach(sg=>{ if(sg.off>=ab.duration) return; const s=c.createBufferSource(); s.buffer=ab; const g=c.createGain(); s.connect(g); g.connect(PL.gains[i]);
@@ -5878,9 +5882,13 @@ async function shShare(){
       stx("Lade „"+(p.title||"Stück")+"“ hoch ("+(i+1)+" von "+list.length+") …");
       if(p.pdf&&!p.pdfHash){ p.pdfHash=await syncHash(p.pdf); await nlPutRaw(p); }
       const h=hat[p.id];
-      if(h&&h.u===(p.updated||0)&&h.ph===(p.pdf?p.pdfHash:"")){ await srvPost("teilen_behalte",{tok:accTok(),t,id:p.id}); continue; }
-      const meta=Object.assign({},p); ["pdf","acct","sung","job","projs","ord","mix","share","pdfHash","updated"].forEach(k=>delete meta[k]); if(meta.scoreXml) delete meta.score;
-      const fd=new FormData(); fd.append("tok",accTok()); fd.append("t",t); fd.append("id",p.id); fd.append("u",String(p.updated||0));
+      const sig=p.mix&&p.mix.parts?JSON.stringify(p.mix.parts.map(x=>[x.oct||0,x.name])):"";
+      if(sig!==(p.shSig||"")){ p.shSig=sig; p.shSigAt=Date.now(); await nlPutRaw(p); }
+      const uu=Math.max(p.updated||0,p.shSigAt||0);
+      if(h&&h.u===uu&&h.ph===(p.pdf?p.pdfHash:"")){ await srvPost("teilen_behalte",{tok:accTok(),t,id:p.id}); continue; }
+      const meta=Object.assign({},p); ["pdf","acct","sung","job","projs","ord","mix","share","pdfHash","updated","shSig","shSigAt"].forEach(k=>delete meta[k]); if(meta.scoreXml) delete meta.score;
+      if(p.mix&&p.mix.parts){ meta.octs=p.mix.parts.map(x=>x.oct||0); meta.pnames=p.mix.parts.map(x=>x.name); }
+      const fd=new FormData(); fd.append("tok",accTok()); fd.append("t",t); fd.append("id",p.id); fd.append("u",String(uu));
       fd.append("meta",JSON.stringify(meta)); fd.append("ph",p.pdf?p.pdfHash:"");
       if(p.pdf&&!(h&&h.ph===p.pdfHash)) fd.append("pdf",new Blob([p.pdf],{type:"application/pdf"}),"stueck.pdf");
       if(p.sung) Object.keys(p.sung).forEach(k=>fd.append("ton"+k,new Blob([p.sung[k]],{type:"audio/mpeg"}),"ton"+k+".mp3"));
@@ -6305,7 +6313,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=86;
+const APP_BUILD=87;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
