@@ -421,7 +421,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.18.0 · 18.11.2026 · Strato (Build 85)</span>
+  <span class="appver">App-Version S1.18.1 · 18.11.2026 · Strato (Build 86)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1326,8 +1326,11 @@ body.regopen{overflow:hidden}
             <div class="field" id="acctNameF" hidden><label class="label" for="acctName">Name</label><input type="text" id="acctName" autocomplete="name"></div>
             <div class="field"><label class="label" for="acctMail">E-Mail</label><input type="email" id="acctMail" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
             <div class="field"><label class="label" for="acctPass" id="acctPassL">Passwort</label><input type="password" id="acctPass" autocomplete="current-password"></div>
+            <div class="field" id="acctPass2F" hidden><label class="label" for="acctPass2">Passwort wiederholen</label><input type="password" id="acctPass2" autocomplete="new-password"></div>
             <div class="field" id="acctNewF" hidden><label class="label" for="acctNew">Neues Passwort (mind. 8 Zeichen)</label><input type="password" id="acctNew" autocomplete="new-password"></div>
             <div class="field" id="acctCodeF" hidden><label class="label" for="acctCode">Einladungscode</label><input type="text" id="acctCode" autocapitalize="off" spellcheck="false"></div>
+            <div class="field" id="acctNew2F" hidden><label class="label" for="acctNew2">Neues Passwort wiederholen</label><input type="password" id="acctNew2" autocomplete="new-password"></div>
+            <label class="donebox" id="acctShowF" style="align-self:end"><input type="checkbox" id="acctShow"> 👁 Passwort anzeigen</label>
           </div>
           <div class="btnrow"><button type="submit" class="primary" id="acctGo">Anmelden</button><button type="button" class="ghost" id="acctSwitch">Noch kein Konto? Konto anlegen</button><button type="button" class="ghost" id="acctCancel" hidden>Abbrechen</button></div>
           <p class="hint" id="acctMsg" aria-live="polite"></p>
@@ -4493,7 +4496,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.18.0 · 18.11.2026 · Strato (Build 85)";
+const APP_VERSION="S1.18.1 · 18.11.2026 · Strato (Build 86)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -5129,11 +5132,25 @@ function nlLockUI(){
   if(m) m.hidden=!lock;
   if(lock&&!$("viewer").hidden){ try{ $("vBack").click(); }catch(e){} }
 }
+function grpGuest(){ return !!grpList().length&&!(accTok()&&ACC.info); }
+function grpGuestUI(){
+  const h=$("libHome"); if(!h||SONG) return; const g=grpGuest()&&!ACC.showLogin;
+  let bar=$("grpBar");
+  if(grpGuest()&&!bar){ bar=document.createElement("div"); bar.id="grpBar"; bar.className="shbox";
+    bar.innerHTML='<p style="margin:0 0 6px"><b>🔑 Angemeldet mit Gruppenschlüssel:</b> <span class="grpnames"></span></p><div class="row"><button type="button" class="sm" data-k="login">🔐 Selbst Noten umwandeln? Anmelden / Konto anlegen</button><button type="button" class="ghost sm" data-k="more">Weitere Gruppe hinzufügen</button></div>';
+    bar.querySelector('[data-k=login]').onclick=()=>{ ACC.showLogin=true; ACC.mode="login"; accUI(); setTimeout(()=>{ try{ $("srvAcct").scrollIntoView({block:"center",behavior:"smooth"}); $("acctMail").focus(); }catch(e){} },100); };
+    bar.querySelector('[data-k=more]').onclick=e=>{ e.target.replaceWith(grpForm()); };
+    h.insertBefore(bar,h.firstChild); }
+  if(bar){ bar.hidden=!grpGuest(); const n=bar.querySelector(".grpnames"); if(n) n.textContent=grpList().map(x=>"„"+x.projekt+"“").join(", "); }
+  const add=h.querySelector(".lib-add"); if(add) add.hidden=g;
+  return g;
+}
 function accUI(){
   const box=$("srvAcct"); if(!box) return;
   try{ szUI(); }catch(e){}
   accPlace(); try{ nlLockUI(); }catch(e){}
   const inLib=$("viewer").hidden, sync=!!(ACC.ping&&ACC.ping.sync);
+  if(inLib&&grpGuestUI()){ box.hidden=true; return; }
   if(inLib&&!(accNeeded()&&(sync||nlLocked()))){ box.hidden=true; return; }
   if(!$("acctSync")){ const s=document.createElement("span"); s.id="acctSync"; s.className="hint acctsync"; const b=document.createElement("button"); b.type="button"; b.className="ghost sm"; b.id="acctSyncNow"; b.textContent="Jetzt abgleichen"; b.onclick=()=>syncRun(); $("acctIn").append(s,b); }
   $("acctSync").hidden=$("acctSyncNow").hidden=!sync; if(SY.info) $("acctSync").textContent=SY.info;
@@ -5169,6 +5186,7 @@ function accUI(){
   inn.hidden=true; form.hidden=false;
   const m=ACC.mode, reg=srvReg(), canReg=!!(ACC.ping&&ACC.ping.registrieren);
   $("acctNameF").hidden=m!=="reg"; $("acctCodeF").hidden=!(m==="reg"&&ACC.ping.code); $("acctNewF").hidden=m!=="pw";
+  $("acctPass2F").hidden=m!=="reg"; $("acctNew2F").hidden=m!=="pw";
   $("acctMail").closest(".field").hidden=m==="pw";
   $("acctPassL").textContent=m==="pw"?"Bisheriges Passwort":(m==="reg"?"Passwort (mind. 8 Zeichen)":"Passwort");
   $("acctPass").autocomplete=m==="reg"?"new-password":"current-password";
@@ -5199,10 +5217,12 @@ async function accSubmit(ev){
   try{
     let j;
     if(m==="login") j=await srvPost("login",{email:$("acctMail").value.trim(),pw:$("acctPass").value});
+    else if(m==="reg"&&$("acctPass").value!==$("acctPass2").value) throw new Error("Die beiden Passwörter sind nicht gleich – bitte noch einmal eingeben (mit „Passwort anzeigen“ kannst du sie prüfen).");
+    else if(m==="pw"&&$("acctNew").value!==$("acctNew2").value) throw new Error("Die beiden neuen Passwörter sind nicht gleich.");
     else if(m==="reg") j=await srvPost("registrieren",{name:$("acctName").value.trim(),email:$("acctMail").value.trim(),pw:$("acctPass").value,code:$("acctCode").value.trim()});
     else j=await srvPost("passwort",{tok:accTok(),alt:$("acctPass").value,neu:$("acctNew").value});
     if(j.tok) accSetTok(j.tok); if(j.konto) accCacheInfo(j.konto);
-    $("acctPass").value=""; $("acctNew").value="";
+    $("acctPass").value=""; $("acctNew").value=""; $("acctPass2").value=""; $("acctNew2").value=""; ACC.showLogin=false;
     ACC.mode="login"; accUI();
     $("omrStatus").textContent=m==="pw"?"Passwort geändert. Auf anderen Geräten musst du dich neu anmelden.":(m==="reg"?"Konto angelegt – du kannst jetzt umwandeln.":"Angemeldet.");
     if(m!=="pw") syncSoon(300);
@@ -5813,6 +5833,7 @@ $("projRename").onclick=()=>{ PJ.edit="umbenennen"; $("projName").value=PJ.sel||
 $("projShare").onclick=()=>shShare();
 $("projPull").onclick=async()=>{ const n=pjProj(), t=lsJ("blattsingen_teilen_abos",{})[n]; if(!t) return; const b=shIn('<p class="hint shst">Neueste Fassung wird geholt …</p>'); await shImport(t,null,b.querySelector(".shst")); };
 $("projDelete").onclick=()=>{ const d=$("projDelete"); if(d.dataset.arm!=="1"){ d.dataset.arm="1"; d.textContent="Wirklich auflösen? (Stücke bleiben erhalten)"; setTimeout(()=>{ d.dataset.arm=""; d.textContent="Projekt auflösen"; },4000); return; } pjDissolve(PJ.sel); };
+$("acctShow").onchange=e=>{ ["acctPass","acctPass2","acctNew","acctNew2"].forEach(id=>{ $(id).type=e.target.checked?"text":"password"; }); };
 $("acctSwitch").onclick=()=>{ ACC.mode=ACC.mode==="reg"?"login":"reg"; $("acctMsg").textContent=""; accUI(); };
 $("acctCancel").onclick=()=>{ ACC.mode="login"; $("acctMsg").textContent=""; accUI(); };
 $("acctPw").onclick=()=>{ ACC.mode="pw"; $("acctMsg").textContent=""; accUI(); $("acctPass").focus(); };
@@ -5889,7 +5910,8 @@ async function shCheck(){
   b.querySelector('[data-k=ok]').onclick=async e=>{ e.target.disabled=true; await shImport(t,L,b.querySelector(".shst")); };
 }
 async function shImport(t,L,st){
-  if(SH.busy) return; SH.busy=true; const say=x=>{ if(st) st.textContent=x; };
+  for(let i=0;SH.busy&&i<600;i++) await new Promise(r=>setTimeout(r,200));
+  SH.busy=true; const say=x=>{ if(st) st.textContent=x; };
   let done=0, skip=0;
   try{
     if(!L) L=await srvJSON(SRV.url+"?a=teilen_liste&t="+t,{cache:"no-store"});
@@ -5931,10 +5953,10 @@ function grpForm(){
 async function grpJoin(k,msg){
   await srvLoad(); if(!SRV.url) throw new Error("Der Notendienst ist gerade nicht erreichbar.");
   const r=await srvPost("teilen_mit_schluessel",{schluessel:k});
-  const l=grpList().filter(g=>g.t!==r.t); l.push({t:r.t,projekt:r.projekt}); grpSave(l);
+  const l=grpList().filter(g=>g.t!==r.t); l.push({t:r.t,projekt:r.projekt}); grpSave(l); SH.grpDone=1;
   const ab=lsJ("blattsingen_teilen_abos",{}); ab[r.projekt]=r.t; lsS("blattsingen_teilen_abos",ab);
   if(msg) msg.textContent="Willkommen bei „"+r.projekt+"“ – die Stücke werden geladen …";
-  try{ nlLockUI(); accUI(); }catch(e){}
+  try{ nlLockUI(); accUI(); await nlRefresh(); }catch(e){}
   const b=shIn('<p class="hint shst">„'+esc(r.projekt)+'“ wird geladen …</p>');
   await shImport(r.t,null,b&&b.querySelector(".shst"));
 }
@@ -6283,7 +6305,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=85;
+const APP_BUILD=86;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
