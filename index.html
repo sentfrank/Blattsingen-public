@@ -15,6 +15,9 @@
 .shbox p{margin:0 0 8px}.shbox .shlink{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.shbox input{flex:1 1 220px;min-width:0;font-size:.85rem}
 .shbox .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .holdtop{display:flex;gap:28px;align-items:baseline;flex-wrap:wrap;margin:10px 0 6px}
+.xmlsheet{margin:10px 0;border:1px solid var(--line);border-radius:12px;background:#fff;overflow-x:auto;padding:4px}
+.xshl{position:absolute;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:6px;pointer-events:none;transition:left .15s,top .15s}
+.vtitle #vRename{width:auto;justify-self:start;align-self:start;margin:4px 0}
 </style>
 <title>Vom Blatt in acht Wochen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -421,7 +424,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.18.3 · 18.11.2026 · Strato (Build 88)</span>
+  <span class="appver">App-Version S1.19.0 · 23.11.2026 · Strato (Build 89)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1310,7 +1313,7 @@ body.regopen{overflow:hidden}
   <div id="viewer" class="viewer" hidden>
     <div class="vhead">
       <button type="button" id="vBack">← Alle Stücke</button>
-      <div class="vtitle"><h3 id="vTitle"></h3><span class="hint" id="vFiles"></span></div>
+      <div class="vtitle"><h3 id="vTitle"></h3><button type="button" class="ghost sm" id="vRename" title="Titel ändern" aria-label="Titel ändern">✏️ Umbenennen</button><span class="hint" id="vFiles"></span></div>
       <input type="file" id="vAddFile" class="sr-only" multiple>
       <label class="filebtn ghost" for="vAddFile">Datei ergänzen</label>
     </div>
@@ -1416,6 +1419,7 @@ body.regopen{overflow:hidden}
     </div>
     <p class="hint" id="noScore" hidden>Für dieses Stück gibt es noch keine Stimmen-Datei. Ergänze eine MusicXML- oder MIDI-Datei, dann kannst du die Stimmen einzeln abspielen.</p>
     <p class="hint" id="noPdf" hidden>Für dieses Stück gibt es keine PDF. Über „Datei ergänzen“ kannst du sie hinzufügen.</p>
+    <div id="xmlSheet" class="xmlsheet" hidden></div>
     <p class="hint follow-state" id="followState" aria-live="polite"></p>
     <p class="hint" id="followHint" hidden>Die Markierung in den Noten gibt es für Stücke, die die App selbst aus der PDF umgewandelt hat. Mit „PDF erneut in Stimmen umwandeln“ bekommt auch dieses Stück die Mitlese-Markierung.</p>
     <div class="pdfbar" id="pdfBar"><button type="button" id="zOut" aria-label="Verkleinern">−</button><button type="button" id="zIn" aria-label="Vergrößern">+</button><span class="hint" id="pdfInfo"></span></div>
@@ -1639,12 +1643,13 @@ function run(events,onEv,onEnd){
 }
 function schedule(events,onEv,onEnd){
   const c=ctx; const t0=c.currentTime+.12; let end=0;
+  const kb=(()=>{ try{ const w=$("liveKbWrap"); return w&&$("liveKbOn")&&$("liveKbOn").checked&&w.offsetParent!==null&&!live.on; }catch(e){ return false; } })();
   events.forEach(ev=>{
     if(ev.midi!=null) [].concat(ev.midi).forEach(m=>tone(m,t0+ev.t,ev.d,ev.vol));
-    timers.push(setTimeout(()=>onEv(ev),(ev.t+.1)*1000));
+    timers.push(setTimeout(()=>{ onEv(ev); if(kb&&ev.midi!=null){ try{ liveKbPlayed([].concat(ev.midi)); }catch(e){} } },(ev.t+.1)*1000));
     end=Math.max(end,ev.t+(ev.d||0));
   });
-  timers.push(setTimeout(onEnd,(end+.4)*1000));
+  timers.push(setTimeout(()=>{ onEnd(); if(kb){ try{ liveKbPlayed(null); }catch(e){} } },(end+.4)*1000));
 }
 function toggleDrone(on){
   const btn=$("droneBtn");
@@ -3087,12 +3092,14 @@ function liveKbSeq(){ const w=$("liveKbWrap"), md=w&&w.dataset.mode;
 function liveKbEnsure(slot){
   let w=$("liveKbWrap");
   if(!w){ w=document.createElement("div"); w.id="liveKbWrap"; w.className="livekb";
-    w.innerHTML='<label class="donebox" style="margin:6px 0"><input type="checkbox" id="liveKbOn"> 🎹 Tastatur mit gesungenen Tönen zeigen</label><svg id="liveKb" role="img" aria-label="Tastatur mit gesungenem Ton" style="display:none"></svg>';
+    w.innerHTML='<label class="donebox" style="margin:6px 0"><input type="checkbox" id="liveKbOn"> 🎹 Tastatur zeigen (beim Abspielen die Töne, beim Mitsingen deinen gesungenen Ton)</label><svg id="liveKb" role="img" aria-label="Tastatur mit gesungenem Ton" style="display:none"></svg>';
     const cb=w.querySelector("#liveKbOn"); cb.checked=!!store.get("liveKb",false);
     cb.onchange=()=>{ store.set("liveKb",cb.checked); liveKbDraw(null); }; }
   if(slot) slot.appendChild(w);
   return w;
 }
+function liveKbPlayed(ms){ KBPLAY=ms; liveKbDraw(null); }
+let KBPLAY=null;
 function liveKbDraw(sung){
   const svg=$("liveKb"), on=$("liveKbOn"); if(!svg||!on) return;
   svg.style.display=on.checked?"block":"none"; if(!on.checked) return;
@@ -3101,18 +3108,18 @@ function liveKbDraw(sung){
   if(sung!=null){ lo=Math.min(lo,Math.round(sung)-1); hi=Math.max(hi,Math.round(sung)+1); }
   while([1,3,6,8,10].includes(((lo%12)+12)%12)) lo--; while([1,3,6,8,10].includes(((hi%12)+12)%12)) hi++;
   const BL=[1,3,6,8,10], whites=[]; for(let m=lo;m<=hi;m++) if(!BL.includes(((m%12)+12)%12)) whites.push(m);
-  const W=26, H=86, BW=16, BH=52, tgt=live.on&&seq[live.idx]?seq[live.idx].midi:null;
+  const W=26, H=86, BW=16, BH=52, tgt=null, pl=!live.on&&KBPLAY?KBPLAY:[];   // beim Mitsingen kein Zielton – das wäre vorgesagt
   svg.setAttribute("viewBox","0 0 "+(whites.length*W+2)+" "+(H+16)); svg.style.width="100%"; svg.style.maxWidth=(whites.length*W*1.5)+"px";
   const sr=sung!=null?Math.round(sung):null, c=sung!=null&&tgt!=null?Math.round((sung-tgt)*100):null, col=c==null?"var(--accent)":devColor(c);
   // bisher gesungene Töne dieses Versuchs (kleine Punkte)
   const done={}; (live.match||[]).forEach(mt=>{ if(mt&&!mt.prov) done[Math.round(mt.m)]=1; });
   let h="", xs={};
   whites.forEach((m,i)=>{ const x=1+i*W; xs[m]=x+W/2;
-    const fill=m===sr?col:"#fff";
-    h+='<rect x="'+x+'" y="1" width="'+(W-1)+'" height="'+H+'" rx="3" fill="'+fill+'" fill-opacity="'+(m===sr?0.75:1)+'" stroke="'+(m===tgt?"var(--accent)":"#999")+'" stroke-width="'+(m===tgt?3:1)+'"/>';
+    const fill=m===sr?col:pl.includes(m)?"var(--accent)":"#fff";
+    h+='<rect x="'+x+'" y="1" width="'+(W-1)+'" height="'+H+'" rx="3" fill="'+fill+'" fill-opacity="'+(m===sr?0.75:pl.includes(m)?0.55:1)+'" stroke="'+(m===tgt?"var(--accent)":"#999")+'" stroke-width="'+(m===tgt?3:1)+'"/>';
     if(((m%12)+12)%12===0) h+='<text x="'+(x+W/2)+'" y="'+(H+13)+'" text-anchor="middle" font-size="10" fill="var(--muted)">c'+(Math.floor(m/12)-4>=0?"\u2019".repeat(Math.floor(m/12)-4):"")+'</text>'; });
   for(let m=lo;m<=hi;m++){ if(!BL.includes(((m%12)+12)%12)) continue; const x=xs[m-1]+W/2-BW/2; xs[m]=x+BW/2;
-    h+='<rect x="'+x+'" y="1" width="'+BW+'" height="'+BH+'" rx="2" fill="'+(m===sr?col:"#333")+'" stroke="'+(m===tgt?"var(--accent)":"#333")+'" stroke-width="'+(m===tgt?3:1)+'"/>'; }
+    h+='<rect x="'+x+'" y="1" width="'+BW+'" height="'+BH+'" rx="2" fill="'+(m===sr?col:pl.includes(m)?"var(--accent)":"#333")+'" stroke="'+(m===tgt?"var(--accent)":"#333")+'" stroke-width="'+(m===tgt?3:1)+'"/>'; }
   Object.keys(done).forEach(m=>{ if(xs[m]!=null) h+='<circle cx="'+xs[m]+'" cy="'+(BL.includes(((m%12)+12)%12)?BH-8:H-10)+'" r="4" fill="var(--good)" opacity=".8"/>'; });
   if(sung!=null&&xs[sr]!=null){ const d=(sung-sr); h+='<line x1="'+(xs[sr]+d*W)+'" x2="'+(xs[sr]+d*W)+'" y1="'+(H-30)+'" y2="'+(H-4)+'" stroke="#000" stroke-width="2"/>'; }
   svg.innerHTML=h;
@@ -4355,7 +4362,8 @@ async function nlOpen(id){
   const p=NL.pieces.find(x=>x.id===id); if(!p) return;
   NL.cur=p; $("libHome").hidden=true; $("viewer").hidden=false; accUI();
   if(p.scoreXml&&p.score&&p.score.fmt!==6){ try{ const keep=p.mix; p.score=parseMusicXML(p.scoreXml); if(keep&&keep.parts&&keep.parts.length===p.score.parts.length) p.mix=keep; nlPut(p).catch(()=>{}); }catch(e){} }
-  $("vTitle").textContent=p.title||"Ohne Titel";
+  $("vTitle").textContent=p.title||"Ohne Titel"; $("vRename").hidden=!!p.builtin;
+  try{ xsShow(p); }catch(e){ console.error("Notenansicht:",e); }
   $("vFiles").textContent=[p.pdfName&&("PDF: "+p.pdfName),p.scoreName&&("Stimmen: "+p.scoreName)].filter(Boolean).join(" · ");
   FL.last=-1; FL.lastSys=null; plSetup(p); omrRefreshUI(); PJ.edit=null; pjViewer(); try{ dlUI(); }catch(e){}
   $("followHint").hidden=true; flState();
@@ -4496,10 +4504,10 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.18.3 · 18.11.2026 · Strato (Build 88)";
+const APP_VERSION="S1.19.0 · 23.11.2026 · Strato (Build 89)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
-  if(!p.pdf) return "Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
+  if(!p.pdf) return p.scoreXml?"Mitlesen in der Notenansicht: der aktuelle Takt ist markiert.":"Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
   if(!p.score) return "";
   if(!(p.layout&&p.layout.length)) return p.scoreName==="automatisch erkannt"
     ? "Mitlesen nicht verfügbar: Das Stück wurde vor dem Update umgewandelt. Tippe auf „PDF erneut in Stimmen umwandeln“."
@@ -4998,6 +5006,7 @@ function plAnimStep(){
   try{ flShow(mi,counting?0:(nx?(q-ms.q)/Math.max(1e-6,nx.q-ms.q):0),!counting||FL.last!==mi); }catch(e){ if(!PL.e1){ PL.e1=1; console.error("Mitlesen:",e); } }
   try{ nbDraw(counting?PL.q0:q); }catch(e){ if(!PL.e2){ PL.e2=1; console.error("Notenband:",e); } }
   try{ lyShow(counting?PL.q0:q); }catch(e){ if(!PL.e3){ PL.e3=1; console.error("Liedtext:",e); } }
+  try{ if(XS.osmd) xsMark(sc.unrolled&&ms.src!=null?ms.src:mi); }catch(e){}
   // Tonausgabe steht (z. B. nach Mikrofon-Nutzung auf dem iPhone): wieder anwerfen
   if(!PL.audio&&ctx.state!=="running"&&!PL.resuming){ PL.resuming=1; try{ ctx.resume().finally(()=>{ PL.resuming=0; }); }catch(e){ PL.resuming=0; } }
 }
@@ -6009,6 +6018,57 @@ async function grpRefreshAll(){   // beim Öffnen: Gruppen-Projekte still auf ne
       if(L.stuecke.some(s=>have[s.id]!==s.u)) await shImport(g.t,L,null);
     }catch(e){ if(/gilt nicht mehr/.test(e.message||"")){ grpSave(grpList().filter(x=>x.t!==g.t)); } } }
 }
+
+/* --- Titel eines Stücks ändern --- */
+$("vRename").onclick=()=>{
+  const p=NL.cur; if(!p) return; const h=$("vTitle"), b=$("vRename");
+  const inp=document.createElement("input"); inp.type="text"; inp.value=p.title||""; inp.setAttribute("aria-label","Neuer Titel"); inp.style.cssText="font:inherit;font-size:1.1rem;width:min(100%,420px)";
+  const ok=document.createElement("button"); ok.type="button"; ok.className="primary sm"; ok.textContent="Speichern";
+  h.hidden=true; b.hidden=true; h.after(inp,ok); inp.focus(); inp.select();
+  const done=async save=>{ const v=inp.value.trim(); inp.remove(); ok.remove(); h.hidden=false; b.hidden=false;
+    if(save&&v&&v!==p.title){ p.title=v; h.textContent=v; await nlPut(p); try{ nlRefresh(); }catch(e){} } };
+  ok.onclick=()=>done(true); inp.onkeydown=e=>{ if(e.key==="Enter") done(true); if(e.key==="Escape") done(false); };
+};
+/* --- Notenansicht für Stücke ohne PDF (z. B. MusicXML aus Newzik, MuseScore, Sibelius): Noten und Liedtext
+       werden mit OpenSheetMusicDisplay gesetzt; beim Abspielen ist der aktuelle Takt markiert und wird mitgescrollt. */
+const XS={osmd:null,id:null,boxes:null,last:-1,loading:null};
+function xsLoadLib(){
+  if(window.opensheetmusicdisplay) return Promise.resolve();
+  if(XS.loading) return XS.loading;
+  XS.loading=new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="lib/osmd.min.js"; sc.onload=res; sc.onerror=()=>{ XS.loading=null; rej(new Error("Notensatz konnte nicht geladen werden (Internet?)")); }; document.head.appendChild(sc); });
+  return XS.loading;
+}
+async function xsShow(p){
+  const box=$("xmlSheet"); if(!box) return;
+  if(p.pdf||!p.scoreXml||p.satz&&!p.scoreXml){ box.hidden=true; box.innerHTML=""; XS.id=null; return; }
+  box.hidden=false; if(XS.id===p.id&&XS.osmd) return;
+  box.innerHTML='<p class="hint">Noten werden gesetzt …</p>'; XS.id=p.id; XS.boxes=null; XS.last=-1;
+  try{
+    await xsLoadLib(); if(XS.id!==p.id) return;
+    box.innerHTML='<div class="xsin"></div>';
+    const o=new opensheetmusicdisplay.OpenSheetMusicDisplay(box.firstChild,{autoResize:true,backend:"svg",drawTitle:true,drawPartNames:true,drawMeasureNumbers:true,drawingParameters:"compacttight"});
+    await o.load(p.scoreXml); if(XS.id!==p.id) return;
+    o.zoom=window.innerWidth<600?0.6:0.8; o.render(); XS.osmd=o;
+    const hl=document.createElement("div"); hl.className="xshl"; hl.hidden=true; box.style.position="relative"; box.appendChild(hl); XS.hl=hl;
+  }catch(e){ box.innerHTML='<p class="hint">Notenansicht nicht möglich: '+esc(e.message||String(e))+'</p>'; XS.osmd=null; }
+}
+function xsBoxes(){
+  if(XS.boxes) return XS.boxes; const o=XS.osmd; if(!o||!o.GraphicSheet) return null;
+  const u=10*o.zoom, out=[];
+  o.GraphicSheet.MeasureList.forEach((col,mi)=>{ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    (col||[]).forEach(gm=>{ if(!gm||!gm.PositionAndShape) return; const ps=gm.PositionAndShape, a=ps.AbsolutePosition, bb=ps.BorderLeft, br=ps.BorderRight, bt=ps.BorderTop, bo=ps.BorderBottom;
+      x0=Math.min(x0,a.x+bb); x1=Math.max(x1,a.x+br); y0=Math.min(y0,a.y+bt); y1=Math.max(y1,a.y+bo); });
+    out[mi]=x1>x0?{x:x0*u,y:y0*u,w:(x1-x0)*u,h:(y1-y0)*u}:null; });
+  XS.boxes=out; window.addEventListener("resize",()=>{ XS.boxes=null; },{once:true}); return out;
+}
+function xsMark(mi){
+  if(!XS.osmd||!XS.hl||$("xmlSheet").hidden||mi===XS.last) return; XS.last=mi;
+  const B=xsBoxes(), b=B&&B[mi]; if(!b){ XS.hl.hidden=true; return; }
+  const svg=XS.osmd.container.querySelector("svg"), bx=$("xmlSheet").getBoundingClientRect(), sr=svg?svg.getBoundingClientRect():bx;
+  const ox=sr.left-bx.left+$("xmlSheet").scrollLeft, oy=sr.top-bx.top;
+  Object.assign(XS.hl.style,{left:(b.x+ox-4)+"px",top:(b.y+oy-6)+"px",width:(b.w+8)+"px",height:(b.h+12)+"px"}); XS.hl.hidden=false;
+  const r=XS.hl.getBoundingClientRect(); if(r.top<80||r.bottom>innerHeight-40) XS.hl.scrollIntoView({block:"center",behavior:"smooth"});
+}
 window.__nl={get NL(){return NL;},get PL(){return PL;},tempo:v=>plSetTempo(v),flState:()=>flState(),setVoice:v=>{st.voice=v;},put:x=>nlPut(x),all:()=>nlAll(),sync:()=>syncRun(),get SY(){return SY;},setExtra:a=>pjSetExtra(a),extra:()=>pjExtra()};
 
 /* --- Gesungene Silben mit Konsonanten (Formantsynthese): Silbe → Laute → Klang --- */
@@ -6347,7 +6407,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=88;
+const APP_BUILD=89;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
