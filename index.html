@@ -424,7 +424,7 @@ body.regopen{overflow:hidden}
   <span class="label">Kammerchor · Blattsingen · 8 Wochen · ca. 30 Min. täglich</span>
   <h1>Vom Blatt in acht Wochen</h1>
   <p class="lead">Ein Übeplan, der Gehör, Treffsicherheit und Rhythmus Woche für Woche aufbaut, und ein Trainer, der dir Tonleitern, Intervalle und kurze Lesemelodien direkt im Browser vorspielt.</p>
-  <span class="appver">App-Version S1.19.0 · 23.11.2026 · Strato (Build 89)</span>
+  <span class="appver">App-Version S1.19.1 · 27.11.2026 · Strato (Build 90)</span>
   <nav><a href="#routine">Tagesroutine</a><a href="#plan">8-Wochen-Plan</a><a href="#einsingen">Einsingen</a><a href="#trainer">Trainer</a><a href="#noten">Meine Noten</a><a href="#uebung">Übungsblätter</a><a href="#theorie">Theorie</a><a href="#material">Übematerial</a></nav>
 </header>
 
@@ -1419,6 +1419,7 @@ body.regopen{overflow:hidden}
     </div>
     <p class="hint" id="noScore" hidden>Für dieses Stück gibt es noch keine Stimmen-Datei. Ergänze eine MusicXML- oder MIDI-Datei, dann kannst du die Stimmen einzeln abspielen.</p>
     <p class="hint" id="noPdf" hidden>Für dieses Stück gibt es keine PDF. Über „Datei ergänzen“ kannst du sie hinzufügen.</p>
+    <div class="btnrow" id="xsToggle" hidden role="group" aria-label="Ansicht"><button type="button" class="sm" id="xsShowXml">🎼 Noten (aus der Stimmen-Datei)</button><button type="button" class="sm" id="xsShowPdf">📄 PDF</button></div>
     <div id="xmlSheet" class="xmlsheet" hidden></div>
     <p class="hint follow-state" id="followState" aria-live="polite"></p>
     <p class="hint" id="followHint" hidden>Die Markierung in den Noten gibt es für Stücke, die die App selbst aus der PDF umgewandelt hat. Mit „PDF erneut in Stimmen umwandeln“ bekommt auch dieses Stück die Mitlese-Markierung.</p>
@@ -4504,7 +4505,7 @@ function flTap(ev,pi){
 
 
 /* --- Übeansicht und Mitlese-Status --- */
-const APP_VERSION="S1.19.0 · 23.11.2026 · Strato (Build 89)";
+const APP_VERSION="S1.19.1 · 27.11.2026 · Strato (Build 90)";
 function flStateText(){
   const p=NL.cur; if(!p) return "";
   if(!p.pdf) return p.scoreXml?"Mitlesen in der Notenansicht: der aktuelle Takt ist markiert.":"Keine PDF zu diesem Stück – Mitlesen nicht möglich.";
@@ -6038,17 +6039,35 @@ function xsLoadLib(){
   XS.loading=new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="lib/osmd.min.js"; sc.onload=res; sc.onerror=()=>{ XS.loading=null; rej(new Error("Notensatz konnte nicht geladen werden (Internet?)")); }; document.head.appendChild(sc); });
   return XS.loading;
 }
+function xsImported(p){ return !!(p.scoreXml&&p.scoreName&&!/automatisch|erkannt|Arrangement/i.test(p.scoreName)); }
+function xsView(p){   // PDF und eigene Stimmen-Datei: umschaltbar, Wahl je Stück gemerkt
+  const both=!!(p.pdf&&xsImported(p)), xml=!p.pdf?!!p.scoreXml:both&&p.view!=="pdf";
+  $("xsToggle").hidden=!both;
+  $("xsShowXml").setAttribute("aria-pressed",String(xml)); $("xsShowPdf").setAttribute("aria-pressed",String(!xml));
+  $("xsShowXml").className=xml?"primary sm":"sm"; $("xsShowPdf").className=xml?"sm":"primary sm";
+  if(p.pdf){ $("pdfPages").hidden=xml; $("pdfBar").hidden=xml; }
+  return xml;
+}
+$("xsShowXml").onclick=async()=>{ const p=NL.cur; if(!p) return; p.view="xml"; await nlPutRaw(p); xsShow(p); };
+$("xsShowPdf").onclick=async()=>{ const p=NL.cur; if(!p) return; p.view="pdf"; await nlPutRaw(p); xsShow(p); };
 async function xsShow(p){
   const box=$("xmlSheet"); if(!box) return;
-  if(p.pdf||!p.scoreXml||p.satz&&!p.scoreXml){ box.hidden=true; box.innerHTML=""; XS.id=null; return; }
+  const xml=xsView(p);
+  if(!xml||!p.scoreXml){ box.hidden=true; if(XS.id!==p.id){ box.innerHTML=""; XS.id=null; XS.osmd=null; } return; }
   box.hidden=false; if(XS.id===p.id&&XS.osmd) return;
   box.innerHTML='<p class="hint">Noten werden gesetzt …</p>'; XS.id=p.id; XS.boxes=null; XS.last=-1;
   try{
     await xsLoadLib(); if(XS.id!==p.id) return;
-    box.innerHTML='<div class="xsin"></div>';
-    const o=new opensheetmusicdisplay.OpenSheetMusicDisplay(box.firstChild,{autoResize:true,backend:"svg",drawTitle:true,drawPartNames:true,drawMeasureNumbers:true,drawingParameters:"compacttight"});
-    await o.load(p.scoreXml); if(XS.id!==p.id) return;
-    o.zoom=window.innerWidth<600?0.6:0.8; o.render(); XS.osmd=o;
+    let o=null, err=null;
+    for(const wmin of [760,1100,1600]){
+      box.innerHTML='<div class="xsin"></div>'; const inn=box.firstChild; inn.style.width=Math.max(box.clientWidth-10,wmin)+"px";
+      try{ o=new opensheetmusicdisplay.OpenSheetMusicDisplay(inn,{autoResize:false,backend:"svg",drawTitle:true,drawPartNames:true,drawMeasureNumbers:true,drawingParameters:"compacttight"});
+        await o.load(p.scoreXml); if(XS.id!==p.id) return;
+        o.zoom=window.innerWidth<600?0.6:0.8; o.render(); err=null; break; }
+      catch(e){ err=e; o=null; }
+    }
+    if(!o) throw err||new Error("unbekannter Fehler");
+    XS.osmd=o;
     const hl=document.createElement("div"); hl.className="xshl"; hl.hidden=true; box.style.position="relative"; box.appendChild(hl); XS.hl=hl;
   }catch(e){ box.innerHTML='<p class="hint">Notenansicht nicht möglich: '+esc(e.message||String(e))+'</p>'; XS.osmd=null; }
 }
@@ -6407,7 +6426,7 @@ body.songapp .secclose{display:none}
 </script>
 
 <script>
-const APP_BUILD=89;
+const APP_BUILD=90;
 if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ try{ r.update(); }catch(e){} }).catch(()=>{})); }
 window.addEventListener("load",()=>{
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
